@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useProjectStore } from "./store/projectStore";
 import { LadderCanvas } from "./components/LadderCanvas";
 import { CioprgInspector } from "./components/CioprgInspector";
+import { GraphWorkspace } from "./components/GraphWorkspace.tsx";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle, FileSearch } from "lucide-react";
@@ -27,6 +28,7 @@ export function App() {
   const [activeAddresses, setActiveAddresses] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [graphMode, setGraphMode] = useState(true);
 
   // 1. Подписка на события рантайма из Rust по протоколу UDP/HSE
   useEffect(() => {
@@ -100,9 +102,14 @@ export function App() {
       {/* Панель инструментов (Toolbar) */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", backgroundColor: "#2d2d2d", borderBottom: "1px solid #3c3c3c" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <span style={{ fontWeight: "bold", color: "#61afef" }}>{projectName}</span>
-          <button onClick={() => loadProject("project.json")} style={btnStyle}><FolderOpen size={16} /> Открыть</button>
-          <button onClick={handleSave} style={btnStyle}><Save size={16} /> Сохранить JSON-черновик</button>
+          <span style={{ fontWeight: "bold", color: "#61afef" }}>MLAD</span>
+          <button type="button" style={{...btnStyle, backgroundColor: graphMode ? "#506b60" : "#3a3f4b"}}
+            onClick={() => setGraphMode(true)}>Графический редактор</button>
+          <button type="button" style={{...btnStyle, backgroundColor: !graphMode ? "#506b60" : "#3a3f4b"}}
+            onClick={() => setGraphMode(false)}>Старый JSON</button>
+          {!graphMode && <span style={{fontSize:12,color:"#a6b4c1"}}>{projectName}</span>}
+          {!graphMode && <button onClick={() => loadProject("project.json")} style={btnStyle}><FolderOpen size={16} /> Открыть</button>}
+          {!graphMode && <button onClick={handleSave} style={btnStyle}><Save size={16} /> Сохранить старый JSON</button>}
           <button type="button" onClick={() => setInspectorOpen(true)} style={btnStyle}><FileSearch size={16} /> Просмотр CIOPRG.LST</button>
           <button onClick={handleDeploy} disabled title="Небезопасный деплой заблокирован до проверки формата CIOPRG.LST" style={{ ...btnStyle, opacity: 0.45, cursor: "not-allowed" }}><ArrowUpCircle size={16} /> FTP (отключён)</button>
         </div>
@@ -123,15 +130,20 @@ export function App() {
             style={{ ...btnStyle, backgroundColor: isMonitoring ? "#e06c75" : "#98c379", color: "#1e1e1e" }}
           >
             {isMonitoring ? <Square size={16} /> : <Play size={16} />}
-            {isMonitoring ? "Стоп мониторинг" : "Онлайн мониторинг"}
+            {isMonitoring ? "Мониторинг" : "HSES (отключён)"}
           </button>
         </div>
       </div>
 
       {inspectorOpen && <CioprgInspector onClose={() => setInspectorOpen(false)} />}
 
-      {/* Основное рабочее пространство */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      {/* Новый графический черновик всегда смонтирован: переключение вкладок не теряет несохранённые правки. */}
+      <div style={{display:graphMode?"flex":"none",flex:1,minHeight:0,overflow:"hidden"}}>
+        <GraphWorkspace />
+      </div>
+
+      {/* Основное рабочее пространство устаревшей версии (только JSON) */}
+      {!graphMode && <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>}
         {/* Боковая панель управления (Sidebar) */}
         <div style={{ width: "260px", backgroundColor: "#252526", borderRight: "1px solid #3c3c3c", padding: "15px", display: "flex", flexDirection: "column", gap: "15px" }}>
           <h3 style={{ margin: 0, fontSize: "14px", color: "#abb2bf", textTransform: "uppercase", letterSpacing: "0.5px" }}>Управление</h3>
@@ -160,7 +172,7 @@ export function App() {
         <div style={{ flex: 1, padding: "20px", overflowY: "auto", backgroundColor: "#1e1e1e" }}>
           <LadderCanvas rungs={rungs} activeAddresses={activeAddresses} />
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
