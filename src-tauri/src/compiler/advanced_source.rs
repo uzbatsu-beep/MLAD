@@ -45,6 +45,16 @@ pub struct AdvancedSourceReport {
     pub hardware_test_authorized: bool,
 }
 
+/// Limits the amount of source-derived diagnostic text returned via IPC.
+#[derive(Default)]
+struct LimitedWarnings(Vec<SourceWarning>);
+impl LimitedWarnings {
+    fn push(&mut self, warning: SourceWarning) {
+        if self.0.len()<500 { self.0.push(warning); }
+    }
+    fn into_inner(self)->Vec<SourceWarning> {self.0}
+}
+
 fn is_simple_str(i: &AstInstruction) -> bool {
     i.syntax_valid &&
     matches!(i.mnemonic.as_str(),"STR"|"STR-NOT") &&
@@ -60,7 +70,7 @@ fn op(inst: &AstInstruction) -> Vec<String> {
 
 pub fn inspect(doc: &LosslessDocument) -> AdvancedSourceReport {
     let mut blocks = vec![];
-    let mut warnings = vec![];
+    let mut warnings = LimitedWarnings::default();
     let mut used_current: HashMap<String,usize> = HashMap::new();
     let mut typed_insts: Vec<Option<&AstInstruction>> = vec![];
     for line in &doc.lines {
@@ -181,7 +191,7 @@ pub fn inspect(doc: &LosslessDocument) -> AdvancedSourceReport {
     AdvancedSourceReport{
         source_sha256:doc.source_sha256.clone(),
         blocks_truncated:blocks.len()>=MAX_BLOCKS,
-        blocks,warnings,original_only:true,native_export_allowed:false,
+        blocks,warnings:warnings.into_inner(),original_only:true,native_export_allowed:false,
         hardware_test_authorized:false,
     }
 }
