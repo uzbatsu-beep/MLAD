@@ -5,10 +5,10 @@ pub mod compiler;
 pub mod network;
 
 use serde::{Deserialize, Serialize};
-use tracing::{info, error, warn};
+use tracing::{info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tauri::{State, Emitter};
+use tauri::State;
 
 // Глобальное потокобезопасное состояние сетевого клиента
 pub struct AppNetworkState {
@@ -169,9 +169,20 @@ async fn cmd_save_graph_draft(
     Ok(result)
 }
 
+fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
+    let name = std::path::Path::new(file_path).file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("Не указан путь к JSON-проекту")?;
+    if !name.ends_with(".json") || name.ends_with(".graph.json") {
+        return Err("Старый редактор может сохранять только обычный *.json, но не *.graph.json или *.LST".into());
+    }
+    Ok(())
+}
+
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
+    check_legacy_json_path(&file_path)?;
     info!("Запрос на сохранение проекта. Количество цепей: {}", data.len());
     
     // 1. Запуск статического анализа логики на лету (Double Coil, валидация адресов бит)
@@ -198,62 +209,24 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
 /// Команда Tauri: Переключение режима онлайн-мониторинга через UDP/HSE протокол
 #[tauri::command]
 async fn cmd_toggle_monitoring(
-    ip: String, 
-    active: bool, 
-    state: State<'_, AppNetworkState>, 
-    app_handle: tauri::AppHandle
+    _ip: String,
+    active: bool,
+    state: State<'_, AppNetworkState>,
+    _app_handle: tauri::AppHandle,
 ) -> Result<(), String> {
-    let mut monitor_lock = state.monitor_handle.lock().await;
-    
-    // Останавливаем текущий поток мониторинга, если он запущен
-    if let Some(handle) = monitor_lock.take() {
+    // Legacy HSES client uses an unverified protocol framing. Stop any old
+    // local poll and never open a new socket until protocol verification.
+    let mut monitor = state.monitor_handle.lock().await;
+    if let Some(handle) = monitor.take() {
         handle.abort();
-        info!("Поток циклического опроса робота остановлен.");
     }
-
     if active {
-        info!("Запуск асинхронного онлайн-мониторинга робота: {}:8040", ip);
-        
-        let hse_client = network::YaskawaHseClient::new(&ip, 8040)
-            .await
-            .map_err(|e| format!("Ошибка инициализации HSE сокета: {}", e))?;
-            
-        let client_arc = Arc::new(hse_client);
-        
-        // Создаем фоновый асинхронный поток опроса памяти с помощью tokio
-        let new_handle = tokio::spawn(async move {
-            let mut interval = tokio::time::interval(tokio::time::Duration::from_millis(100));
-            let mut req_id = 0u8;
-            
-            loop {
-                interval.tick().await;
-                req_id = req_id.wrapping_add(1);
-                
-                // Запрашиваем состояние байта пользовательских реле 70010 (класс 0x01, смещение 0)
-                // Спецификацию классов и смещений сигналов см. в docs/memory_map.md
-                match client_arc.read_relay_byte(0x01, 0, req_id).await {
-                    Ok(relay_byte) => {
-                        // Формируем карту состояний бит для отправки во фронтенд через события Tauri
-                        let mut state_map = std::collections::HashMap::new();
-                        state_map.insert("70010".to_string(), (relay_byte & 0x01) != 0);
-                        state_map.insert("70011".to_string(), (relay_byte & 0x02) != 0);
-                        state_map.insert("70012".to_string(), (relay_byte & 0x04) != 0);
-                        
-                        let _ = app_handle.emit("ladder-runtime-sync", state_map);
-                    },
-                    Err(e) => {
-                        error!("Ошибка опроса состояния памяти контроллера: {}", e);
-                        let _ = app_handle.emit("robot-disconnected", ());
-                    }
-                }
-            }
-        });
-        
-        *monitor_lock = Some(new_handle);
+        Err("Мониторинг HSES отключён: сетевой протокол и семантика данных не верифицированы".into())
+    } else {
+        Ok(())
     }
-    
-    Ok(())
 }
+
 
 /// Команда Tauri: Деплой запрещён до аппаратной и форматной верификации
 #[tauri::command]
@@ -285,4 +258,25 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("Критическая ошибка при запуске runtime-окружения Tauri");
+}
+
+#[cfg(test)]
+mod graph_write_safety_tests {
+    use super::*;
+
+    #[test]
+    fn legacy_writer_rejects_native_and_new_graph_formats() {
+        assert!(check_legacy_json_path("CIOPRG.LST").is_err());
+        assert!(check_legacy_json_path("robot.lst").is_err());
+        assert!(check_legacy_json_path("ladder.graph.json").is_err());
+        assert!(check_legacy_json_path("project.json").is_ok());
+    }
+
+    #[test]
+    fn graph_draft_path_never_targets_native_files() {
+        assert!(check_graph_draft_path("CIOPRG.LST").is_err());
+        assert!(check_graph_draft_path("project.json").is_err());
+        assert!(check_graph_draft_path("ladder.graph.json").is_ok());
+        assert!(check_graph_draft_path("example.graph.json").is_ok());
+    }
 }
