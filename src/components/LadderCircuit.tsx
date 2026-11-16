@@ -85,7 +85,7 @@ export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
       preserveAspectRatio="xMinYMid meet"
       style={{
         display:"block",
-        width:fitToWidth?"100%":totalWidth*zoom,
+        width:fitToWidth?`${Math.round(zoom*100)}%`:totalWidth*zoom,
         height:fitToWidth?"auto":totalHeight*zoom,
         minWidth:fitToWidth?Math.min(totalWidth*zoom,540):totalWidth*zoom,
       }}>
