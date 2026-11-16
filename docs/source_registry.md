@@ -22,6 +22,28 @@ Updated 2026-11-16. References are for **DX100, DX200, YRC1000** (not automatica
 3. **CIOPRG.LST filename and system/user ownership**: manufacturer CIO overview.
 4. **`//$M` section**: manufacturer article shows a concrete eight-row data mapping.
 
+## PR #5 — verified advanced instruction details (2026-11-16)
+
+- **DX100 RE-CKI-A453 §§12.2.12–14 (manual pp. 12-11–12-13):**
+  `TMR` 0.1 s clock, start OFF resets; `CNT` has C and independent R,
+  OFF→ON counting, reset priority; `GSTR/GOUT` are paired 8-bit
+  operations. Current M000..559, preset M000..999 or 0..65535.
+- **DX200 RE-CKI-A465 §§12.2.12–14 (manual pp. 12-12–12-14)**:
+  corresponding formats and operating principle independently checked
+  against the DX200 manual text.
+- **YRC1000 RE-CKI-A467 §§12.2.12–14 (manual pp. 12-12–12-15)**:
+  corresponding formats and operating principle independently checked
+  against the YRC1000 manual text.
+- **Error 4040/4100/4150/4220/4230** cross-checked against the official
+  manufacturer error-list pages for DX100/DX200/YRC1000. Error 4220
+  concerns the *combined* TMR/CNT/arithmetic budget (more than 100).
+- **Not verified:** entire CIOPRG file grammar, machine scan-cycle
+  equivalence, hardware I/O activation, firmware-specific optional behavior,
+  actual parameter refresh timing and real-controller acceptance of any
+  MLAD-written file. No editable `CIOPRG.LST` serializer was added.
+- Implementation: [advanced instruction contract](advanced_blocks.md);
+  [unexecuted laboratory matrix](advanced_hardware_test_matrix.md).
+
 ## Not yet verified: explicit evidence requests
 
 - A complete unmodified `CIOPRG.LST` export from each of DX100, DX200, YRC1000 (system type/option-specific) to establish all section delimiters, header bytes, comments and encoding.
