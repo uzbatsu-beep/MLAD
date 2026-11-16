@@ -1,4 +1,4 @@
-# MLAD PR #6 — Multiple visible rungs and offline tri-state visualization
+# MLAD PR #7 — Multiple visible rungs and offline tri-state visualization
 
 ## User-reported issues (Windows Bench v0.5.0-rc.1)
 
