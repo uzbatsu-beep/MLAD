@@ -531,7 +531,8 @@ impl Analyzer {
             }
         }
         detect_feedback_cycles(&self.rungs, &mut self.diagnostics);
-        let complete = self.unsupported_segments == 0 &&
+        let complete = self.end_seen &&
+            self.unsupported_segments == 0 &&
             doc.diagnostics.is_empty() &&
             !self.diagnostics.iter().any(|d| d.level == DiagnosticLevel::Error);
         SemanticReport {
