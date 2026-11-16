@@ -78,6 +78,17 @@ async fn cmd_inspect_cioprg(
     if bytes.len() as u64 > MAX_CIO_FILE_BYTES {
         return Err("Файл .LST превышает ограничение 16 МиБ".into());
     }
+    // Bound line metadata and diagnostic allocation even for hostile text made
+    // almost entirely of newline bytes. CRLF is one line terminator.
+    let mut line_breaks = 0usize;
+    for (i, byte) in bytes.iter().enumerate() {
+        if *byte == b'\n' || (*byte == b'\r' && bytes.get(i + 1) != Some(&b'\n')) {
+            line_breaks += 1;
+            if line_breaks > 200_000 {
+                return Err("Слишком много строк в .LST (предел 200000)".into());
+            }
+        }
+    }
 
     let doc = compiler::lossless::parse_document(bytes, controller);
     Ok(doc.inspection_report(600, 500))
