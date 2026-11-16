@@ -101,6 +101,12 @@ export function App() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh", backgroundColor: "#1e1e1e" }}>
+      <div role="status" style={{background:"#493f25",color:"#ffe0a2",
+        borderBottom:"1px solid #a27e39",padding:"7px 16px",
+        fontSize:12,fontWeight:600}}>
+        MLAD Bench v0.5.0-rc.1 · STAND / OFFLINE · Только подготовка стендовых
+        испытаний. Запись CIOPRG.LST, FTP и HSES отключены.
+      </div>
       {/* Панель инструментов (Toolbar) */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", padding: "10px 20px", backgroundColor: "#2d2d2d", borderBottom: "1px solid #3c3c3c" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
