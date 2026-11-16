@@ -118,6 +118,20 @@ fn check_graph_draft_path(file_path: &str) -> Result<&std::path::Path, String> {
     Ok(path)
 }
 
+// Reject direct symlink targets before any JSON write. This is a
+// defense-in-depth check, not a substitute for filesystem ACLs or locking.
+async fn reject_existing_symlink(path: &std::path::Path) -> Result<(), String> {
+    match tokio::fs::symlink_metadata(path).await {
+        Ok(meta) if meta.file_type().is_symlink() =>
+            Err("Сохранение через символическую ссылку запрещено".into()),
+        Ok(meta) if !meta.is_file() =>
+            Err("Сохранение допускается только в обычный файл".into()),
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(format!("Ошибка проверки целевого файла: {e}")),
+    }
+}
+
 /// Offline, non-mutating draft validation. No device/network access.
 #[tauri::command]
 fn cmd_validate_graph_draft(
@@ -153,6 +167,7 @@ async fn cmd_save_graph_draft(
     project: compiler::graph_draft::GraphDraft,
 ) -> Result<compiler::graph_draft::DraftValidation, String> {
     let path = check_graph_draft_path(&file_path)?;
+    reject_existing_symlink(path).await?;
     let (content, result) = compiler::graph_draft::checked_draft_json(&project)?;
     if path.exists() {
         let info = tokio::fs::metadata(path).await
@@ -183,6 +198,7 @@ fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
     check_legacy_json_path(&file_path)?;
+    reject_existing_symlink(std::path::Path::new(&file_path)).await?;
     info!("Запрос на сохранение проекта. Количество цепей: {}", data.len());
     
     // 1. Запуск статического анализа логики на лету (Double Coil, валидация адресов бит)
@@ -271,6 +287,23 @@ mod graph_write_safety_tests {
         assert!(check_legacy_json_path("robot.lst").is_err());
         assert!(check_legacy_json_path("ladder.graph.json").is_err());
         assert!(check_legacy_json_path("project.json").is_ok());
+    }
+
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn existing_symlink_to_native_file_is_not_a_writable_json_target() {
+        let root = std::env::temp_dir().join(format!("mlad-guard-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let real = root.join("CIOPRG.LST");
+        let alias = root.join("draft.graph.json");
+        std::fs::write(&real, b"original robot data").unwrap();
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        assert!(reject_existing_symlink(&alias).await.is_err());
+        assert_eq!(std::fs::read(&real).unwrap(), b"original robot data");
+        std::fs::remove_file(&alias).unwrap();
+        std::fs::remove_file(&real).unwrap();
+        std::fs::remove_dir(&root).unwrap();
     }
 
     #[test]
