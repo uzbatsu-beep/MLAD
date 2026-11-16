@@ -100,8 +100,8 @@ export function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh", backgroundColor: "#1e1e1e" }}>
       {/* Панель инструментов (Toolbar) */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", backgroundColor: "#2d2d2d", borderBottom: "1px solid #3c3c3c" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", padding: "10px 20px", backgroundColor: "#2d2d2d", borderBottom: "1px solid #3c3c3c" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           <span style={{ fontWeight: "bold", color: "#61afef" }}>MLAD</span>
           <button type="button" style={{...btnStyle, backgroundColor: graphMode ? "#506b60" : "#3a3f4b"}}
             onClick={() => setGraphMode(true)}>Графический редактор</button>
