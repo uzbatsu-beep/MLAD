@@ -6,7 +6,7 @@
 
 The Rust parser `src-tauri/src/compiler/lossless.rs` operates on **raw bytes**. It does not use UTF-8 decoding as a condition of successful import. It preserves every byte, including BOM, non-UTF-8 character sequences, whitespace and CRLF/LF/CR endings. `copy_original()` is a byte-for-byte copy; the edited/exported/recompiled path does not exist.
 
-The parser maintains a complete sequence of lines with:
+The parser calculates a **SHA-256 fingerprint of the immutable raw byte snapshot** for provenance; it is displayed in the inspector and changes if any original byte changes.\n\nThe parser maintains a complete sequence of lines with:
 
 - 1-based line numbers;
 - byte spans for the entire line and its content without EOL;
@@ -52,7 +52,7 @@ Unit tests under `src-tauri/src/compiler/lossless/tests.rs` verify:
 5. Controller-dependent address classification and invalid bit indexes.
 6. Unknown instructions, directives and comments are never silently discarded.
 7. Preview truncation and never-editable status.
-8. Deterministic byte fuzzing for 256 different arbitrary inputs.
+8. Deterministic byte fuzzing for 256 different arbitrary inputs.\n9. SHA-256 known-answer verification and change detection.
 
 ### Remaining acceptance criteria
 
