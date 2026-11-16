@@ -16,7 +16,41 @@ type PreviewLine = {
   kind: unknown;
   display_text: string;
 };
+type SemanticDiagnostic = {
+  code: string;
+  level: "Warning" | "Error";
+  line: number;
+  message: string;
+};
+type SemanticRung = {
+  number: number;
+  first_line: number;
+  output_line: number;
+  output: number;
+  inputs: number[];
+  expression_preview: string;
+  section: "Unspecified" | "System" | "User";
+};
+type SemanticPreview = {
+  node_count: number;
+  rung_count: number;
+  reference_count: number;
+  diagnostic_count: number;
+  unsupported_segments: number;
+  subset_analysis_complete: boolean;
+  system_user_boundaries_verified: boolean;
+  edited_export_allowed: boolean;
+  end_seen: boolean;
+  rungs: SemanticRung[];
+  references: { symbol: string; sites: { line: number; operation: string }[] }[];
+  part_markers: { line: number; section: string }[];
+  diagnostics: SemanticDiagnostic[];
+  rungs_truncated: boolean;
+  references_truncated: boolean;
+  diagnostics_truncated: boolean;
+};
 type Report = {
+  semantic: SemanticPreview;
   controller: Controller;
   encoding: Encoding;
   byte_length: number;
@@ -132,6 +166,50 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
               <div style={{ marginTop: "8px", fontSize: "12px" }}>
                 Секции //$M: {report.m_headers.length}.{" "}
                 {report.m_headers.some(x => !x.complete) && "Есть повреждённые или неполные секции."}
+              </div>
+            </div>
+            <div style={panel}>
+              <strong>Semantic AST · анализ логики</strong>
+              <div style={{ color: "#d9bb7a", margin: "8px 0", fontSize: "13px" }}>
+                Только проверенное булево подмножество. Анализ не моделирует scan-time, состояние TMR/CNT,
+                выполнение INFORM или фактические I/O. Метки PART — не подтверждение права редактирования.
+              </div>
+              <div>
+                Цепей: {report.semantic.rung_count} · узлов графа: {report.semantic.node_count}
+                {" "}· символов: {report.semantic.reference_count} · неполных участков: {report.semantic.unsupported_segments}
+                {" "}· семантических диагностик: {report.semantic.diagnostic_count}
+              </div>
+              <div style={{ margin: "6px 0", color: report.semantic.subset_analysis_complete ? "#9bcca6" : "#ffb785" }}>
+                {report.semantic.subset_analysis_complete
+                  ? "Распознанное булево подмножество обработано без ошибок. Проверка контроллера всё ещё необходима."
+                  : "Анализ неполный: есть неподдерживаемые инструкции или ошибки."}
+              </div>
+              <div style={{ maxHeight: "175px", overflow: "auto", fontSize: "12px", fontFamily: "monospace" }}>
+                {report.semantic.rungs.map(r => (
+                  <div key={r.number} style={{ padding: "4px 0" }}>
+                    R{r.number} [{r.section}] L{r.first_line}–{r.output_line}:
+                    {" "}{r.expression_preview}
+                    {" "}→ OUT #{String(r.output).padStart(5, "0")}
+                  </div>
+                ))}
+                {report.semantic.rungs_truncated && <div>… список цепей ограничен</div>}
+              </div>
+              <details style={{ marginTop: "8px", fontSize: "12px" }}>
+                <summary>Перекрёстные ссылки ({report.semantic.reference_count} символов)</summary>
+                <div style={{ maxHeight: "160px", overflow: "auto", fontFamily: "monospace" }}>
+                  {report.semantic.references.map(x => (
+                    <div key={x.symbol}>{x.symbol} : {x.sites.map(s => "L" + s.line + " " + s.operation).join(" · ")}</div>
+                  ))}
+                  {report.semantic.references_truncated && <div>… список ограничен</div>}
+                </div>
+              </details>
+              <div style={{ maxHeight: "170px", overflowY: "auto", marginTop: "8px", fontSize: "12px", fontFamily: "monospace" }}>
+                {report.semantic.diagnostics.map((d, i) => (
+                  <div key={i} style={{ padding: "3px 0", color: d.level === "Error" ? "#ff959f" : "#e9c47a" }}>
+                    {d.level} L{d.line} [{d.code}]: {d.message}
+                  </div>
+                ))}
+                {report.semantic.diagnostics_truncated && <div>… диагностика ограничена</div>}
               </div>
             </div>
             <div style={{ ...panel, maxHeight: "230px", overflowY: "auto" }}>

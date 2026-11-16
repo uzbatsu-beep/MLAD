@@ -1,5 +1,6 @@
 pub mod parser;
 pub mod lossless;
+pub mod semantic;
 pub mod memory;
 
 use serde::{Deserialize, Serialize};

@@ -54,6 +54,13 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
     }
 }
 
+#[derive(Serialize)]
+struct FullCioprgInspection {
+    #[serde(flatten)]
+    base: compiler::lossless::InspectionReport,
+    semantic: compiler::semantic::SemanticPreview,
+}
+
 /// Read-only inspection of a native exported CIOPRG.LST file.
 /// This command neither changes the source file nor creates a controller-ready
 /// program. The original byte stream stays in Rust memory during parsing only.
@@ -61,7 +68,7 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
 async fn cmd_inspect_cioprg(
     file_path: String,
     controller: compiler::memory::ControllerFamily,
-) -> Result<compiler::lossless::InspectionReport, String> {
+) -> Result<FullCioprgInspection, String> {
     const MAX_CIO_FILE_BYTES: u64 = 16 * 1024 * 1024;
 
     let path = std::path::Path::new(&file_path);
@@ -91,7 +98,11 @@ async fn cmd_inspect_cioprg(
     }
 
     let doc = compiler::lossless::parse_document(bytes, controller);
-    Ok(doc.inspection_report(600, 500))
+    let semantic = compiler::semantic::analyze(&doc);
+    Ok(FullCioprgInspection {
+        base: doc.inspection_report(600, 500),
+        semantic: semantic.preview(200, 200, 500),
+    })
 }
 
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
