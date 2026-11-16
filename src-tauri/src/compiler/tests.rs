@@ -2,7 +2,6 @@
 mod compiler_tests {
     use crate::compiler::parser::{parse_line, parse_lst_to_rungs};
     use crate::compiler::validate_rungs;
-    use crate::Rung;
 
     #[test]
     fn test_parse_valid_bit_instruction() {

@@ -1,17 +1,11 @@
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while1},
-    character::complete::{char, space0, space1, digit1, alphanumeric1},
-    combinator::{map, opt, recognize},
-    sequence::{preceded, tuple},
+    character::complete::{char, space0, space1, digit1},
+    combinator::{map, recognize},
     IResult,
 };
 use crate::LadderInstruction;
-
-/// Определяет, является ли символ пробелом или табуляцией
-fn is_space(c: char) -> bool {
-    c == ' ' || c == '\t'
-}
 
 /// Парсер пятизначного адреса операнда (например, "70010") или буквенно-цифрового идентификатора
 fn parse_operand(input: &str) -> IResult<&str, String> {

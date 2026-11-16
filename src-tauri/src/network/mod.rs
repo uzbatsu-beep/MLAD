@@ -1,12 +1,12 @@
 use std::net::SocketAddr;
 use tokio::net::UdpSocket;
-use suppftp::AsyncFtpStream;
+use suppaftp::tokio::AsyncFtpStream;
 use anyhow::{Result, anyhow};
-use tracing::{info, error};
+use tracing::info;
 
 /// Модуль для работы со спецификацией High-Speed Ethernet (HSE) Yaskawa
 pub struct YaskawaHseClient {
-    target_addr: SocketAddr,
+    _target_addr: SocketAddr,
     socket: UdpSocket,
 }
 
@@ -19,7 +19,7 @@ impl YaskawaHseClient {
         socket.connect(target_addr).await?;
         
         info!("HSE Клиент успешно инициализирован для контроллера: {}", target_addr);
-        Ok(Self { target_addr, socket })
+        Ok(Self { _target_addr: target_addr, socket })
     }
 
     /// Формирует бинарный заголовок YERC (32 байта) согласно спецификации hse_protocol.md

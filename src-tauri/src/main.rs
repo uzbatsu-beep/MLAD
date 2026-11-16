@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{info, error, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tauri::{State, Manager};
+use tauri::{State, Emitter};
 
 // Глобальное потокобезопасное состояние сетевого клиента
 pub struct AppNetworkState {
@@ -178,8 +178,6 @@ fn main() {
     info!("Запуск бэкенда среды разработки Next-Gen Yaskawa Motoman Ladder IDE...");
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_network::init())
         .manage(AppNetworkState {
             hse_client: Arc::new(Mutex::new(None)),
             monitor_handle: Arc::new(Mutex::new(None)),

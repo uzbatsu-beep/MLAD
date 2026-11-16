@@ -95,4 +95,11 @@ pub enum Instruction {
 }
 ```
 
-При парсинге `.LST` файла с помощью крейта `nom` пустые строки и комментарии, начинающиеся с точки с запятой `;`, должны игнорироваться, но сохраняться в метаданных ноды для отображения подсказок на фронтенде.
+## 5. Нормативные документы и первоисточники
+
+Синтаксис и правила трансляции верифицированы по официальным руководствам:
+* **HW1483921:** Ladder Editor 32 for YRC1000 Operator's Manual
+* **MRS55130:** User's Manual Ladder Editor 32 Version 1.2 (XRC/NX100)
+* **RE-CKI-A469:** YRC1000micro Option Instructions for Concurrent I/O
+* Полный реестр ссылок и описаний см. в [references.md](file:///F:/Antigravity/MLAD/docs/references.md).
+

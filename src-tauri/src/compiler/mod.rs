@@ -3,7 +3,7 @@ pub mod parser;
 use serde::{Deserialize, Serialize};
 
 // Повторно экспортируем структуры данных из main для использования внутри компилятора
-use crate::{Rung, LadderInstruction};
+use crate::Rung;
 
 /// Перечисление всех поддерживаемых типов токенов инструкций Yaskawa Concurrent I/O
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -46,12 +46,20 @@ pub fn validate_rungs(rungs: &[Rung]) -> Vec<ValidationError> {
                     });
                 }
 
-                // 2. Валидация диапазонов записи (Запрещено писать в физические входы 1xxxx)
-                if inst.operand.starts_with('1') {
+                // 2. Валидация диапазонов записи (Запрещено писать в Read-Only диапазоны 1xxxx, 3xxxx, 5xxxx, 8xxxx)
+                let first_char = inst.operand.chars().next().unwrap_or(' ');
+                if matches!(first_char, '1' | '3' | '5' | '8') {
+                    let type_desc = match first_char {
+                        '1' => "физический вход (External Input 1xxxx)",
+                        '3' => "системный вход робота (Robot Input 3xxxx)",
+                        '5' => "вход интерфейса INFORM (Interface Input 5xxxx)",
+                        '8' => "системный статус/псевдо-вход (Control Status / Pseudo Input 8xxxx)",
+                        _ => "read-only сигнал",
+                    };
                     errors.push(ValidationError {
                         rung_id: rung.id,
                         error_type: "ReadOnlyAddress".to_string(),
-                        message: format!("Ошибка: Попытка записи OUT в физический вход {}. Доступно только для чтения.", inst.operand),
+                        message: format!("Ошибка: Попытка записи OUT в {}: {}. Сигнал доступен только для чтения.", type_desc, inst.operand),
                     });
                 }
             }

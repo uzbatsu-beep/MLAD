@@ -19,8 +19,9 @@ tokio = { version = "1.35", features = ["full"] }
 futures-util = "0.3"
 
 # Сетевой стек для работы с контроллерами роботов
-suppftp = { version = "5.3", features = ["async", "async-tokio"] } # FTP для деплоя файлов .LST
+suppaftp = { version = "12.2", features = ["tokio"] } # FTP для деплоя файлов .LST
 anyhow = "1.0" # Удобная обработка ошибок в сетевых потоках
+uuid = { version = "1.8", features = ["v4"] }
 
 # Парсинг текстовых файлов инструкций (.LST)
 nom = "7.1" # Быстрый парсер для построения AST (Abstract Syntax Tree)
