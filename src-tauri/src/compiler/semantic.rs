@@ -198,6 +198,7 @@ struct Analyzer {
     seen_part: bool,
     end_seen: bool,
     unsupported_segments: usize,
+    tainted_until_out: bool,
     coil_sites: HashMap<u32, (usize, SectionClaim)>,
     group_writes: Vec<(u32, usize)>,
 }
@@ -210,7 +211,7 @@ impl Analyzer {
             diagnostics: Vec::new(), current: None,
             branch_stack: Vec::new(), first_line: None,
             section: SectionClaim::Unspecified, seen_part: false,
-            end_seen: false, unsupported_segments: 0,
+            end_seen: false, unsupported_segments: 0, tainted_until_out: false,
             coil_sites: HashMap::new(), group_writes: Vec::new(),
         }
     }
@@ -244,6 +245,7 @@ impl Analyzer {
 
     fn barrier(&mut self, code: &'static str, line: usize, offset: usize, message: &str) {
         if self.current.is_some() || !self.branch_stack.is_empty() {
+            self.tainted_until_out = true;
             self.diag("AbandonedExpression", DiagnosticLevel::Warning, line, offset,
                 "Незавершённый логический блок отброшен из семантического анализа (исходные байты сохранены)");
         }
@@ -266,6 +268,7 @@ impl Analyzer {
     fn fail_stack(&mut self, code: &'static str, inst: &AstInstruction, message: &str) {
         self.diag(code, DiagnosticLevel::Error, inst.line, inst.span.start, message);
         self.unsupported_segments += 1;
+        self.tainted_until_out = false;
         self.reset();
     }
 
@@ -321,6 +324,30 @@ impl Analyzer {
                 "Инструкция после END; семантический анализ не выполняется");
             self.unsupported_segments += 1;
             return;
+        }
+        // After an unsupported instruction or analyzer resource overrun in an
+        // open expression, an additional STR is NOT proof of a new rung.
+        // Ignore that damaged region through OUT or a documented PART/END.
+        if self.tainted_until_out {
+            match inst.mnemonic.as_str() {
+                "OUT" => {
+                    self.tainted_until_out = false;
+                    if inst.syntax_valid {
+                        if let Ok(relay) = parse_relay(controller, &inst.operands[0].spelling) {
+                            self.reference(relay_name(relay.number), inst, 0, SymbolOperation::CoilWrite);
+                            if let Some((first, _)) = self.coil_sites.insert(relay.number, (inst.line, self.section)) {
+                                self.diag("DoubleCoil", DiagnosticLevel::Error, inst.line, inst.span.start,
+                                    format!("OUT {} повторяет запись из строки {}", relay_name(relay.number), first));
+                            }
+                        }
+                    }
+                    self.fail_stack("UnbalancedOutput", inst,
+                        "OUT завершает повреждённый или неподдерживаемый логический участок");
+                    return;
+                }
+                "PART" | "END" => { self.tainted_until_out = false; }
+                _ => { return; }
+            }
         }
         if !inst.syntax_valid {
             self.barrier("InvalidSyntaxBarrier", inst.line, inst.span.start,
