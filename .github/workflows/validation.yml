@@ -34,5 +34,7 @@ jobs:
           node-version: '22'
       - name: Install packages (lockfile not yet committed)
         run: npm install --no-audit --no-fund
+      - name: Graph layout and editor model tests
+        run: npm run test:graph
       - name: Typecheck and build
         run: npm run build

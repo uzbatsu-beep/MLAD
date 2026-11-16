@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { LadderCircuit } from "./LadderCircuit.tsx";
+import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
 import { invoke } from "@tauri-apps/api/core";
 
 type Controller = "DX100" | "DX200" | "YRC1000";
@@ -29,9 +31,12 @@ type SemanticRung = {
   output: number;
   inputs: number[];
   expression_preview: string;
+  expression_root: number;
   section: "Unspecified" | "System" | "User";
 };
 type SemanticPreview = {
+  nodes: SemanticNode[];
+  nodes_truncated: boolean;
   node_count: number;
   rung_count: number;
   reference_count: number;
@@ -99,6 +104,15 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
   const [report, setReport] = useState<Report | null>(null);
   const [issue, setIssue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [selectedGraphRung, setSelectedGraphRung] = useState(1);
+  const [diagramZoom, setDiagramZoom] = useState(1);
+  const graphPreview = useMemo(() => {
+    if (!report) return null;
+    const rung=report.semantic.rungs.find(r=>r.number===selectedGraphRung)??report.semantic.rungs[0];
+    if(!rung) return null;
+    try{return {rung,expression:semanticToExpression(report.semantic.nodes,rung.expression_root)};}
+    catch(err){return {rung,error:String(err)};}
+  },[report,selectedGraphRung]);
 
   async function inspect() {
     setIssue("");
@@ -107,6 +121,7 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
     try {
       const result = await invoke<Report>("cmd_inspect_cioprg", { filePath: path.trim(), controller });
       setReport(result);
+      setSelectedGraphRung(1);
     } catch (err) {
       setIssue(String(err));
     } finally {
@@ -211,6 +226,39 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
                 ))}
                 {report.semantic.diagnostics_truncated && <div>… диагностика ограничена</div>}
               </div>
+            </div>
+            <div style={panel}>
+              <strong>Графическая схема CIOPRG.LST — только чтение</strong>
+              <p style={{color:"#d9bb7a",fontSize:12}}>
+                Граф построен по подтверждённой булевой части Semantic AST. Неподдерживаемые
+                и пропущенные участки не превращаются в предполагаемую схему.
+                Схема не является подтверждённой Ladder-программой для контроллера.
+              </p>
+              <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",marginBottom:10}}>
+                <label>Цепь{" "}
+                  <select style={field} value={graphPreview?.rung.number??""}
+                    onChange={e=>setSelectedGraphRung(Number(e.target.value))}>
+                    {report.semantic.rungs.map(r=><option key={r.number} value={r.number}>
+                      R{r.number} · OUT {relayText(r.output)} · строки {r.first_line}–{r.output_line}
+                    </option>)}
+                  </select>
+                </label>
+                <button type="button" style={btn} onClick={()=>setDiagramZoom(z=>Math.max(.5,z-.15))}>−</button>
+                <span>{Math.round(diagramZoom*100)}%</span>
+                <button type="button" style={btn} onClick={()=>setDiagramZoom(z=>Math.min(1.8,z+.15))}>+</button>
+              </div>
+              {graphPreview ? ("expression" in graphPreview && graphPreview.expression ?
+                <LadderCircuit readOnly zoom={diagramZoom}
+                  expression={graphPreview.expression}
+                  output={relayText(graphPreview.rung.output)} /> :
+                <div role="alert" style={{color:"#edbd78"}}>
+                  Недоступен граф этой цепи: {"error" in graphPreview ? graphPreview.error : "нет данных AST"}.
+                  Исходный текст сохранён без изменений.
+                </div>) :
+                <div>Нет цепей с полностью распознанным булевым выражением.</div>}
+              {report.semantic.nodes_truncated && <p style={{color:"#edbd78",fontSize:12}}>
+                AST ограничен до 4096 узлов: часть схем может быть недоступна для отображения.
+              </p>}
             </div>
             <div style={{ ...panel, maxHeight: "230px", overflowY: "auto" }}>
               <strong>Диагностика ({report.diagnostics.length} показано)</strong>

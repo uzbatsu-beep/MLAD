@@ -5,10 +5,10 @@ pub mod compiler;
 pub mod network;
 
 use serde::{Deserialize, Serialize};
-use tracing::{info, error, warn};
+use tracing::{info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tauri::{State, Emitter};
+use tauri::State;
 
 // Глобальное потокобезопасное состояние сетевого клиента
 pub struct AppNetworkState {
@@ -105,9 +105,100 @@ async fn cmd_inspect_cioprg(
     })
 }
 
+// Only filenames ending in .graph.json are treated as editable graph drafts.
+// This prevents accidental mixing with the old project.json or CIOPRG.LST.
+fn check_graph_draft_path(file_path: &str) -> Result<&std::path::Path, String> {
+    let path = std::path::Path::new(file_path);
+    let file_name = path.file_name()
+        .and_then(|s| s.to_str())
+        .ok_or("Не указан корректный путь к черновику")?;
+    if file_path.len() > 1024 || !file_name.ends_with(".graph.json") {
+        return Err("Черновик должен иметь имя *.graph.json (не CIOPRG.LST и не project.json)".into());
+    }
+    Ok(path)
+}
+
+// Reject direct symlink targets before any JSON write. This is a
+// defense-in-depth check, not a substitute for filesystem ACLs or locking.
+async fn reject_existing_symlink(path: &std::path::Path) -> Result<(), String> {
+    match tokio::fs::symlink_metadata(path).await {
+        Ok(meta) if meta.file_type().is_symlink() =>
+            Err("Сохранение через символическую ссылку запрещено".into()),
+        Ok(meta) if !meta.is_file() =>
+            Err("Сохранение допускается только в обычный файл".into()),
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(format!("Ошибка проверки целевого файла: {e}")),
+    }
+}
+
+/// Offline, non-mutating draft validation. No device/network access.
+#[tauri::command]
+fn cmd_validate_graph_draft(
+    project: compiler::graph_draft::GraphDraft,
+) -> compiler::graph_draft::DraftValidation {
+    compiler::graph_draft::validate_graph_draft(&project)
+}
+
+/// Only loads an independent, versioned graph draft, never a CIOPRG file.
+#[tauri::command]
+async fn cmd_load_graph_draft(
+    file_path: String,
+) -> Result<compiler::graph_draft::GraphDraft, String> {
+    let path = check_graph_draft_path(&file_path)?;
+    let info = tokio::fs::metadata(path).await
+        .map_err(|e| format!("Не удалось прочитать черновик: {e}"))?;
+    if !info.is_file() || info.len() > 2 * 1024 * 1024 {
+        return Err("Размер черновика превышает 2 МиБ или путь не является файлом".into());
+    }
+    let bytes = tokio::fs::read(path).await
+        .map_err(|e| format!("Ошибка чтения черновика: {e}"))?;
+    let text = std::str::from_utf8(&bytes).map_err(|e| format!("Ошибка UTF-8: {e}"))?;
+    let (draft, _) = compiler::graph_draft::read_draft_json(text)?;
+    Ok(draft)
+}
+
+/// Graph drafts are JSON-only, with a best-effort backup of the previous JSON.
+/// Invalid *relay addresses* can be saved for later editing; invalid structure
+/// (duplicate node IDs, wrong version, excessive depth/size) is rejected.
+#[tauri::command]
+async fn cmd_save_graph_draft(
+    file_path: String,
+    project: compiler::graph_draft::GraphDraft,
+) -> Result<compiler::graph_draft::DraftValidation, String> {
+    let path = check_graph_draft_path(&file_path)?;
+    reject_existing_symlink(path).await?;
+    let (content, result) = compiler::graph_draft::checked_draft_json(&project)?;
+    if path.exists() {
+        let info = tokio::fs::metadata(path).await
+            .map_err(|e| format!("Не удалось проверить существующий черновик: {e}"))?;
+        if !info.is_file() { return Err("Путь не является обычным файлом".into()); }
+        let backup = path.with_file_name(format!(
+            "{}.bak", path.file_name().unwrap().to_string_lossy()
+        ));
+        tokio::fs::copy(path, backup).await
+            .map_err(|e| format!("Не удалось создать резервную копию: {e}"))?;
+    }
+    tokio::fs::write(path, content).await
+        .map_err(|e| format!("Не удалось сохранить графический черновик: {e}"))?;
+    Ok(result)
+}
+
+fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
+    let name = std::path::Path::new(file_path).file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("Не указан путь к JSON-проекту")?;
+    if !name.ends_with(".json") || name.ends_with(".graph.json") {
+        return Err("Старый редактор может сохранять только обычный *.json, но не *.graph.json или *.LST".into());
+    }
+    Ok(())
+}
+
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
+    check_legacy_json_path(&file_path)?;
+    reject_existing_symlink(std::path::Path::new(&file_path)).await?;
     info!("Запрос на сохранение проекта. Количество цепей: {}", data.len());
     
     // 1. Запуск статического анализа логики на лету (Double Coil, валидация адресов бит)
@@ -134,62 +225,25 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
 /// Команда Tauri: Переключение режима онлайн-мониторинга через UDP/HSE протокол
 #[tauri::command]
 async fn cmd_toggle_monitoring(
-    ip: String, 
-    active: bool, 
-    state: State<'_, AppNetworkState>, 
-    app_handle: tauri::AppHandle
+    ip: String,
+    active: bool,
+    state: State<'_, AppNetworkState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<(), String> {
-    let mut monitor_lock = state.monitor_handle.lock().await;
-    
-    // Останавливаем текущий поток мониторинга, если он запущен
-    if let Some(handle) = monitor_lock.take() {
+    let _ = (ip, app_handle);
+    // Legacy HSES client uses an unverified protocol framing. Stop any old
+    // local poll and never open a new socket until protocol verification.
+    let mut monitor = state.monitor_handle.lock().await;
+    if let Some(handle) = monitor.take() {
         handle.abort();
-        info!("Поток циклического опроса робота остановлен.");
     }
-
     if active {
-        info!("Запуск асинхронного онлайн-мониторинга робота: {}:8040", ip);
-        
-        let hse_client = network::YaskawaHseClient::new(&ip, 8040)
-            .await
-            .map_err(|e| format!("Ошибка инициализации HSE сокета: {}", e))?;
-            
-        let client_arc = Arc::new(hse_client);
-        
-        // Создаем фоновый асинхронный поток опроса памяти с помощью tokio
-        let new_handle = tokio::spawn(async move {
-            let mut interval = tokio::time::interval(tokio::time::Duration::from_millis(100));
-            let mut req_id = 0u8;
-            
-            loop {
-                interval.tick().await;
-                req_id = req_id.wrapping_add(1);
-                
-                // Запрашиваем состояние байта пользовательских реле 70010 (класс 0x01, смещение 0)
-                // Спецификацию классов и смещений сигналов см. в docs/memory_map.md
-                match client_arc.read_relay_byte(0x01, 0, req_id).await {
-                    Ok(relay_byte) => {
-                        // Формируем карту состояний бит для отправки во фронтенд через события Tauri
-                        let mut state_map = std::collections::HashMap::new();
-                        state_map.insert("70010".to_string(), (relay_byte & 0x01) != 0);
-                        state_map.insert("70011".to_string(), (relay_byte & 0x02) != 0);
-                        state_map.insert("70012".to_string(), (relay_byte & 0x04) != 0);
-                        
-                        let _ = app_handle.emit("ladder-runtime-sync", state_map);
-                    },
-                    Err(e) => {
-                        error!("Ошибка опроса состояния памяти контроллера: {}", e);
-                        let _ = app_handle.emit("robot-disconnected", ());
-                    }
-                }
-            }
-        });
-        
-        *monitor_lock = Some(new_handle);
+        Err("Мониторинг HSES отключён: сетевой протокол и семантика данных не верифицированы".into())
+    } else {
+        Ok(())
     }
-    
-    Ok(())
 }
+
 
 /// Команда Tauri: Деплой запрещён до аппаратной и форматной верификации
 #[tauri::command]
@@ -212,10 +266,51 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
+            cmd_validate_graph_draft,
+            cmd_load_graph_draft,
+            cmd_save_graph_draft,
             cmd_save_project,
             cmd_toggle_monitoring,
             cmd_deploy_to_robot
         ])
         .run(tauri::generate_context!())
         .expect("Критическая ошибка при запуске runtime-окружения Tauri");
+}
+
+#[cfg(test)]
+mod graph_write_safety_tests {
+    use super::*;
+
+    #[test]
+    fn legacy_writer_rejects_native_and_new_graph_formats() {
+        assert!(check_legacy_json_path("CIOPRG.LST").is_err());
+        assert!(check_legacy_json_path("robot.lst").is_err());
+        assert!(check_legacy_json_path("ladder.graph.json").is_err());
+        assert!(check_legacy_json_path("project.json").is_ok());
+    }
+
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn existing_symlink_to_native_file_is_not_a_writable_json_target() {
+        let root = std::env::temp_dir().join(format!("mlad-guard-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let real = root.join("CIOPRG.LST");
+        let alias = root.join("draft.graph.json");
+        std::fs::write(&real, b"original robot data").unwrap();
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        assert!(reject_existing_symlink(&alias).await.is_err());
+        assert_eq!(std::fs::read(&real).unwrap(), b"original robot data");
+        std::fs::remove_file(&alias).unwrap();
+        std::fs::remove_file(&real).unwrap();
+        std::fs::remove_dir(&root).unwrap();
+    }
+
+    #[test]
+    fn graph_draft_path_never_targets_native_files() {
+        assert!(check_graph_draft_path("CIOPRG.LST").is_err());
+        assert!(check_graph_draft_path("project.json").is_err());
+        assert!(check_graph_draft_path("ladder.graph.json").is_ok());
+        assert!(check_graph_draft_path("example.graph.json").is_ok());
+    }
 }
