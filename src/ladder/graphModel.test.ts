@@ -32,7 +32,6 @@ test("click-target edits preserve other branch IDs and are immutable",()=>{
   const start=makeContact("#70010");
   const junction=addBranch(start,start.id,"or");
   assert.equal(junction.kind,"or");
-  if(junction.kind==="contact") throw Error("expected junction");
   const siblingId=junction.right.id;
   const revised=changeAt(junction,siblingId, old=>({...old,relay:"#70011"}));
   assert.notEqual(revised,junction);
