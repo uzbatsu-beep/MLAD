@@ -55,6 +55,8 @@ pub struct SemanticRung {
     pub output: u32,
     pub expression_root: usize,
     pub inputs: Vec<u32>,
+    /// Bounded presentation only. The source of truth is the indexed graph.
+    pub expression_preview: String,
     /// This is a document claim based on PART, NOT verified edit ownership.
     pub section: SectionClaim,
 }
@@ -282,6 +284,37 @@ impl Analyzer {
         result.into_iter().collect()
     }
 
+    fn expression_preview(&self, root: usize) -> String {
+        enum Frame { Node(usize), Text(&'static str) }
+        let mut stack = vec![Frame::Node(root)];
+        let mut s = String::new();
+        while let Some(frame) = stack.pop() {
+            if s.len() >= 512 {
+                s.push_str("…");
+                break;
+            }
+            match frame {
+                Frame::Text(t) => s.push_str(t),
+                Frame::Node(i) => match &self.nodes[i].op {
+                    ExprOp::Contact { relay, inverted } => {
+                        if *inverted { s.push('!'); }
+                        s.push_str(&relay_name(*relay));
+                    }
+                    ExprOp::And { left, right } | ExprOp::Or { left, right } => {
+                        stack.push(Frame::Text(")"));
+                        stack.push(Frame::Node(*right));
+                        stack.push(Frame::Text(if matches!(&self.nodes[i].op, ExprOp::And { .. }) {
+                            " AND "
+                        } else { " OR " }));
+                        stack.push(Frame::Node(*left));
+                        stack.push(Frame::Text("("));
+                    }
+                }
+            }
+        }
+        s
+    }
+
     fn process(&mut self, inst: &AstInstruction, controller: super::memory::ControllerFamily) {
         if self.end_seen {
             self.diag("AfterEnd", DiagnosticLevel::Error, inst.line, inst.span.start,
@@ -395,6 +428,7 @@ impl Analyzer {
                     return;
                 };
                 let inputs = self.collect_inputs(root);
+                let expression_preview = self.expression_preview(root);
                 if inputs.contains(&relay.number) {
                     self.diag("SelfFeedback", DiagnosticLevel::Warning, inst.line, inst.span.start,
                         format!("OUT {} зависит от собственного состояния (может быть намеренной памятью)",
@@ -407,6 +441,7 @@ impl Analyzer {
                     output: relay.number,
                     expression_root: root,
                     inputs,
+                    expression_preview,
                     section: self.section,
                 });
                 self.reset();
