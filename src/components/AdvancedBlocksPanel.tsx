@@ -3,6 +3,9 @@ import {invoke} from "@tauri-apps/api/core";
 import {addBranch,changeAt,deleteContact,findContact,type GraphExpr} from "../ladder/graphModel.ts";
 import {AdvancedBlockDiagram} from "./AdvancedBlockDiagram.tsx";
 import {
+  STATE_BACKGROUNDS,STATE_COLORS,STATE_LABELS,type LogicState,
+} from "../ladder/visualState.ts";
+import {
   newBlock,freshAdvancedDraft,blockReviewLines,describeCondition,
   type AdvancedBlock,type AdvancedDraft,type AdvancedValidation,type Preset,
 } from "../ladder/advancedModel.ts";
@@ -15,6 +18,20 @@ const card:React.CSSProperties={background:"#263039",border:"1px solid #465563",
   padding:14,borderRadius:9};
 type Tim={current:number;contact:boolean};
 type Cnt={current:number;contact:boolean;previous_count:boolean};
+type BlockSample =
+  | {kind:"TMR";start:boolean;data:Tim}
+  | {kind:"CNT";count:boolean;reset:boolean;data:Cnt}
+  | {kind:"GROUP";source:number;destination:number};
+
+function bitState(bit:boolean | undefined):LogicState{
+  return bit===undefined?"UNKNOWN":bit?"TRUE":"FALSE";
+}
+function outputState(sample:BlockSample | undefined):LogicState{
+  if(!sample)return "UNKNOWN";
+  if(sample.kind==="GROUP")return "UNKNOWN"; // a byte is not a BOOL
+  return bitState(sample.data.contact);
+}
+
 
 function contactsIn(expr:GraphExpr) {
   const result:{id:string;relay:string;normallyClosed:boolean}[]=[];
@@ -74,12 +91,16 @@ export function AdvancedBlocksPanel(){
   const [testEnable,setTestEnable]=useState(false);
   const [testCount,setTestCount]=useState(false);
   const [testReset,setTestReset]=useState(false);
-  const [testTimer,setTestTimer]=useState<Tim|null>(null);
-  const [testCounter,setTestCounter]=useState<Cnt|null>(null);
+  // Persist each block's last EXPLICIT offline sample independently of selection.
+  // Editing a block invalidates only that block's sample; no hidden live state.
+  const [samples,setSamples]=useState<Record<string,BlockSample>>({});
   const [sourceByte,setSourceByte]=useState(170);
-  const [copiedByte,setCopiedByte]=useState<number|null>(null);
   const [busy,setBusy]=useState(false);
   const selected=project.blocks.find(b=>b.id===selectedId)??project.blocks[0]??null;
+  const selectedSample=selected?samples[selected.id]:undefined;
+  const testTimer=selectedSample?.kind==="TMR"?selectedSample.data:null;
+  const testCounter=selectedSample?.kind==="CNT"?selectedSample.data:null;
+  const copiedByte=selectedSample?.kind==="GROUP"?selectedSample.destination:null;
 
   useEffect(()=>{
     let alive=true;
@@ -92,15 +113,25 @@ export function AdvancedBlocksPanel(){
   },[project]);
 
   useEffect(()=>{
-    setTestTimer(null);setTestCounter(null);setCopiedByte(null);
-    setTestCount(false);setTestReset(false);setTestEnable(false);
-    if(selected && selected.kind!=="GROUP"){
-      setTestPreset(selected.preset.kind==="literal"?selected.preset.value:100);
+    const current=project.blocks.find(b=>b.id===selectedId)??project.blocks[0];
+    const prior=current?samples[current.id]:undefined;
+    setTestCount(prior?.kind==="CNT"?prior.count:false);
+    setTestReset(prior?.kind==="CNT"?prior.reset:false);
+    setTestEnable(prior?.kind==="TMR"?prior.start:false);
+    setSourceByte(prior?.kind==="GROUP"?prior.source:170);
+    if(current&&current.kind!=="GROUP") {
+      setTestPreset(current.preset.kind==="literal"?current.preset.value:100);
     }
+  // Only switch controls when selecting another block, not when changing a test sample.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[selectedId]);
 
   function update(id:string,modify:(b:AdvancedBlock)=>AdvancedBlock) {
     setProject(d=>({...d,blocks:d.blocks.map(b=>b.id===id?modify(b):b)}));
+    setSamples(old=>{
+      if(!(id in old))return old;
+      const copy={...old};delete copy[id];return copy;
+    });
   }
   function add(kind:AdvancedBlock["kind"]){
     if(project.blocks.length>=128){setStatus("Достигнут лимит 128 блоков.");return;}
@@ -114,6 +145,7 @@ export function AdvancedBlocksPanel(){
     if(!window.confirm("Удалить функциональный блок из черновика?"))return;
     const id=selected.id;
     setProject(d=>({...d,blocks:d.blocks.filter(b=>b.id!==id)}));
+    setSamples(old=>{const next={...old};delete next[id];return next;});
     setSelectedId(null);
   }
   async function save(){
@@ -132,7 +164,7 @@ export function AdvancedBlocksPanel(){
     setBusy(true);
     try{
       const v=await invoke<AdvancedDraft>("cmd_load_advanced_draft",{filePath:filePath.trim()});
-      setProject(v);setSelectedId(v.blocks[0]?.id??null);
+      setProject(v);setSamples({});setSelectedId(v.blocks[0]?.id??null);
       setStatus("Открыт advanced-черновик JSON. Изменения C/IO контроллера не выполнялись.");
     }catch(e){setStatus("Ошибка открытия: "+String(e));}
     finally{setBusy(false);}
@@ -149,16 +181,16 @@ export function AdvancedBlocksPanel(){
       if(selected.kind==="TMR"){
         const state=testTimer??{current:preset,contact:false};
         const result=await invoke<Tim>("cmd_test_tmr_step",{state,start:testEnable,preset});
-        setTestTimer(result);
+        setSamples(old=>({...old,[selected.id]:{kind:"TMR",start:testEnable,data:result}}));
       }else if(selected.kind==="CNT"){
         const state=testCounter??{current:preset,contact:false,previous_count:false};
         const result=await invoke<Cnt>("cmd_test_cnt_step",{
           state,count:testCount,reset:testReset,preset,
         });
-        setTestCounter(result);
+        setSamples(old=>({...old,[selected.id]:{kind:"CNT",count:testCount,reset:testReset,data:result}}));
       }else {
         const result=await invoke<number>("cmd_test_group_copy",{source:sourceByte});
-        setCopiedByte(result);
+        setSamples(old=>({...old,[selected.id]:{kind:"GROUP",source:sourceByte,destination:result}}));
       }
     }catch(e){setStatus("Ошибка offline-теста: "+String(e));}
   }
@@ -214,7 +246,7 @@ export function AdvancedBlocksPanel(){
       </div>
     </aside>
     <main style={{flex:1,minWidth:0,overflowY:"auto",padding:14,
-      display:"grid",gap:13,alignContent:"start"}}>
+      display:"grid",gap:13,gridAutoRows:"max-content",alignContent:"start"}}>
       <div style={card}>
         <h2 style={{margin:"0 0 6px"}}>TMR · CNT · GSTR/GOUT</h2>
         <span style={{color:"#e6c789",fontSize:12}}>
@@ -222,8 +254,62 @@ export function AdvancedBlocksPanel(){
           Проверка на оборудовании и экспорт действующей Ladder-программы отдельно.
         </span>
       </div>
+      <section style={{display:"grid",gap:11,gridAutoRows:"max-content"}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:10,
+          alignItems:"center",flexWrap:"wrap"}}>
+          <strong style={{fontSize:16}}>Рабочее поле · все функциональные блоки ({project.blocks.length})</strong>
+          <span style={{fontSize:12,color:"#d4bd82"}}>
+            ◉ OFFLINE · только результаты выполненных вручную шагов
+          </span>
+        </div>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap",fontSize:12}}>
+          {(["TRUE","FALSE","UNKNOWN"] as const).map(state=>
+            <span key={state} style={{color:STATE_COLORS[state]}}>
+              ● {STATE_LABELS[state]}</span>)}
+          <span style={{color:"#91aabd"}}>GOUT: восемь отдельных индикаторов b7…b0</span>
+        </div>
+        {project.blocks.map((b,i)=>{
+          const sample=samples[b.id];
+          const result=outputState(sample);
+          const selectedBlock=selected?.id===b.id;
+          const input:LogicState=sample?.kind==="TMR"?bitState(sample.start):
+            sample?.kind==="CNT"?bitState(sample.count):"UNKNOWN";
+          const reset:LogicState=sample?.kind==="CNT"?bitState(sample.reset):"UNKNOWN";
+          const current=sample?.kind==="TMR"||sample?.kind==="CNT"?sample.data.current:null;
+          const group=sample?.kind==="GROUP"?sample.destination:null;
+          return <article key={b.id} style={{
+            ...card,padding:10,background:selectedBlock?"#253540":"#202a34",
+            border:selectedBlock?"2px solid #91b3c3":"1px solid #465563"}}>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center",
+              justifyContent:"space-between",marginBottom:8}}>
+              <button type="button" style={{
+                ...button,background:selectedBlock?"#496d76":"#344457"}}
+                onClick={()=>setSelectedId(b.id)}>
+                {i+1}. {b.kind==="GROUP"?"GSTR / GOUT":b.kind}
+                {selectedBlock?" · редактируется":""}
+              </button>
+              <span style={{color:STATE_COLORS[result],fontSize:12,
+                background:STATE_BACKGROUNDS[result],borderRadius:5,padding:"5px 9px"}}>
+                {b.kind==="GROUP"?(group===null?"8 бит: НЕИЗВЕСТНО":
+                  `Байт: 0x${group.toString(16).padStart(2,"0").toUpperCase()}`):
+                  `Q: ${STATE_LABELS[result]}`}
+              </span>
+            </div>
+            <div onClick={()=>setSelectedId(b.id)} role="button" tabIndex={0}
+              aria-label={`Выбрать блок ${i+1}`}
+              onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){
+                e.preventDefault();setSelectedId(b.id);
+              }}} style={{cursor:"pointer"}}>
+              <AdvancedBlockDiagram block={b}
+                outputState={result} inputState={input} resetState={reset}
+                currentValue={current} groupByte={group}/>
+            </div>
+          </article>;
+        })}
+        {!project.blocks.length&&<div style={card}>Добавьте TMR, CNT или GSTR/GOUT.</div>}
+      </section>
+      <div style={{fontWeight:700,fontSize:15}}>Свойства выбранного блока</div>
       {!selected?<div style={card}>Выберите TMR, CNT или GSTR/GOUT в левой панели.</div>:<>
-        <AdvancedBlockDiagram block={selected}/>
         <div style={card}>
           <strong>Параметры блока</strong>
           {selected.kind==="GROUP"?
@@ -307,7 +393,8 @@ export function AdvancedBlocksPanel(){
               <label>Уставка для теста{" "}
                 <input type="number" min={0} max={65535} style={{...input,width:95}}
                   value={testPreset} onChange={e=>{
-                    setTestPreset(Number(e.target.value));setTestTimer(null);setTestCounter(null);
+                    setTestPreset(Number(e.target.value));
+                    if(selected)setSamples(old=>{const next={...old};delete next[selected.id];return next;});
                   }}/>
               </label>
               {selected.kind==="TMR"?
@@ -328,7 +415,7 @@ export function AdvancedBlocksPanel(){
               {selected.kind==="TMR"?"+100 мс":selected.kind==="CNT"?"Шаг CNT":"Копировать 8 бит"}
             </button>
             <button type="button" style={button} onClick={()=>{
-              setTestTimer(null);setTestCounter(null);setCopiedByte(null);
+              if(selected)setSamples(old=>{const next={...old};delete next[selected.id];return next;});
               setTestEnable(false);setTestCount(false);setTestReset(false);
             }}>Сброс теста</button>
           </div>

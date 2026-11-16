@@ -5,6 +5,10 @@ import {
   addBranch, appendDraftRung, changeAt, deleteContact, evaluateDraft,
   findContact, newDraft, type GraphDraft, type DraftRung, type ContactExpr,
 } from "../ladder/graphModel.ts";
+import {
+  expressionLogicState, nextManualSignal, STATE_BACKGROUNDS,
+  STATE_COLORS, STATE_LABELS,
+} from "../ladder/visualState.ts";
 
 type DraftDiagnostic={
   rung_id:string;
@@ -92,7 +96,9 @@ export function GraphWorkspace() {
     return ()=>{cancelled=true;clearTimeout(timer);};
   },[project]);
 
-  const contacts=useMemo(()=>selectedRung?allContacts(selectedRung):[],[selectedRung]);
+  const uniqueRelays=useMemo(()=>Array.from(new Set(
+    project.rungs.flatMap(r=>allContacts(r).map(contact=>contact.relay))
+  )).sort(),[project.rungs]);
   const simulation=selectedRung?evaluateDraft(selectedRung.expression,signals):undefined;
 
   async function save() {
@@ -166,7 +172,7 @@ export function GraphWorkspace() {
         <strong>Цепи ({project.rungs.length})</strong>
         <div style={{display:"grid",gap:6,marginTop:10}}>
           {project.rungs.map((r,i)=><button type="button" key={r.id}
-            onClick={()=>{setActiveRungId(r.id);setSelectedId(null);setSignals({});}}
+            onClick={()=>{setActiveRungId(r.id);setSelectedId(null);}}
             style={{...BTN,textAlign:"left",background:selectedRung?.id===r.id?"#3c5a66":"#293640"}}>
             {i+1}. OUT {r.output}
           </button>)}
@@ -210,6 +216,77 @@ export function GraphWorkspace() {
           <button type="button" style={BTN} onClick={()=>setZoom(1)}>100%</button>
         </div>
       </div>
+      <section style={{...PANEL,background:"#202c33"}}>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <strong>Диагностика контактов · локальная имитация</strong>
+            <div style={{fontSize:11,color:"#ddb87c",marginTop:4}}>
+              Ручные значения входов. Не HSES, не состояние робота и не управление выходами.
+              Нажмите на адрес для переключения: ? → 0 → 1 → ?.
+            </div>
+          </div>
+          <div style={{display:"flex",gap:9,flexWrap:"wrap",fontSize:12}}>
+            {(["TRUE","FALSE","UNKNOWN"] as const).map(state=>
+              <span key={state} style={{color:STATE_COLORS[state]}}>● {STATE_LABELS[state]}</span>)}
+            <button type="button" style={BTN} onClick={()=>setSignals({})}>Сбросить входы</button>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:7,marginTop:10,flexWrap:"wrap"}}>
+          {uniqueRelays.map(relay=>{
+            const value=signals[relay];
+            const state=value===undefined?"UNKNOWN":value?"TRUE":"FALSE";
+            return <button key={relay} type="button"
+              aria-label={`Тестовый вход ${relay}: ${STATE_LABELS[state]}`}
+              onClick={()=>setSignals(old=>({...old,[relay]:nextManualSignal(old[relay])}))}
+              style={{...BTN,color:STATE_COLORS[state],background:STATE_BACKGROUNDS[state],
+                borderColor:STATE_COLORS[state],fontFamily:"monospace"}}>
+              {relay} = {value===undefined?"?":value?"1":"0"}
+            </button>;
+          })}
+          {!uniqueRelays.length&&<span>Контактов нет.</span>}
+        </div>
+      </section>
+      <section style={{display:"grid",gap:11}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+          <strong style={{fontSize:15}}>Рабочее поле · все цепи ({project.rungs.length})</strong>
+          <span style={{fontSize:11,color:"#9fb1bc"}}>Один вертикальный список, без скрытых цепей · до 128</span>
+        </div>
+        {project.rungs.map((r,index)=>{
+          const selected=selectedRung?.id===r.id;
+          const result=expressionLogicState(r.expression,signals);
+          return <article key={r.id} style={{...PANEL,padding:9,
+            border:selected?"2px solid #9ab0be":"1px solid #475665",
+            background:selected?"#25353d":"#202931"}}>
+            <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+              gap:9,flexWrap:"wrap",marginBottom:7}}>
+              <button type="button" onClick={()=>{setActiveRungId(r.id);setSelectedId(null);}}
+                style={{...BTN,background:selected?"#506b73":"#344457"}}>
+                {index+1}. OUT {r.output}{selected?" · редактируется":""}
+              </button>
+              <span title="Вычислено только по заданным вручную входам" style={{
+                borderRadius:5,padding:"4px 9px",fontSize:12,
+                background:STATE_BACKGROUNDS[result],color:STATE_COLORS[result],
+                border:`1px solid ${STATE_COLORS[result]}`}}>
+                ◉ {STATE_LABELS[result]} · OFFLINE
+              </span>
+            </header>
+            <LadderCircuit expression={r.expression} output={r.output}
+              zoom={zoom} fitToWidth readOnly={false}
+              signalValues={signals}
+              selectedContactId={selected?selectedId:null}
+              onSelectContact={contactId=>{
+                setActiveRungId(r.id);
+                setSelectedId(contactId);
+              }}/>
+            {r.comment&&<div style={{fontSize:11,color:"#abbec9",marginTop:5}}>
+              {r.comment}</div>}
+          </article>;
+        })}
+        {!project.rungs.length&&<div style={PANEL}>Добавьте первую цепь кнопкой «+ Цепь».</div>}
+      </section>
+      <div style={{fontSize:14,fontWeight:700,color:"#dce7f0",marginTop:5}}>
+        Свойства выбранной цепи
+      </div>
       {!selectedRung?<div style={PANEL}>Добавьте первую цепь кнопкой «+ Цепь».</div>:<>
         <div style={PANEL}>
           <label style={{display:"grid",gap:5}}>Комментарий цепи
@@ -225,9 +302,6 @@ export function GraphWorkspace() {
             <span style={{fontSize:12,color:"#aebdce"}}>Выберите контакт на схеме, затем добавьте последовательный или параллельный контакт.</span>
           </div>
         </div>
-        <LadderCircuit expression={selectedRung.expression} output={selectedRung.output}
-          zoom={zoom} readOnly={false} selectedContactId={selectedId}
-          onSelectContact={setSelectedId}/>
         <div style={{...PANEL,display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <strong>{selectedContact?"Выбран контакт "+selectedContact.relay:"Выбрана вся цепь"}</strong>
           <button type="button" style={BTN} onClick={()=>setSelectedId(null)}>Вся цепь</button>
@@ -248,23 +322,13 @@ export function GraphWorkspace() {
             Нормально-закрытый контакт (NC)
           </label>
         </div>}
-        <details style={PANEL}>
-          <summary style={{cursor:"pointer"}}>Локальная проверка логики (не мониторинг робота)</summary>
-          <p style={{color:"#e3c587",fontSize:12}}>
-            Входы устанавливаются вручную. Результат не учитывает цикл сканирования,
-            таймеры, оборудование или фактическое состояние сигналов.
-          </p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-            {contacts.map(contact=><button key={contact.id} type="button"
-              style={BTN} onClick={()=>setSignals(old=>({...old,
-                [contact.relay]:old[contact.relay]===undefined?false:
-                  old[contact.relay]===false?true:undefined,
-              }))}>
-              {contact.relay}={signals[contact.relay]===undefined?"?":signals[contact.relay]?"1":"0"}
-            </button>)}
-          </div>
-          <p>Условие OUT: <strong>{simulation===undefined?"неопределено":simulation?"ИСТИНА":"ЛОЖЬ"}</strong></p>
-        </details>
+        <div style={{...PANEL,fontSize:12,color:"#cbd6df"}}>
+          Условие выбранной цепи · OFFLINE:
+          {" "}<strong style={{color:STATE_COLORS[expressionLogicState(selectedRung.expression,signals)]}}>
+            {simulation===undefined?"НЕИЗВЕСТНО":simulation?"ИСТИНА":"ЛОЖЬ"}
+          </strong>.
+          {" "}Состояние контактов задаётся в панели над всеми схемами.
+        </div>
       </>}
       <div role="status" style={{...PANEL,color:"#b8c7d2"}}>{status}</div>
       {validation&&<div style={PANEL}>

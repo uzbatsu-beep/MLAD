@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "test:graph": "node --experimental-strip-types --test src/ladder/graphModel.test.ts",
-    "test:advanced": "node --experimental-strip-types --test src/ladder/advancedModel.test.ts"
+    "test:advanced": "node --experimental-strip-types --test src/ladder/advancedModel.test.ts",
+    "test:visual": "node --experimental-strip-types --test src/ladder/visualState.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

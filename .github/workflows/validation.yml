@@ -38,5 +38,7 @@ jobs:
         run: npm run test:graph
       - name: Advanced CIO block UI model tests
         run: npm run test:advanced
+      - name: Tri-state visualization tests
+        run: npm run test:visual
       - name: Typecheck and build
         run: npm run build
