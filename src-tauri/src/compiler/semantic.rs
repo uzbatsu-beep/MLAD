@@ -109,6 +109,9 @@ pub struct SemanticReport {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SemanticPreview {
+    /// Bounded AST node subset for read-only graph visualization.
+    pub nodes: Vec<ExprNode>,
+    pub nodes_truncated: bool,
     pub node_count: usize,
     pub rung_count: usize,
     pub reference_count: usize,
@@ -130,6 +133,8 @@ pub struct SemanticPreview {
 impl SemanticReport {
     pub fn preview(&self, max_rungs: usize, max_references: usize, max_diagnostics: usize) -> SemanticPreview {
         SemanticPreview {
+            nodes: self.nodes.iter().take(4_096).cloned().collect(),
+            nodes_truncated: self.nodes.len() > 4_096,
             node_count: self.nodes.len(),
             rung_count: self.rungs.len(),
             reference_count: self.references.len(),
