@@ -192,3 +192,32 @@ fn unsupported_lines_never_fake_editability() {
     assert_eq!(report.byte_length, sample.len());
     assert_eq!(report.unsupported_lines, 1);
 }
+
+#[test]
+fn bom_token_span_points_to_actual_original_bytes() {
+    let bytes = b"\xef\xbb\xbfSTR #70010\r\n";
+    let doc = parse(bytes);
+    let LineKind::Instruction(inst) = &doc.lines[0].kind else { panic!("not an instruction"); };
+    assert_eq!(&bytes[inst.operands[0].span.start..inst.operands[0].span.end], b"#70010");
+    assert_eq!(inst.operands[0].span.start, 7);
+}
+
+#[test]
+fn malformed_m_header_does_not_consume_following_instruction() {
+    let bytes = b"//$M\n0,0,0,0,0,0,0,0,0,0\nSTR #20010\nOUT #70010\n";
+    let doc = parse(bytes);
+    assert_round_trip(bytes);
+    assert_eq!(doc.m_headers[0].data_lines, vec![2]);
+    assert!(!doc.m_headers[0].complete);
+    assert!(matches!(doc.lines[2].kind, LineKind::Instruction(_)));
+    assert!(matches!(doc.lines[3].kind, LineKind::Instruction(_)));
+}
+
+#[test]
+fn empty_operand_and_unknown_sections_remain_byte_identical() {
+    let bytes = b"//UNKNOWN\r\nOR-STR,\r\nTMR M010,\r\n";
+    let doc = parse(bytes);
+    assert_round_trip(bytes);
+    assert!(doc.diagnostics.iter().any(|d| d.code == "InvalidOperand" || d.code == "OperandCount"));
+    assert!(matches!(doc.lines[0].kind, LineKind::Directive));
+}
