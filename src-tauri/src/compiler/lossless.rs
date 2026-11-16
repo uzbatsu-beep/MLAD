@@ -6,6 +6,7 @@
 //! controller programs. See docs/cioprg_lossless_parser.md.
 
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use super::memory::{
     parse_group, parse_register, parse_relay, ControllerFamily, RelayGroupWidth,
 };
@@ -97,6 +98,7 @@ pub struct MHeaderInfo {
 #[derive(Debug, Clone)]
 pub struct LosslessDocument {
     raw: Vec<u8>,
+    pub source_sha256: String,
     pub controller: ControllerFamily,
     pub encoding: EncodingObservation,
     pub lines: Vec<SourceLine>,
@@ -119,6 +121,7 @@ pub struct InspectionReport {
     pub controller: ControllerFamily,
     pub encoding: EncodingObservation,
     pub byte_length: usize,
+    pub source_sha256: String,
     pub line_count: usize,
     pub recognized_instructions: usize,
     pub unsupported_lines: usize,
@@ -157,6 +160,7 @@ impl LosslessDocument {
             controller: self.controller,
             encoding: self.encoding,
             byte_length: self.raw.len(),
+            source_sha256: self.source_sha256.clone(),
             line_count: self.lines.len(),
             recognized_instructions,
             unsupported_lines,
@@ -338,6 +342,7 @@ fn parse_m_row(text: &[u8]) -> bool {
 }
 
 pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDocument {
+    let source_sha256 = hex::encode(Sha256::digest(&raw));
     let encoding = if raw.starts_with(&[0xef, 0xbb, 0xbf]) {
         EncodingObservation::Utf8Bom
     } else if std::str::from_utf8(&raw).is_ok() {
@@ -408,7 +413,7 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
         }
         idx += 1;
     }
-    LosslessDocument { raw, controller, encoding, lines, m_headers, diagnostics }
+    LosslessDocument { raw, source_sha256, controller, encoding, lines, m_headers, diagnostics }
 }
 
 #[cfg(test)]
