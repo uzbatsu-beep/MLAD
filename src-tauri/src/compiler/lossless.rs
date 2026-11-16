@@ -229,6 +229,7 @@ fn ascii_trim(mut bytes: &[u8]) -> &[u8] {
 fn parse_instruction(
     source: &[u8],
     line: &SourceLine,
+    source_offset: usize,
     controller: ControllerFamily,
     diagnostics: &mut Vec<ParseDiagnostic>,
 ) -> LineKind {
@@ -287,8 +288,8 @@ fn parse_instruction(
     for (index, (start, end)) in fields.into_iter().enumerate() {
         let spelling = String::from_utf8_lossy(&source[start..end]).into_owned();
         let absolute = ByteSpan {
-            start: line.body_span.start + start,
-            end: line.body_span.start + end,
+            start: line.body_span.start + source_offset + start,
+            end: line.body_span.start + source_offset + end,
         };
         let expectation = schema.get(index).copied().unwrap_or(OperandKind::Unrecognized);
         let kind = match expectation {
@@ -350,7 +351,11 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
     let mut idx = 0usize;
     while idx < lines.len() {
         let mut body = &raw[lines[idx].body_span.start..lines[idx].body_span.end];
-        if idx == 0 && body.starts_with(&[0xef, 0xbb, 0xbf]) { body = &body[3..]; }
+        let mut source_offset = 0usize;
+        if idx == 0 && body.starts_with(&[0xef, 0xbb, 0xbf]) {
+            body = &body[3..];
+            source_offset = 3;
+        }
         let trimmed = ascii_trim(body);
         if trimmed.is_empty() {
             lines[idx].kind = LineKind::Empty;
@@ -362,28 +367,32 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
             let marker = lines[idx].number;
             let mut data_lines = Vec::new();
             let mut complete = true;
+            let mut consumed = 0usize;
             for row in 0..8 {
-                let next = idx + row + 1;
+                let next = idx + 1 + consumed;
                 if next >= lines.len() {
                     complete = false;
                     break;
                 }
                 let data = ascii_trim(&raw[lines[next].body_span.start..lines[next].body_span.end]);
-                let valid = parse_m_row(data);
-                data_lines.push(lines[next].number);
-                lines[next].kind = LineKind::MHeaderRow { row: row + 1, valid };
-                if !valid {
+                if !parse_m_row(data) {
                     complete = false;
                     push_diag(&mut diagnostics, "MHeaderInvalidRow", Severity::Error,
                         &lines[next], format!("Строка {} заголовка //$M: ожидается 10 целых чисел", row + 1));
+                    // Do not consume the unexpected source line as an M row.
+                    // It might be a real instruction following a truncated header.
+                    break;
                 }
+                lines[next].kind = LineKind::MHeaderRow { row: row + 1, valid: true };
+                data_lines.push(lines[next].number);
+                consumed += 1;
             }
             if !complete {
                 push_diag(&mut diagnostics, "MHeaderIncomplete", Severity::Error, &lines[idx],
                     "Секция //$M не содержит восемь корректных строк");
             }
             m_headers.push(MHeaderInfo { marker_line: marker, data_lines, complete });
-            idx += 1 + std::cmp::min(8, lines.len() - idx - 1);
+            idx += 1 + consumed;
             continue;
         }
         if trimmed.starts_with(b"//") || trimmed.starts_with(b"/") {
@@ -395,7 +404,7 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
             push_diag(&mut diagnostics, "EmbeddedNul", Severity::Warning, &lines[idx],
                 "Строка содержит NUL; исходные байты сохранены");
         } else {
-            lines[idx].kind = parse_instruction(body, &lines[idx], controller, &mut diagnostics);
+            lines[idx].kind = parse_instruction(body, &lines[idx], source_offset, controller, &mut diagnostics);
         }
         idx += 1;
     }
