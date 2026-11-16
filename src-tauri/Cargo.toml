@@ -1,6 +1,6 @@
 [package]
 name = "yaskawa-ladder-ide"
-version = "0.1.0"
+version = "0.5.0"
 description = "Next-Gen Yaskawa Motoman Ladder IDE"
 authors = ["Antigravity Developer"]
 edition = "2021"
