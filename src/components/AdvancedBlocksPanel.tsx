@@ -139,7 +139,12 @@ export function AdvancedBlocksPanel(){
   }
   async function offlineStep(){
     if(!selected)return;
-    const preset=Math.max(0,Math.min(65535,Math.trunc(testPreset)||0));
+    if (selected.kind!=="GROUP" &&
+        (!Number.isInteger(testPreset)||testPreset<0||testPreset>65535)) {
+      setStatus("Невозможно выполнить offline-шаг: уставка должна быть целым числом 0–65535.");
+      return;
+    }
+    const preset=testPreset;
     try{
       if(selected.kind==="TMR"){
         const state=testTimer??{current:preset,contact:false};
