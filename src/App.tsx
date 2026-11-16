@@ -143,7 +143,7 @@ export function App() {
       </div>
 
       {/* Основное рабочее пространство устаревшей версии (только JSON) */}
-      {!graphMode && <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>}
+      {!graphMode && <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* Боковая панель управления (Sidebar) */}
         <div style={{ width: "260px", backgroundColor: "#252526", borderRight: "1px solid #3c3c3c", padding: "15px", display: "flex", flexDirection: "column", gap: "15px" }}>
           <h3 style={{ margin: 0, fontSize: "14px", color: "#abb2bf", textTransform: "uppercase", letterSpacing: "0.5px" }}>Управление</h3>
