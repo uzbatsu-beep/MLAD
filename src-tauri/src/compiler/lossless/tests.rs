@@ -231,3 +231,15 @@ fn original_hash_identifies_unmodified_byte_snapshot() {
     let altered = parse(b"abc\n");
     assert_ne!(doc.source_sha256, altered.source_sha256);
 }
+
+#[test]
+fn tmr_cnt_manual_register_and_decimal_boundaries() {
+    let doc=parse(b"TMR M559,65535\nCNT M000,M999\nTMR M560,100\nCNT M010,65536\nTMR M999,M010\n");
+    let expected=[true,true,false,false,false];
+    for (line, validity) in doc.lines.iter().zip(expected) {
+        let LineKind::Instruction(i)=&line.kind else {panic!("typed instruction")};
+        assert_eq!(i.syntax_valid,validity,"{}: {:?}",i.mnemonic,i.operands);
+    }
+    assert_eq!(doc.copy_original(),
+        b"TMR M559,65535\nCNT M000,M999\nTMR M560,100\nCNT M010,65536\nTMR M999,M010\n");
+}

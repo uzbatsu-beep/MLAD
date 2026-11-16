@@ -3,6 +3,7 @@ import { useProjectStore } from "./store/projectStore";
 import { LadderCanvas } from "./components/LadderCanvas";
 import { CioprgInspector } from "./components/CioprgInspector";
 import { GraphWorkspace } from "./components/GraphWorkspace.tsx";
+import { AdvancedBlocksPanel } from "./components/AdvancedBlocksPanel.tsx";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle, FileSearch } from "lucide-react";
@@ -29,6 +30,7 @@ export function App() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [graphMode, setGraphMode] = useState(true);
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   // 1. Подписка на события рантайма из Rust по протоколу UDP/HSE
   useEffect(() => {
@@ -103,8 +105,10 @@ export function App() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px", padding: "10px 20px", backgroundColor: "#2d2d2d", borderBottom: "1px solid #3c3c3c" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           <span style={{ fontWeight: "bold", color: "#61afef" }}>MLAD</span>
-          <button type="button" style={{...btnStyle, backgroundColor: graphMode ? "#506b60" : "#3a3f4b"}}
-            onClick={() => setGraphMode(true)}>Графический редактор</button>
+          <button type="button" style={{...btnStyle, backgroundColor: graphMode && !advancedMode ? "#506b60" : "#3a3f4b"}}
+            onClick={() => {setGraphMode(true);setAdvancedMode(false);}}>Графический редактор</button>
+          <button type="button" style={{...btnStyle, backgroundColor:graphMode && advancedMode ? "#506b60" : "#3a3f4b"}}
+            onClick={() => {setGraphMode(true);setAdvancedMode(true);}}>TMR · CNT · GSTR/GOUT</button>
           <button type="button" style={{...btnStyle, backgroundColor: !graphMode ? "#506b60" : "#3a3f4b"}}
             onClick={() => setGraphMode(false)}>Старый JSON</button>
           {!graphMode && <span style={{fontSize:12,color:"#a6b4c1"}}>{projectName}</span>}
@@ -138,8 +142,14 @@ export function App() {
       {inspectorOpen && <CioprgInspector onClose={() => setInspectorOpen(false)} />}
 
       {/* Новый графический черновик всегда смонтирован: переключение вкладок не теряет несохранённые правки. */}
-      <div style={{display:graphMode?"flex":"none",flex:1,minHeight:0,overflow:"hidden"}}>
+      <div style={{display:graphMode && !advancedMode?"flex":"none",flex:1,minHeight:0,overflow:"hidden"}}>
         <GraphWorkspace />
+      </div>
+
+      {/* Advanced JSON editor never mixes its blocks with the legacy graph.
+          Keep both editors mounted while changing tabs to preserve drafts. */}
+      <div style={{display:graphMode && advancedMode?"flex":"none",flex:1,minHeight:0,overflow:"hidden"}}>
+        <AdvancedBlocksPanel />
       </div>
 
       {/* Основное рабочее пространство устаревшей версии (только JSON) */}

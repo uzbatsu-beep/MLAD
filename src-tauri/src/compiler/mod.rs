@@ -2,6 +2,8 @@ pub mod parser;
 pub mod lossless;
 pub mod semantic;
 pub mod graph_draft;
+pub mod advanced;
+pub mod advanced_source;
 pub mod memory;
 
 use serde::{Deserialize, Serialize};

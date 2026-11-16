@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { LadderCircuit } from "./LadderCircuit.tsx";
+import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
+import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
 import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -54,7 +56,62 @@ type SemanticPreview = {
   references_truncated: boolean;
   diagnostics_truncated: boolean;
 };
+type AdvancedSourceBlock = {
+  kind:"Timer"|"Counter"|"GroupCopy";
+  line:number;end_line:number;
+  operands:string[];
+  count_or_enable:string|null;
+  reset:string|null;
+  count_or_enable_inverted:boolean;
+  reset_inverted:boolean;
+  output:string|null;
+  example_pattern_recognized:boolean;
+};
+type AdvancedSourceReport = {
+  source_sha256:string;
+  blocks:AdvancedSourceBlock[];
+  warnings:{code:string;line:number;message:string}[];
+  blocks_truncated:boolean;
+  original_only:boolean;
+  native_export_allowed:boolean;
+  hardware_test_authorized:boolean;
+};
+function parseManualPreset(text:string):Preset|null{
+  if(/^M[0-9]{3}$/.test(text))return {kind:"register",address:text};
+  if(/^[0-9]+$/.test(text)){
+    const n=Number(text);
+    if(Number.isInteger(n)&&n>=0&&n<=65535)return {kind:"literal",value:n};
+  }
+  return null;
+}
+function toReadOnlyAdvanced(b:AdvancedSourceBlock):AdvancedBlock|null{
+  if(!b.example_pattern_recognized)return null;
+  if(b.kind==="GroupCopy" && b.operands.length===2)return {
+    kind:"GROUP",id:"source-"+b.line,source:b.operands[0],
+    destination:b.operands[1],
+  };
+  if(b.operands.length!==2||!b.count_or_enable||!b.output)return null;
+  const preset=parseManualPreset(b.operands[1]);
+  if(!preset)return null;
+  const first={
+    kind:"contact" as const,id:"src-c-"+b.line,relay:b.count_or_enable,
+    normallyClosed:b.count_or_enable_inverted,
+  };
+  if(b.kind==="Timer")return {
+    kind:"TMR",id:"src-"+b.line,current:b.operands[0],preset,
+    output:b.output,enable:first,
+  };
+  if(b.kind==="Counter" && b.reset)return {
+    kind:"CNT",id:"src-"+b.line,current:b.operands[0],preset,
+    output:b.output,count:first,
+    reset:{kind:"contact",id:"src-r-"+b.line,relay:b.reset,
+      normallyClosed:b.reset_inverted},
+  };
+  return null;
+}
+
 type Report = {
+  advanced: AdvancedSourceReport;
   semantic: SemanticPreview;
   controller: Controller;
   encoding: Encoding;
@@ -259,6 +316,43 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
               {report.semantic.nodes_truncated && <p style={{color:"#edbd78",fontSize:12}}>
                 AST ограничен до 4096 узлов: часть схем может быть недоступна для отображения.
               </p>}
+            </div>
+            <div style={panel}>
+              <strong>Advanced CIO · TMR / CNT / GSTR + GOUT</strong>
+              <p style={{fontSize:12,color:"#d9bb7a"}}>
+                Предпросмотр только типовых последовательностей из руководств. Неподдерживаемая
+                логическая топология не реконструируется; ни один блок нельзя изменить
+                или загрузить из этой панели.
+              </p>
+              <div style={{display:"grid",gap:15}}>
+                {report.advanced.blocks.map(b=>{
+                  const overlay=toReadOnlyAdvanced(b);
+                  return <div key={b.line} style={{background:"#222931",border:"1px solid #475667",
+                    borderRadius:7,padding:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",
+                      gap:8,flexWrap:"wrap",marginBottom:8}}>
+                      <span style={{fontFamily:"monospace"}}>
+                        {b.kind==="GroupCopy"?"GSTR/GOUT":b.kind==="Timer"?"TMR":"CNT"} ·
+                        строки {b.line}–{b.end_line} · {b.operands.join(", ")}
+                      </span>
+                      <span style={{color:b.example_pattern_recognized?"#b4d4ac":"#e9b87b"}}>
+                        {b.example_pattern_recognized?"Пример распознан":"Топология не подтверждена"}
+                      </span>
+                    </div>
+                    {overlay?<AdvancedBlockDiagram block={overlay}/>:
+                      <div role="alert" style={{color:"#e9b87b",fontSize:12}}>
+                        Граф не сформирован: неподтверждённая или неполная последовательность.
+                      </div>}
+                  </div>;
+                })}
+                {!report.advanced.blocks.length&&<div>Advanced-блоки в распознанном файле не найдены.</div>}
+                {report.advanced.blocks_truncated&&<div style={{color:"#e9b87b"}}>
+                  Показано только ограниченное число блоков.</div>}
+              </div>
+              <div style={{fontFamily:"monospace",fontSize:12,marginTop:9}}>
+                {report.advanced.warnings.map((w,i)=><div key={i} style={{color:"#e9b87b",
+                  padding:"3px 0"}}>L{w.line} [{w.code}] {w.message}</div>)}
+              </div>
             </div>
             <div style={{ ...panel, maxHeight: "230px", overflowY: "auto" }}>
               <strong>Диагностика ({report.diagnostics.length} показано)</strong>
