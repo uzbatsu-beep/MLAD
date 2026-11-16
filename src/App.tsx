@@ -3,7 +3,7 @@ import { useProjectStore } from "./store/projectStore";
 import { LadderCanvas } from "./components/LadderCanvas";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Play, Square, Save, FolderOpen, Plus, Trash2, Cpu, ArrowUpCircle, AlertTriangle } from "lucide-react";
+import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle } from "lucide-react";
 
 interface ValidationError {
   rung_id: number;
@@ -17,10 +17,8 @@ export function App() {
     rungs,
     isMonitoring,
     addRung,
-    deleteRung,
     setMonitoring,
     updateRuntimeStates,
-    saveProject,
     loadProject
   } = useProjectStore();
 
@@ -68,7 +66,7 @@ export function App() {
     }
   };
 
-  // 3. Сохранение проекта с выводом результатов статического анализа компилятора
+  // 3. Сохранение JSON-черновика (CIOPRG.LST экспорт отключён до верификации)
   const handleSave = async () => {
     try {
       // Сохраняем проект в JSON, бэкенд возвращает список предупреждений и ошибок
@@ -78,7 +76,7 @@ export function App() {
       });
       setErrors(validationErrors);
       if (validationErrors.length === 0) {
-        alert("Проект успешно сохранен и экспортирован в .LST без замечаний!");
+        alert("JSON-черновик сохранён. Экспорт CIOPRG.LST отключён до верификации формата.");
       }
     } catch (err) {
       console.error("Ошибка сохранения проекта:", err);
@@ -102,8 +100,8 @@ export function App() {
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
           <span style={{ fontWeight: "bold", color: "#61afef" }}>{projectName}</span>
           <button onClick={() => loadProject("project.json")} style={btnStyle}><FolderOpen size={16} /> Открыть</button>
-          <button onClick={handleSave} style={btnStyle}><Save size={16} /> Сохранить и Скомпилировать</button>
-          <button onClick={handleDeploy} style={{ ...btnStyle, backgroundColor: "#4b5263" }}><ArrowUpCircle size={16} /> FTP Деплой</button>
+          <button onClick={handleSave} style={btnStyle}><Save size={16} /> Сохранить JSON-черновик</button>
+          <button onClick={handleDeploy} disabled title="Небезопасный деплой заблокирован до проверки формата CIOPRG.LST" style={{ ...btnStyle, opacity: 0.45, cursor: "not-allowed" }}><ArrowUpCircle size={16} /> FTP (отключён)</button>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>

@@ -121,4 +121,47 @@ mod compiler_tests {
         assert_eq!(errors[0].error_type, "InvalidBitIndex");
         assert_eq!(errors[1].error_type, "InvalidBitIndex");
     }
+
+    #[test]
+    fn test_readonly_external_input_and_writable_external_output() {
+        let input = parse_lst_to_rungs("STR 70010\nOUT 20010\n");
+        let errors = validate_rungs(&input);
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].error_type, "ReadOnlyAddress");
+
+        let output = parse_lst_to_rungs("STR 70010\nOUT 30010\n");
+        assert!(validate_rungs(&output).is_empty());
+    }
+
+    #[test]
+    fn test_profile_specific_address_validation() {
+        use crate::compiler::memory::ControllerFamily;
+        use crate::compiler::validate_rungs_for_controller;
+
+        let ladder = parse_lst_to_rungs("STR 02570\nOUT 70010\n");
+        let dx100_errors = validate_rungs_for_controller(&ladder, ControllerFamily::DX100);
+        assert_eq!(dx100_errors.len(), 1);
+        assert_eq!(dx100_errors[0].error_type, "UnknownAddress");
+        assert!(validate_rungs_for_controller(&ladder, ControllerFamily::DX200).is_empty());
+    }
+
+    #[test]
+    fn test_nc_contact_bit_index_and_duplicate_normalization() {
+        use crate::{LadderInstruction, Rung};
+
+        let rungs = vec![
+            Rung { id: 1, comment: None, is_active: false, instructions: vec![
+                LadderInstruction { id: "1".into(), inst_type: "STR-NOT".into(), operand: "#70018".into() },
+                LadderInstruction { id: "2".into(), inst_type: "OUT".into(), operand: "#70020".into() },
+            ] },
+            Rung { id: 2, comment: None, is_active: false, instructions: vec![
+                LadderInstruction { id: "3".into(), inst_type: "STR".into(), operand: "70011".into() },
+                LadderInstruction { id: "4".into(), inst_type: "OUT".into(), operand: "70020".into() },
+            ] },
+        ];
+        let errors = validate_rungs(&rungs);
+        assert_eq!(errors.len(), 2);
+        assert_eq!(errors[0].error_type, "InvalidBitIndex");
+        assert_eq!(errors[1].error_type, "DoubleCoil");
+    }
 }

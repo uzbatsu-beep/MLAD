@@ -119,7 +119,7 @@ export const LadderCanvas: React.FC<LadderCanvasProps> = ({ rungs, activeAddress
           }}
         >
           {/* Метаданные и комментарии цепи */}
-          <div style={{ display: "flex", justifyContent: "span-between", fontSize: "11px", color: "#5c6370", fontFamily: "monospace", marginBottom: "5px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#5c6370", fontFamily: "monospace", marginBottom: "5px" }}>
             <span>RUNG #{rung.id}</span>
           </div>
           {rung.comment && (
