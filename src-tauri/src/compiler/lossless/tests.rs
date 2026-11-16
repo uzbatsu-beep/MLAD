@@ -221,3 +221,13 @@ fn empty_operand_and_unknown_sections_remain_byte_identical() {
     assert!(doc.diagnostics.iter().any(|d| d.code == "InvalidOperand" || d.code == "OperandCount"));
     assert!(matches!(doc.lines[0].kind, LineKind::Directive));
 }
+
+#[test]
+fn original_hash_identifies_unmodified_byte_snapshot() {
+    let doc = parse(b"abc");
+    assert_eq!(doc.source_sha256,
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    assert_eq!(doc.inspection_report(10, 10).source_sha256, doc.source_sha256);
+    let altered = parse(b"abc\n");
+    assert_ne!(doc.source_sha256, altered.source_sha256);
+}
