@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "controller": "YRC1000",
+  "blocks": [
+    {
+      "kind": "TMR",
+      "id": "demo-tmr-01",
+      "enable": {
+        "kind": "contact",
+        "id": "demo-tmr-en",
+        "relay": "#70010",
+        "normallyClosed": false
+      },
+      "current": "M010",
+      "preset": {
+        "kind": "literal",
+        "value": 100
+      },
+      "output": "#70100"
+    },
+    {
+      "kind": "CNT",
+      "id": "demo-cnt-01",
+      "count": {
+        "kind": "contact",
+        "id": "demo-cnt-count",
+        "relay": "#70011",
+        "normallyClosed": false
+      },
+      "reset": {
+        "kind": "contact",
+        "id": "demo-cnt-reset",
+        "relay": "#70012",
+        "normallyClosed": false
+      },
+      "current": "M020",
+      "preset": {
+        "kind": "literal",
+        "value": 3
+      },
+      "output": "#70110"
+    },
+    {
+      "kind": "GROUP",
+      "id": "demo-group-01",
+      "source": "#20010",
+      "destination": "#70030"
+    }
+  ]
+}
