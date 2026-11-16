@@ -20,6 +20,7 @@ type Report = {
   controller: Controller;
   encoding: Encoding;
   byte_length: number;
+  source_sha256: string;
   line_count: number;
   recognized_instructions: number;
   unsupported_lines: number;
@@ -124,6 +125,9 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
               <div style={{ marginTop: "8px", color: "#d9bb7a" }}>
                 Только побайтовое сохранение исходного файла. Экспорт изменённой программы запрещён.
                 {" "}Границы System/User Ladder не проверены.
+              </div>
+              <div style={{ marginTop: "8px", fontSize: "12px", fontFamily: "monospace", overflowWrap: "anywhere" }}>
+                SHA-256 исходного файла: {report.source_sha256}
               </div>
               <div style={{ marginTop: "8px", fontSize: "12px" }}>
                 Секции //$M: {report.m_headers.length}.{" "}
