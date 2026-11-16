@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useProjectStore } from "./store/projectStore";
 import { LadderCanvas } from "./components/LadderCanvas";
+import { CioprgInspector } from "./components/CioprgInspector";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle } from "lucide-react";
+import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle, FileSearch } from "lucide-react";
 
 interface ValidationError {
   rung_id: number;
@@ -25,6 +26,7 @@ export function App() {
   const [ipAddress, setIpAddress] = useState("192.168.1.10");
   const [activeAddresses, setActiveAddresses] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
 
   // 1. Подписка на события рантайма из Rust по протоколу UDP/HSE
   useEffect(() => {
@@ -101,6 +103,7 @@ export function App() {
           <span style={{ fontWeight: "bold", color: "#61afef" }}>{projectName}</span>
           <button onClick={() => loadProject("project.json")} style={btnStyle}><FolderOpen size={16} /> Открыть</button>
           <button onClick={handleSave} style={btnStyle}><Save size={16} /> Сохранить JSON-черновик</button>
+          <button type="button" onClick={() => setInspectorOpen(true)} style={btnStyle}><FileSearch size={16} /> Просмотр CIOPRG.LST</button>
           <button onClick={handleDeploy} disabled title="Небезопасный деплой заблокирован до проверки формата CIOPRG.LST" style={{ ...btnStyle, opacity: 0.45, cursor: "not-allowed" }}><ArrowUpCircle size={16} /> FTP (отключён)</button>
         </div>
 
@@ -124,6 +127,8 @@ export function App() {
           </button>
         </div>
       </div>
+
+      {inspectorOpen && <CioprgInspector onClose={() => setInspectorOpen(false)} />}
 
       {/* Основное рабочее пространство */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
