@@ -1,33 +1,11 @@
-# Официальная нормативная и техническая документация Yaskawa Motoman
+# References — superseded preliminary source list
 
-Для обеспечения максимальной совместимости компилятора, валидатора и сетевого протокола среды **MLAD** со всеми поколениями контроллеров (DX100, DX200, YRC1000, YRC1000micro, а также NX100/XRC) зафиксированы следующие ключевые документы и их кодовые идентификаторы:
+The previously maintained table included a number of unverified assumptions, including incorrect read-only/write classes for several CIO relay banks. It is retained as a stable navigation path.
 
----
+**Authoritative project index:** [source_registry.md](source_registry.md)
 
-## 1. Документация по среде Ladder Editor 32
+**Verified controller-specific ranges:** [typed_memory_model.md](typed_memory_model.md)
 
-| Код документа | Название / Назначение | Применимость / Контроллеры | Ссылка |
-| :--- | :--- | :--- | :--- |
-| **HW1483921** | **Ladder Editor 32 for YRC1000 Operator's Manual**<br>Детальное описание работы редактора с контроллерами последнего поколения YRC1000, правила загрузки/выгрузки файлов логики, структура проектов и синхронизация. | YRC1000, YRC1000micro | [Scribd: HW1483921](https://www.scribd.com/document/772248336/LadderEditor32YRC1000-Us) |
-| **MRS55130** | **User's Manual Ladder Editor 32 Version 1.2**<br>Классическое базовое руководство, подробно описывающее концепцию параллельного ввода-вывода (**Concurrent I/O**) независимо от исполнения траекторных программ INFORM манипулятора. | XRC, NX100, DX100, DX200 | [Yumpu: MRS55130](https://www.yumpu.com/en/document/view/3622119/users-manual-ladder-editor-32-version-12-motoman) |
-| **1683** | **Yaskawa LadderEditor Operator's Manual**<br>Базовое описание интерфейса ПО, синтаксического контроля мнемоник, верификации и процедур деплоя. | Общее ПО Ladder Editor | [Yaskawa LadderEditor](https://www.yaskawa.dk/products/software/productdetail/product/laddereditor_1683) |
+**File syntax and safe round-trip:** [cioprg_lst_spec.md](cioprg_lst_spec.md)
 
----
-
-## 2. Спецификации Concurrent I/O (Карта памяти и адресация)
-
-| Код документа | Название / Назначение | Ключевые разделы | Ссылка |
-| :--- | :--- | :--- | :--- |
-| **RE-CKI-A469** | **YRC1000micro Option Instructions for Concurrent I/O**<br>Исчерпывающая спецификация встроенного ПЛК: классификация сигналов, групповые входы/выходы, системные константы и параметры конфигурации. | Полный реестр диапазонов ввода-вывода, системные реле | [PDF: RE-CKI-A469](https://demo.intelitek.com/pluginfile.php/56776/mod_resource/content/1/YRC1000micro_instructions.pdf) |
-| **—** | **MotoSim EG-VRC Operator's Manual**<br>Руководство симулятора виртуального контроллера робота Yaskawa. Содержит точные таблицы распределения пулов памяти контроллеров. | Раздел 5.2 и Глава 7:<br>• Вспомогательные реле `70010`–`79997`<br>• Control Status `80010`–`85127`<br>• Pseudo Input `87010`–`87207` | [PDF: MotoSim Manual](https://demo.intelitek.com/pluginfile.php/66208/mod_folder/content/0/MotoSim_Operators_Manual.pdf?forcedownload=1) |
-
----
-
-## 3. Назначение для разработки и верификации компилятора
-
-1. **HW1483921:** Используется для валидации сетевого протокола загрузки файлов `.LST` (Concurrent I/O) и формата листингов YRC1000.
-2. **MRS55130:** Источник для правил группировки ветвей релейных схем (`AND-STR`, `OR-STR`), циклов сканирования ПЛК и приоритета исполнения цепей.
-3. **RE-CKI-A469 и MotoSim Manual (Раздел 5.2 / Гл. 7):** Базовый стандарт для встроенного статического анализатора компилятора Rust:
-   * Проверка прав записи (Read-Only диапазоны `1xxxx`, `3xxxx`, `5xxxx`, `8xxxx`).
-   * Диапазон псевдо-входов `87010`–`87207` (Pseudo Input).
-   * Ограничение индекса бита `0..=7`.
+Do not derive writing privileges or complete file headers from an isolated manual example. Controller-specific manufacturer manuals, application options and genuine exported test files must be verified before enabling compile/deploy.
