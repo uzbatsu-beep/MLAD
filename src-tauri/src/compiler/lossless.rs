@@ -42,6 +42,7 @@ pub enum OperandKind {
     RelayWord,
     MRegister,
     DecimalLiteral,
+    PartNumber,
     Unrecognized,
 }
 
@@ -255,7 +256,8 @@ fn parse_instruction(
     let schema: &[OperandKind] = match mnemonic {
         "STR" | "STR-NOT" | "AND" | "AND-NOT" |
         "OR" | "OR-NOT" | "OUT" => &[OperandKind::RelayBit],
-        "AND-STR" | "OR-STR" => &[],
+        "AND-STR" | "OR-STR" | "END" => &[],
+        "PART" => &[OperandKind::PartNumber],
         "TMR" | "CNT" => &[OperandKind::MRegister, OperandKind::Unrecognized],
         "GSTR" | "GOUT" => &[OperandKind::RelayByte],
         _ => {
@@ -302,6 +304,7 @@ fn parse_instruction(
             OperandKind::RelayByte if parse_group(controller, &spelling, RelayGroupWidth::Byte8).is_ok()
                 => OperandKind::RelayByte,
             OperandKind::MRegister if parse_register(&spelling).is_ok() => OperandKind::MRegister,
+            OperandKind::PartNumber if matches!(spelling.as_str(), "1" | "2") => OperandKind::PartNumber,
             OperandKind::Unrecognized if index == 1 && matches!(mnemonic, "CNT" | "TMR") => {
                 if parse_register(&spelling).is_ok() { OperandKind::MRegister }
                 else if !spelling.is_empty() && spelling.bytes().all(|b| b.is_ascii_digit()) {
