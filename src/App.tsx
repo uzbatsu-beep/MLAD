@@ -3,7 +3,7 @@ import { useProjectStore } from "./store/projectStore";
 import { LadderCanvas } from "./components/LadderCanvas";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Play, Square, Save, FolderOpen, Plus, Trash2, Cpu, ArrowUpCircle, AlertTriangle } from "lucide-react";
+import { Play, Square, Save, FolderOpen, Plus, Cpu, ArrowUpCircle, AlertTriangle } from "lucide-react";
 
 interface ValidationError {
   rung_id: number;
@@ -17,10 +17,8 @@ export function App() {
     rungs,
     isMonitoring,
     addRung,
-    deleteRung,
     setMonitoring,
     updateRuntimeStates,
-    saveProject,
     loadProject
   } = useProjectStore();
 
