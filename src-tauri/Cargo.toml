@@ -1,0 +1,35 @@
+[package]
+name = "yaskawa-ladder-ide"
+version = "0.1.0"
+description = "Next-Gen Yaskawa Motoman Ladder IDE"
+authors = ["Antigravity Developer"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+# Tauri и системная интеграция
+tauri = { version = "2.0", features = [] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Асинхронность и многопоточность
+tokio = { version = "1.35", features = ["full"] }
+futures-util = "0.3"
+
+# Сетевой стек для работы с контроллерами роботов
+suppftp = { version = "5.3", features = ["async", "async-tokio"] } # FTP для деплоя файлов .LST
+anyhow = "1.0" # Удобная обработка ошибок в сетевых потоках
+
+# Парсинг текстовых файлов инструкций (.LST)
+nom = "7.1" # Быстрый парсер для построения AST (Abstract Syntax Tree)
+
+# Логирование и диагностика
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[profile.release]
+panic = "abort" # Уменьшает размер бинарного файла
+codegen-units = 1 # Максимальная оптимизация при компиляции
+lto = true # Оптимизация на уровне связывания
