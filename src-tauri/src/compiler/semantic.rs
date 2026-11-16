@@ -155,7 +155,7 @@ impl SemanticReport {
         let mut results = Vec::with_capacity(root + 1);
         for node in &self.nodes[..=root] {
             let value = match &node.op {
-                ExprOp::Contact { relay, inverted } => signals.get(relay).map(|x| *x ^ inverted),
+                ExprOp::Contact { relay, inverted } => signals.get(relay).map(|x| *x ^ *inverted),
                 ExprOp::And { left, right } => {
                     let a: Option<bool> = results.get(*left).copied().flatten();
                     let b: Option<bool> = results.get(*right).copied().flatten();
@@ -271,11 +271,11 @@ impl Analyzer {
         let mut result = BTreeSet::new();
         let mut stack = vec![root];
         while let Some(i) = stack.pop() {
-            match self.nodes[i].op {
-                ExprOp::Contact { relay, .. } => { result.insert(relay); },
+            match &self.nodes[i].op {
+                ExprOp::Contact { relay, .. } => { result.insert(*relay); },
                 ExprOp::And { left, right } | ExprOp::Or { left, right } => {
-                    stack.push(left);
-                    stack.push(right);
+                    stack.push(*left);
+                    stack.push(*right);
                 },
             }
         }
