@@ -136,7 +136,7 @@ export function App() {
             />
           </div>
           <button 
-            onClick={handleToggleMonitoring} 
+            onClick={handleToggleMonitoring} disabled title="Стендовая RC: HSES-мониторинг отключён в backend" 
             style={{ ...btnStyle, backgroundColor: isMonitoring ? "#e06c75" : "#98c379", color: "#1e1e1e" }}
           >
             {isMonitoring ? <Square size={16} /> : <Play size={16} />}
