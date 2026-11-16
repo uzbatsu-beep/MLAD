@@ -330,7 +330,7 @@ fn parse_m_row(text: &[u8]) -> bool {
     let fields: Vec<_> = text.split(',').collect();
     fields.len() == 10 && fields.iter().all(|part| {
         let p = part.trim();
-        let digits = p.strip_prefix(['+', '-']).unwrap_or(p);
+        let digits = p.strip_prefix('+').or_else(|| p.strip_prefix('-')).unwrap_or(p);
         !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
             && p.parse::<i32>().is_ok()
     })
