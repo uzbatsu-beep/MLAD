@@ -239,6 +239,18 @@ pub fn validate(draft: &AdvancedDraft) -> Validation {
         c.structural = false;
         c.diagnostic("", "BlockLimit", Level::Error, "Превышен лимит 128 функциональных блоков");
     }
+    // Yaskawa error 4220 describes >100 TMR/CNT/arithmetic instructions.
+    // This editor does not see separate system-ladder arithmetic instructions,
+    // so warn early; it is never permission to consume the remaining budget.
+    let stateful_count = draft.blocks.iter().filter(|b| matches!(b,
+        AdvancedBlock::Tmr{..} | AdvancedBlock::Cnt{..})).count();
+    if stateful_count > 100 {
+        c.diagnostic("", "YaskawaInstructionBudget", Level::Error,
+            "Более 100 TMR/CNT: ошибка 4220; общий лимит включает также арифметические инструкции");
+    } else if stateful_count >= 90 {
+        c.diagnostic("", "YaskawaInstructionBudget", Level::Warning,
+            "TMR/CNT близко к лимиту: общее число включает и арифметику других секций");
+    }
     for block in &draft.blocks {
         let id = block.id();
         if id.is_empty() || !c.seen_blocks.insert(id.to_string()) {
