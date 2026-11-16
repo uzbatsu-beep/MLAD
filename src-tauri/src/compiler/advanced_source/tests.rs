@@ -59,3 +59,21 @@ fn duplicate_current_registers_are_detected_in_a_native_snapshot() {
     let r=parse(b"STR #70010\nTMR M010,100\nOUT #70100\nSTR #70011\nSTR #70012\nCNT M010,3\nOUT #70110\nEND\n",ControllerFamily::DX200);
     assert!(codes(&r).contains(&"DuplicateCurrentRegister"));
 }
+
+#[test]
+fn hostile_unpaired_gout_list_is_bounded_and_never_emits_native_code() {
+    let mut src=Vec::new();
+    for _ in 0..700 {src.extend_from_slice(b"GOUT #00010\n");}
+    let r=parse(&src,ControllerFamily::YRC1000);
+    assert_eq!(r.warnings.len(),500);
+    assert!(!r.native_export_allowed);
+    assert!(!r.hardware_test_authorized);
+}
+#[test]
+fn inverted_count_and_reset_inputs_retain_polarity_for_graph_review() {
+    let r=parse(b"STR-NOT #70010\nSTR-NOT #70011\nCNT M010,3\nOUT #70100\nEND\n",
+        ControllerFamily::YRC1000);
+    assert!(r.blocks[0].example_pattern_recognized);
+    assert!(r.blocks[0].count_or_enable_inverted);
+    assert!(r.blocks[0].reset_inverted);
+}
