@@ -28,6 +28,7 @@ type SemanticRung = {
   output_line: number;
   output: number;
   inputs: number[];
+  expression_preview: string;
   section: "Unspecified" | "System" | "User";
 };
 type SemanticPreview = {
@@ -187,7 +188,7 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
                 {report.semantic.rungs.map(r => (
                   <div key={r.number} style={{ padding: "4px 0" }}>
                     R{r.number} [{r.section}] L{r.first_line}–{r.output_line}:
-                    {" "}{r.inputs.map(v => "#" + String(v).padStart(5, "0")).join(", ") || "(без входов)"}
+                    {" "}{r.expression_preview}
                     {" "}→ OUT #{String(r.output).padStart(5, "0")}
                   </div>
                 ))}
