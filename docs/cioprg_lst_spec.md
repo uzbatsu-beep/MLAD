@@ -128,7 +128,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 **Data needed for a *fully verified* file grammar**: anonymized controller-exported `CIOPRG.LST` for each of DX100, DX200 and YRC1000, with original controller model, firmware, application type and Ladder Editor syntax-check outcome. Do not invent examples of complete headers or assert controller-ready compilation until these fixtures exist.
 
-## 7. Known technical debt in current MLAD code (not fixed by this specification)
+## 7. Status of PR #2 read-only lossless parser\n\nA byte-preserving read-only parser with a typed syntax overlay and SHA-256 provenance is implemented in `src-tauri/src/compiler/lossless.rs`. See [lossless parser contract](cioprg_lossless_parser.md). **It is not a validated full-file compiler.** Original System/User boundaries, all instruction families, semantic branching, edited file export and deployment remain unverified/disabled.\n\n## 8. Known technical debt in current MLAD code (not fixed by this specification)
 
 - `src-tauri/src/compiler/parser.rs` silently skips unknown instructions and only parses limited mnemonics; it does not faithfully parse `#`-prefixed operands or entire CIO files.
 - `src-tauri/src/main.rs` creates a `/JOB`-style pseudo-listing, writes it even with validation errors and ignores some I/O errors.
