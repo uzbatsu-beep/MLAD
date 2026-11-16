@@ -54,6 +54,35 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
     }
 }
 
+/// Read-only inspection of a native exported CIOPRG.LST file.
+/// This command neither changes the source file nor creates a controller-ready
+/// program. The original byte stream stays in Rust memory during parsing only.
+#[tauri::command]
+async fn cmd_inspect_cioprg(
+    file_path: String,
+    controller: compiler::memory::ControllerFamily,
+) -> Result<compiler::lossless::InspectionReport, String> {
+    const MAX_CIO_FILE_BYTES: u64 = 16 * 1024 * 1024;
+
+    let path = std::path::Path::new(&file_path);
+    if !path.extension().is_some_and(|ext| ext.to_string_lossy().eq_ignore_ascii_case("lst")) {
+        return Err("Выберите файл .LST для просмотра".into());
+    }
+    let metadata = tokio::fs::metadata(path).await
+        .map_err(|e| format!("Не удалось прочитать метаданные файла: {e}"))?;
+    if !metadata.is_file() || metadata.len() > MAX_CIO_FILE_BYTES {
+        return Err("Файл должен быть обычным .LST размером не более 16 МиБ".into());
+    }
+    let bytes = tokio::fs::read(path).await
+        .map_err(|e| format!("Не удалось прочитать .LST: {e}"))?;
+    if bytes.len() as u64 > MAX_CIO_FILE_BYTES {
+        return Err("Файл .LST превышает ограничение 16 МиБ".into());
+    }
+
+    let doc = compiler::lossless::parse_document(bytes, controller);
+    Ok(doc.inspection_report(600, 500))
+}
+
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
@@ -160,6 +189,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
+            cmd_inspect_cioprg,
             cmd_save_project,
             cmd_toggle_monitoring,
             cmd_deploy_to_robot
