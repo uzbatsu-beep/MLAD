@@ -56,7 +56,7 @@ Tauri commands:
 
 Safety bounds: version 1, up to 128 rungs, 4,096 total AST nodes, depth ≤64, file size ≤2 MiB. The UI layout additionally caps expression rendering to 256 elements and depth 32. **These are application resource limits, not robot/controller limits.**
 
-The legacy save command rejects `CIOPRG.LST` and the separate `*.graph.json` format; it is restricted to normal `*.json` files. Backend regression tests cover format separation even for direct IPC calls.
+The legacy save command rejects `CIOPRG.LST` and the separate `*.graph.json` format; it is restricted to normal `*.json` files. Backend regression tests cover format separation even for direct IPC calls. Existing symlink targets are rejected before JSON writes (defense-in-depth; OS filesystem access controls remain necessary).
 
 The address validator distinguishes `DX100`, `DX200`, `YRC1000` according to `docs/typed_memory_model.md`. It warns on self-feedback or `SpecificInput` coils and reports errors for invalid/duplicate coil destinations.
 
