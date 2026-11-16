@@ -107,6 +107,8 @@ Frontend tests verify the editor models and correct separate COUNT vs RESET pins
 
 ### A realistic bench verification plan (not executed by MLAD)
 
+A full **unexecuted test-case/acceptance matrix** for DX100/DX200/YRC1000 is provided in [advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.md).
+
 1. Identify controller exact firmware, application, IO card configuration and available User Ladder limits. Use an **offline backup** with recorded SHA-256 and OEM Ladder Editor.
 2. On an isolated approved test station with protective systems, test a *native program generated and validated using the authorized manufacturer editing procedure*; do **not** upload an MLAD file (there is no MLAD native export).
 3. Verify TMR 100 ms timing on real device using a calibrated timebase and compare 0/1/100/65535 preset behaviors, power-on/reset, changing setpoint register and scan edge cases.
