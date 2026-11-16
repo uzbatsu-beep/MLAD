@@ -1,11 +1,12 @@
 pub mod parser;
+pub mod memory;
 
 use serde::{Deserialize, Serialize};
-
-// Повторно экспортируем структуры данных из main для использования внутри компилятора
 use crate::Rung;
+use memory::{parse_relay, relay_write_policy, AddressError, ControllerFamily, LadderWritePolicy};
 
-/// Перечисление всех поддерживаемых типов токенов инструкций Yaskawa Concurrent I/O
+/// Instructions recognised by the *planned* compiler. Do not treat this enum as
+/// proof that the current legacy .LST parser supports all of these instructions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Token {
     Str(String),
@@ -21,7 +22,6 @@ pub enum Token {
     Unknown(String),
 }
 
-/// Результат статического анализа и валидации цепи
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidationError {
     pub rung_id: usize,
@@ -29,58 +29,71 @@ pub struct ValidationError {
     pub message: String,
 }
 
-/// На лету проверяет цепи на потенциальные логические ошибки (Double Coil, Недопустимые адреса)
+/// Compatibility wrapper only. Do NOT use the implicit YRC1000 profile for
+/// production/export: the controller profile must be selected explicitly.
 pub fn validate_rungs(rungs: &[Rung]) -> Vec<ValidationError> {
+    validate_rungs_for_controller(rungs, ControllerFamily::YRC1000)
+}
+
+/// Static checks for bit operands supported by the legacy editor.
+/// They are NOT a full concurrent-I/O compiler, firmware-dependent access
+/// validator or permission to download a program to a robot.
+pub fn validate_rungs_for_controller(rungs: &[Rung], controller: ControllerFamily) -> Vec<ValidationError> {
     let mut errors = Vec::new();
     let mut written_coils = std::collections::HashSet::new();
 
     for rung in rungs {
         for inst in &rung.instructions {
-            // 1. Проверка на Double Coil (Запись в одну катушку в разных цепях)
-            if inst.inst_type == "OUT" {
-                if !written_coils.insert(inst.operand.clone()) {
-                    errors.push(ValidationError {
-                        rung_id: rung.id,
-                        error_type: "DoubleCoil".to_string(),
-                        message: format!("Внимание: Дублирование записи в катушку OUT {}. Это может вызвать гонку сигналов.", inst.operand),
-                    });
-                }
+            let is_bit_instruction = matches!(inst.inst_type.as_str(),
+                "STR" | "STR-NOT" | "AND" | "AND-NOT" |
+                "OR" | "OR-NOT" | "OUT");
+            if !is_bit_instruction {
+                continue; // other instruction operand schemas not yet implemented
+            }
 
-                // 2. Валидация диапазонов записи (Запрещено писать в Read-Only диапазоны 1xxxx, 3xxxx, 5xxxx, 8xxxx)
-                let first_char = inst.operand.chars().next().unwrap_or(' ');
-                if matches!(first_char, '1' | '3' | '5' | '8') {
-                    let type_desc = match first_char {
-                        '1' => "физический вход (External Input 1xxxx)",
-                        '3' => "системный вход робота (Robot Input 3xxxx)",
-                        '5' => "вход интерфейса INFORM (Interface Input 5xxxx)",
-                        '8' => "системный статус/псевдо-вход (Control Status / Pseudo Input 8xxxx)",
-                        _ => "read-only сигнал",
+            let relay = match parse_relay(controller, &inst.operand) {
+                Ok(address) => address,
+                Err(reason) => {
+                    let error_type = match reason {
+                        AddressError::InvalidBitIndex => "InvalidBitIndex",
+                        AddressError::UnknownRelayRange => "UnknownAddress",
+                        _ => "InvalidOperand",
                     };
                     errors.push(ValidationError {
                         rung_id: rung.id,
-                        error_type: "ReadOnlyAddress".to_string(),
-                        message: format!("Ошибка: Попытка записи OUT в {}: {}. Сигнал доступен только для чтения.", type_desc, inst.operand),
+                        error_type: error_type.into(),
+                        message: format!("{} {}: {:?} ({:?})", inst.inst_type, inst.operand, reason, controller),
+                    });
+                    continue;
+                }
+            };
+
+            if inst.inst_type == "OUT" {
+                if !written_coils.insert(relay.number) {
+                    errors.push(ValidationError {
+                        rung_id: rung.id,
+                        error_type: "DoubleCoil".into(),
+                        message: format!("Double-coil: OUT {} assigned more than once", relay.display()),
                     });
                 }
-            }
-
-            // 3. Валидация индекса бита (последний символ адреса от 0 до 7)
-            if (inst.inst_type == "STR" || inst.inst_type == "AND" || inst.inst_type == "OR" || inst.inst_type == "OUT") 
-                && inst.operand.len() == 5 
-            {
-                if let Some(last_char) = inst.operand.chars().last() {
-                    if !('0'..='7').contains(&last_char) {
-                        errors.push(ValidationError {
-                            rung_id: rung.id,
-                            error_type: "InvalidBitIndex".to_string(),
-                            message: format!("Ошибка: Неверный индекс бита в адресе {}. Индекс должен быть в диапазоне 0-7.", inst.operand),
-                        });
-                    }
+                match relay_write_policy(relay.class) {
+                    LadderWritePolicy::Denied => errors.push(ValidationError {
+                        rung_id: rung.id,
+                        error_type: "ReadOnlyAddress".into(),
+                        message: format!("OUT {} targets non-writable class {:?} ({:?})",
+                            relay.display(), relay.class, controller),
+                    }),
+                    LadderWritePolicy::RequiresReview => errors.push(ValidationError {
+                        rung_id: rung.id,
+                        error_type: "ReviewRequired".into(),
+                        message: format!("OUT {} requires configuration-specific review ({:?})",
+                            relay.display(), relay.class),
+                    }),
+                    LadderWritePolicy::Candidate => (),
                 }
             }
         }
     }
-
     errors
 }
 #[cfg(test)]
