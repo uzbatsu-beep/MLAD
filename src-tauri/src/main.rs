@@ -59,6 +59,7 @@ struct FullCioprgInspection {
     #[serde(flatten)]
     base: compiler::lossless::InspectionReport,
     semantic: compiler::semantic::SemanticPreview,
+    advanced: compiler::advanced_source::AdvancedSourceReport,
 }
 
 /// Read-only inspection of a native exported CIOPRG.LST file.
@@ -99,9 +100,11 @@ async fn cmd_inspect_cioprg(
 
     let doc = compiler::lossless::parse_document(bytes, controller);
     let semantic = compiler::semantic::analyze(&doc);
+    let advanced = compiler::advanced_source::inspect(&doc);
     Ok(FullCioprgInspection {
         base: doc.inspection_report(600, 500),
         semantic: semantic.preview(200, 200, 500),
+        advanced,
     })
 }
 
@@ -188,10 +191,81 @@ fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
     let name = std::path::Path::new(file_path).file_name()
         .and_then(|name| name.to_str())
         .ok_or("Не указан путь к JSON-проекту")?;
-    if !name.ends_with(".json") || name.ends_with(".graph.json") {
+    if !name.ends_with(".json") || name.ends_with(".graph.json") || name.ends_with(".advanced.json") {
         return Err("Старый редактор может сохранять только обычный *.json, но не *.graph.json или *.LST".into());
     }
     Ok(())
+}
+
+/// Separate advanced-block JSON workspace. This file must NEVER be a
+/// controller export or overwrite a legacy graph / CIOPRG program.
+fn check_advanced_path(file_path: &str) -> Result<&std::path::Path, String> {
+    let path=std::path::Path::new(file_path);
+    let name=path.file_name().and_then(|s|s.to_str())
+        .ok_or("Неверный путь advanced-черновика")?;
+    if file_path.len()>1024 || !name.ends_with(".advanced.json") {
+        return Err("Для TMR/CNT/GRP разрешены только файлы *.advanced.json".into());
+    }
+    Ok(path)
+}
+
+#[tauri::command]
+fn cmd_validate_advanced_draft(
+    project: compiler::advanced::AdvancedDraft,
+) -> compiler::advanced::Validation {
+    compiler::advanced::validate(&project)
+}
+
+#[tauri::command]
+async fn cmd_load_advanced_draft(
+    file_path: String,
+) -> Result<compiler::advanced::AdvancedDraft,String> {
+    let path=check_advanced_path(&file_path)?;
+    let meta=tokio::fs::metadata(path).await.map_err(|e|e.to_string())?;
+    if !meta.is_file()||meta.len()>2*1024*1024 {
+        return Err("Недопустимый файл или превышение 2 МиБ".into());
+    }
+    let bytes=tokio::fs::read(path).await.map_err(|e|e.to_string())?;
+    let s=std::str::from_utf8(&bytes).map_err(|e|e.to_string())?;
+    Ok(compiler::advanced::deserialize_checked(s)?.0)
+}
+
+#[tauri::command]
+async fn cmd_save_advanced_draft(
+    file_path: String,
+    project: compiler::advanced::AdvancedDraft,
+) -> Result<compiler::advanced::Validation,String> {
+    let path=check_advanced_path(&file_path)?;
+    reject_existing_symlink(path).await?;
+    let (json,validation)=compiler::advanced::serialize_checked(&project)?;
+    if path.exists() {
+        let filename=path.file_name().unwrap().to_string_lossy();
+        let backup=path.with_file_name(format!("{filename}.bak"));
+        reject_existing_symlink(&backup).await?;
+        tokio::fs::copy(path,backup).await.map_err(|e|format!("Backup: {e}"))?;
+    }
+    tokio::fs::write(path,json).await.map_err(|e|e.to_string())?;
+    Ok(validation)
+}
+
+/// Pure offline timer/counter test helpers. No connected I/O, time source,
+/// HSES, or robot execution. Explicit sample each time.
+#[tauri::command]
+fn cmd_test_tmr_step(
+    mut state: compiler::advanced::TimerState, start:bool, preset:u16,
+) -> compiler::advanced::TimerState {
+    state.tick(start,preset);state
+}
+#[tauri::command]
+fn cmd_test_cnt_step(
+    mut state: compiler::advanced::CounterState,
+    count:bool,reset:bool,preset:u16,
+) -> compiler::advanced::CounterState {
+    state.scan(count,reset,preset);state
+}
+#[tauri::command]
+fn cmd_test_group_copy(source:u8)->u8 {
+    compiler::advanced::group_copy(source)
 }
 
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
@@ -266,6 +340,12 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
+            cmd_validate_advanced_draft,
+            cmd_load_advanced_draft,
+            cmd_save_advanced_draft,
+            cmd_test_tmr_step,
+            cmd_test_cnt_step,
+            cmd_test_group_copy,
             cmd_validate_graph_draft,
             cmd_load_graph_draft,
             cmd_save_graph_draft,
@@ -286,6 +366,7 @@ mod graph_write_safety_tests {
         assert!(check_legacy_json_path("CIOPRG.LST").is_err());
         assert!(check_legacy_json_path("robot.lst").is_err());
         assert!(check_legacy_json_path("ladder.graph.json").is_err());
+        assert!(check_legacy_json_path("ladder.advanced.json").is_err());
         assert!(check_legacy_json_path("project.json").is_ok());
     }
 
@@ -313,4 +394,12 @@ mod graph_write_safety_tests {
         assert!(check_graph_draft_path("ladder.graph.json").is_ok());
         assert!(check_graph_draft_path("example.graph.json").is_ok());
     }
+    #[test]
+    fn advanced_path_guard_separates_three_file_formats() {
+        assert!(check_advanced_path("CIOPRG.LST").is_err());
+        assert!(check_advanced_path("ladder.graph.json").is_err());
+        assert!(check_advanced_path("project.json").is_err());
+        assert!(check_advanced_path("ladder.advanced.json").is_ok());
+    }
+
 }
