@@ -105,6 +105,70 @@ async fn cmd_inspect_cioprg(
     })
 }
 
+// Only filenames ending in .graph.json are treated as editable graph drafts.
+// This prevents accidental mixing with the old project.json or CIOPRG.LST.
+fn check_graph_draft_path(file_path: &str) -> Result<&std::path::Path, String> {
+    let path = std::path::Path::new(file_path);
+    let file_name = path.file_name()
+        .and_then(|s| s.to_str())
+        .ok_or("Не указан корректный путь к черновику")?;
+    if file_path.len() > 1024 || !file_name.ends_with(".graph.json") {
+        return Err("Черновик должен иметь имя *.graph.json (не CIOPRG.LST и не project.json)".into());
+    }
+    Ok(path)
+}
+
+/// Offline, non-mutating draft validation. No device/network access.
+#[tauri::command]
+fn cmd_validate_graph_draft(
+    project: compiler::graph_draft::GraphDraft,
+) -> compiler::graph_draft::DraftValidation {
+    compiler::graph_draft::validate_graph_draft(&project)
+}
+
+/// Only loads an independent, versioned graph draft, never a CIOPRG file.
+#[tauri::command]
+async fn cmd_load_graph_draft(
+    file_path: String,
+) -> Result<compiler::graph_draft::GraphDraft, String> {
+    let path = check_graph_draft_path(&file_path)?;
+    let info = tokio::fs::metadata(path).await
+        .map_err(|e| format!("Не удалось прочитать черновик: {e}"))?;
+    if !info.is_file() || info.len() > 2 * 1024 * 1024 {
+        return Err("Размер черновика превышает 2 МиБ или путь не является файлом".into());
+    }
+    let bytes = tokio::fs::read(path).await
+        .map_err(|e| format!("Ошибка чтения черновика: {e}"))?;
+    let text = std::str::from_utf8(&bytes).map_err(|e| format!("Ошибка UTF-8: {e}"))?;
+    let (draft, _) = compiler::graph_draft::read_draft_json(text)?;
+    Ok(draft)
+}
+
+/// Graph drafts are JSON-only, with a best-effort backup of the previous JSON.
+/// Invalid *relay addresses* can be saved for later editing; invalid structure
+/// (duplicate node IDs, wrong version, excessive depth/size) is rejected.
+#[tauri::command]
+async fn cmd_save_graph_draft(
+    file_path: String,
+    project: compiler::graph_draft::GraphDraft,
+) -> Result<compiler::graph_draft::DraftValidation, String> {
+    let path = check_graph_draft_path(&file_path)?;
+    let (content, result) = compiler::graph_draft::checked_draft_json(&project)?;
+    if path.exists() {
+        let info = tokio::fs::metadata(path).await
+            .map_err(|e| format!("Не удалось проверить существующий черновик: {e}"))?;
+        if !info.is_file() { return Err("Путь не является обычным файлом".into()); }
+        let backup = path.with_file_name(format!(
+            "{}.bak", path.file_name().unwrap().to_string_lossy()
+        ));
+        tokio::fs::copy(path, backup).await
+            .map_err(|e| format!("Не удалось создать резервную копию: {e}"))?;
+    }
+    tokio::fs::write(path, content).await
+        .map_err(|e| format!("Не удалось сохранить графический черновик: {e}"))?;
+    Ok(result)
+}
+
 /// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
@@ -212,6 +276,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
+            cmd_validate_graph_draft,
+            cmd_load_graph_draft,
+            cmd_save_graph_draft,
             cmd_save_project,
             cmd_toggle_monitoring,
             cmd_deploy_to_robot
