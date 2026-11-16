@@ -104,7 +104,7 @@ export function App() {
       <div role="status" style={{background:"#493f25",color:"#ffe0a2",
         borderBottom:"1px solid #a27e39",padding:"7px 16px",
         fontSize:12,fontWeight:600}}>
-        MLAD Bench v0.5.0-rc.1 · STAND / OFFLINE · Только подготовка стендовых
+        MLAD Bench {import.meta.env.VITE_MLAD_PREVIEW_LABEL || "v0.5.0-rc.1"} · STAND / OFFLINE · Только подготовка стендовых
         испытаний. Запись CIOPRG.LST, FTP и HSES отключены.
       </div>
       {/* Панель инструментов (Toolbar) */}
