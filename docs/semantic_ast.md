@@ -96,7 +96,7 @@ Partial cross references do **not** prove there is no conflicting writer: GOUT/B
 - `RegisterCurrentValue` and `RegisterSetpoint` are descriptive for TMR/CNT; runtime effects are not modeled.
 - `PotentialGroupRead` and `PotentialGroupWrite` cover recognized GSTR/GOUT. The word “Potential” is intentional.
 - All sites retain source line and operand byte span. Every section label is explicitly a **claim** based on PART tokens, not a trust boundary.
-- The dependency graph links valid rungs by matching output relays to input contacts. Strongly connected components are found by iterative DFS (no recursive call stack); the resulting feedback warning is informative and not a formal deadlock proof.
+- Each rung also provides a bounded, human-readable expression preview; the indexed expression graph remains authoritative.\n- The dependency graph links valid rungs by matching output relays to input contacts. Strongly connected components are found by iterative DFS (no recursive call stack); the resulting feedback warning is informative and not a formal deadlock proof.
 
 ## 6. Offline evaluation (not hardware simulation)
 
