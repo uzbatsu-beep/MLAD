@@ -222,3 +222,12 @@ fn file_bytes_are_unchanged_by_semantic_analysis() {
     assert_eq!(r.source_sha256,before);
     assert_eq!(doc.copy_original(),raw);
 }
+
+#[test]
+fn missing_end_is_not_reported_as_complete() {
+    let r = report("PART 2\nSTR #20010\nOUT #70020\n");
+    assert_eq!(r.rungs.len(),1);
+    assert!(codes(&r).contains(&"NoEnd"));
+    assert!(!r.end_seen);
+    assert!(!r.subset_analysis_complete);
+}
