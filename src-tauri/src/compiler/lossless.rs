@@ -303,11 +303,14 @@ fn parse_instruction(
                 && spelling.starts_with('#') => OperandKind::RelayBit,
             OperandKind::RelayByte if parse_group(controller, &spelling, RelayGroupWidth::Byte8).is_ok()
                 => OperandKind::RelayByte,
-            OperandKind::MRegister if parse_register(&spelling).is_ok() => OperandKind::MRegister,
+            OperandKind::MRegister if parse_register(&spelling).is_ok_and(|a| {
+                !matches!(mnemonic, "TMR" | "CNT") || a.number <= 559
+            }) => OperandKind::MRegister,
             OperandKind::PartNumber if matches!(spelling.as_str(), "1" | "2") => OperandKind::PartNumber,
             OperandKind::Unrecognized if index == 1 && matches!(mnemonic, "CNT" | "TMR") => {
                 if parse_register(&spelling).is_ok() { OperandKind::MRegister }
-                else if !spelling.is_empty() && spelling.bytes().all(|b| b.is_ascii_digit()) {
+                else if !spelling.is_empty() && spelling.bytes().all(|b| b.is_ascii_digit())
+                    && spelling.parse::<u16>().is_ok() {
                     OperandKind::DecimalLiteral
                 } else { OperandKind::Unrecognized }
             }
