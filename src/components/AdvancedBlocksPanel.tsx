@@ -1,6 +1,6 @@
 import {useEffect,useState} from "react";
 import {invoke} from "@tauri-apps/api/core";
-import {addBranch,changeAt,deleteContact,findContact,makeContact,type GraphExpr} from "../ladder/graphModel.ts";
+import {addBranch,changeAt,deleteContact,findContact,type GraphExpr} from "../ladder/graphModel.ts";
 import {AdvancedBlockDiagram} from "./AdvancedBlockDiagram.tsx";
 import {
   newBlock,freshAdvancedDraft,blockReviewLines,describeCondition,
