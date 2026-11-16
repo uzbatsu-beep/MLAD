@@ -209,11 +209,12 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
 /// Команда Tauri: Переключение режима онлайн-мониторинга через UDP/HSE протокол
 #[tauri::command]
 async fn cmd_toggle_monitoring(
-    _ip: String,
+    ip: String,
     active: bool,
     state: State<'_, AppNetworkState>,
-    _app_handle: tauri::AppHandle,
+    app_handle: tauri::AppHandle,
 ) -> Result<(), String> {
+    let _ = (ip, app_handle);
     // Legacy HSES client uses an unverified protocol framing. Stop any old
     // local poll and never open a new socket until protocol verification.
     let mut monitor = state.monitor_handle.lock().await;
