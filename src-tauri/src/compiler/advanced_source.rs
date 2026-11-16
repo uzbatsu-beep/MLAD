@@ -20,6 +20,8 @@ pub struct SourceBlock {
     pub operands: Vec<String>,
     pub count_or_enable: Option<String>,
     pub reset: Option<String>,
+    pub count_or_enable_inverted: bool,
+    pub reset_inverted: bool,
     pub output: Option<String>,
     /// Recognized as a narrow manual example, not an editable native format.
     pub example_pattern_recognized: bool,
@@ -113,6 +115,8 @@ pub fn inspect(doc: &LosslessDocument) -> AdvancedSourceReport {
                     operands:op(inst),
                     count_or_enable: first.and_then(|n|n.operands.first().map(|o|o.spelling.clone())),
                     reset:second.and_then(|n|n.operands.first().map(|o|o.spelling.clone())),
+                    count_or_enable_inverted:first.is_some_and(|n|n.mnemonic=="STR-NOT"),
+                    reset_inverted:second.is_some_and(|n|n.mnemonic=="STR-NOT"),
                     output:next.and_then(|n|if n.mnemonic=="OUT"{
                         n.operands.first().map(|o|o.spelling.clone())
                     }else{None}),
@@ -144,7 +148,8 @@ pub fn inspect(doc: &LosslessDocument) -> AdvancedSourceReport {
                 blocks.push(SourceBlock {
                     kind:SourcePattern::GroupCopy,line:inst.line,
                     end_line:if valid {next.map(|o|o.line).unwrap_or(inst.line)}else{inst.line},
-                    operands,count_or_enable:None,reset:None,output:None,
+                    operands,count_or_enable:None,reset:None,
+                    count_or_enable_inverted:false,reset_inverted:false,output:None,
                     example_pattern_recognized:valid,
                 });
             }
