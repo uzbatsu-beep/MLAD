@@ -169,3 +169,14 @@ fn zero_presets_are_warnings_and_no_hardware_authorization() {
     assert!(!v.has_errors);assert!(codes(&v).contains(&"ZeroPreset"));
     assert!(!v.hardware_test_authorized);
 }
+
+#[test]
+fn yaskawa_error_4220_budget_is_reflected_in_draft_diagnostics() {
+    let blocks:Vec<_>=(0..101).map(|i|
+        tmr(&format!("t{i}"),&format!("M{i:03}"),
+            Preset::Literal{value:1},&format!("#{:05}",70100+i*10))).collect();
+    let d=draft(blocks,ControllerFamily::DX200);
+    let validation=validate(&d);
+    assert!(codes(&validation).contains(&"YaskawaInstructionBudget"));
+    assert!(validation.has_errors);
+}
