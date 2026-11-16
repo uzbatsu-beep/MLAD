@@ -33,6 +33,8 @@ fn and_str_has_precedence_as_combination_of_two_groups() {
     assert_eq!(r.rungs.len(), 1);
     assert!(r.subset_analysis_complete);
     assert_eq!(r.rungs[0].inputs, vec![70010,70011,70020,70021]);
+    assert_eq!(r.rungs[0].expression_preview,
+        "((#70010 OR #70011) AND (#70020 OR #70021))");
     assert_eq!(r.evaluate_rung(0,&signals(&[(70010,true),(70011,false),(70020,false),(70021,true)])),Some(true));
     assert_eq!(r.evaluate_rung(0,&signals(&[(70010,true),(70011,false),(70020,false),(70021,false)])),Some(false));
     assert_eq!(r.evaluate_rung(0,&signals(&[(70010,false),(70011,false),(70020,false),(70021,true)])),Some(false));
