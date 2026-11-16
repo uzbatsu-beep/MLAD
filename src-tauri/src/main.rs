@@ -41,12 +41,9 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
     info!("Запрос на загрузку проекта из файла: {}", file_path);
     
     if file_path.ends_with(".lst") || file_path.ends_with(".LST") {
-        // Чтение и парсинг оригинального текстового листинга Yaskawa с помощью nom
-        let content = std::fs::read_to_string(&file_path)
-            .map_err(|e| format!("Не удалось прочитать .LST файл: {}", e))?;
-        let parsed_rungs = compiler::parser::parse_lst_to_rungs(&content);
-        info!("Успешно распарсен нативный файл .LST. Найдено цепей: {}", parsed_rungs.len());
-        Ok(parsed_rungs)
+        // The old lossy parser silently discards unknown CIO instructions.
+        // Do not present it as a safe importer for a real controller export.
+        Err("Импорт CIOPRG.LST временно заблокирован: требуется lossless parser и проверка System/User Ladder".to_string())
     } else {
         // Чтение стандартного Git-friendly JSON проекта нашей среды
         let content = std::fs::read_to_string(&file_path)
@@ -57,7 +54,7 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
     }
 }
 
-/// Команда Tauri: Валидация и сохранение проекта (в JSON и экспорт в .LST)
+/// Команда Tauri: Валидация и сохранение чернового проекта (только JSON)
 #[tauri::command]
 async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<compiler::ValidationError>, String> {
     info!("Запрос на сохранение проекта. Количество цепей: {}", data.len());
@@ -74,28 +71,12 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
     std::fs::write(&file_path, json_content)
         .map_err(|e| format!("Не удалось записать JSON на диск: {}", e))?;
         
-    // 3. Автоматический экспорт сопутствующего нативного файла листинга .LST для робота
-    let lst_path = file_path.replace(".json", ".lst");
-    let mut lst_content = String::from("/JOB\n//NAME CONCURRENT\n//POS\n///NPOS 0,0,0,0,0,0\n//INST\nIOCPT STRSTART\n");
-    
-    for rung in &data {
-        if let Some(ref comment) = rung.comment {
-            lst_content.push_str(&format!("; {}\n", comment));
-        }
-        for inst in &rung.instructions {
-            if inst.inst_type == "TMR" {
-                lst_content.push_str(&format!("TMR {}\n", inst.operand));
-            } else {
-                lst_content.push_str(&format!("{} {}\n", inst.inst_type, inst.operand));
-            }
-        }
-    }
-    lst_content.push_str("END\n");
-    
-    let _ = std::fs::write(lst_path, lst_content);
-    info!("Проект успешно сохранен и экспортирован в .LST");
-    
-    // Возвращаем список ошибок/предупреждений на фронтенд для подсветки проблемных мест
+    // STOP: /JOB, //INST and IOCPT are not a verified CIOPRG.LST format.
+    // Save only the editable JSON project until a lossless controller-specific
+    // compiler and golden-file round-trip tests have been implemented.
+    info!("JSON проект сохранен. Экспорт CIOPRG.LST заблокирован до верификации.");
+
+    // Return diagnostics to the UI. The JSON draft is still preserved.
     Ok(validation_errors)
 }
 
@@ -159,17 +140,12 @@ async fn cmd_toggle_monitoring(
     Ok(())
 }
 
-/// Команда Tauri: Деплой скомпилированного листинга логики на робота по FTP
+/// Команда Tauri: Деплой запрещён до аппаратной и форматной верификации
 #[tauri::command]
-async fn cmd_deploy_to_robot(ip: String, local_path: String) -> Result<(), String> {
-    info!("Запуск процедуры FTP деплоя на робота: {}", ip);
-    let deployer = network::RobotFtpDeployer::new(&ip);
-    
-    deployer.upload_ladder_file(&local_path, "CIOLAD.LST")
-        .await
-        .map_err(|e| format!("Ошибка FTP загрузки: {}", e))?;
-        
-    Ok(())
+async fn cmd_deploy_to_robot(_ip: String, _local_path: String) -> Result<(), String> {
+    // No verified CIOPRG.LST compiler or safe deployment procedure exists yet.
+    // Block all uploads regardless of user-supplied path or credentials.
+    Err("Загрузка на робот отключена: отсутствует подтвержденная спецификация CIOPRG.LST и проверенная процедура деплоя".to_string())
 }
 
 fn main() {
