@@ -97,14 +97,14 @@ pub fn inspect(doc: &LosslessDocument, max_events: usize) -> StaticAudit {
                 instruction, controller_form_verified, ..
             } => {
                 total+=1;
+                // A well-formed operand shape is not the same as an OEM-
+                // verified controller form (especially for DX100).
+                if instruction.syntax_valid { valid+=1; } else { invalid+=1; }
                 let possible=instruction.syntax_valid &&
                     *controller_form_verified && destination_index(instruction).is_some();
                 if !possible {
-                    invalid+=1;
                     definitions.clear();
                     barriers+=1;
-                } else {
-                    valid+=1;
                 }
                 let dest=destination_index(instruction);
                 let mut sites=Vec::new();
@@ -254,8 +254,8 @@ mod tests {
         let doc=parse_document(raw.to_vec(),ControllerFamily::DX100);
         let audit=inspect(&doc,100);
         assert_eq!(audit.total_candidates,2);
-        assert_eq!(audit.valid_shape_candidates,0);
-        assert_eq!(audit.invalid_shape_candidates,2);
+        assert_eq!(audit.valid_shape_candidates,2);
+        assert_eq!(audit.invalid_shape_candidates,0);
         assert_eq!(audit.possible_source_order_links,0);
         assert!(audit.events.iter().all(|e| !e.controller_form_verified));
     }
