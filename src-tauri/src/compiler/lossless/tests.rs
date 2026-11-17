@@ -382,3 +382,26 @@ fn dx100_typed_form_is_never_labelled_confirmed() {
     assert!(matches!(doc.lines[0].kind,
         LineKind::TypedCandidate{controller_form_verified:false,semantics_verified:false,..}));
 }
+
+
+#[test]
+fn synthetic_four_opcode_distribution_is_documented_shape_only() {
+    let mut source=Vec::new();
+    for _ in 0..101 {source.extend_from_slice(b"MOV M010,M011\r\n");}
+    for _ in 0..102 {source.extend_from_slice(b"ADD M010,M011,M012\r\n");}
+    for _ in 0..6 {source.extend_from_slice(b"SUB 3,M010,M011\r\n");}
+    for _ in 0..6 {source.extend_from_slice(b"SHL M010,1,M011\r\n");}
+    source.extend_from_slice(b"END\r\n//ALARM1\r\nMOV M010,M011\r\n");
+    let doc=parse_document(source.clone(),ControllerFamily::YRC1000);
+    let p=doc.inspection_report(5,5);
+    assert_eq!(p.typed_candidate_count,215);
+    assert_eq!(p.typed_valid_forms,215);
+    assert_eq!(p.typed_invalid_forms,0);
+    assert_eq!(p.typed_mnemonic_counts.get("MOV"),Some(&101));
+    assert_eq!(p.typed_mnemonic_counts.get("ADD"),Some(&102));
+    assert_eq!(p.typed_mnemonic_counts.get("SUB"),Some(&6));
+    assert_eq!(p.typed_mnemonic_counts.get("SHL"),Some(&6));
+    assert_eq!(p.post_end_sections,1);
+    assert_eq!(doc.original_bytes(),source.as_slice());
+    assert_eq!(doc.copy_original(),source);
+}

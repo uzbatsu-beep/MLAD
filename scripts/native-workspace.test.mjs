@@ -101,3 +101,20 @@ test("post-END categories are explicit; diagnostic grouping keeps navigation",()
   assert.match(native,/Группировать по коду/);
   assert.match(native,/g\.items\.map/);
 });
+
+test("extended arithmetic and shift opcodes are typed read-only and separately counted",()=>{
+  assert.match(native,/getTypedCandidate/);
+  assert.match(native,/TypedCandidatePreview/);
+  assert.match(native,/typed_candidate_count/);
+  assert.match(native,/typed_valid_forms/);
+  assert.match(native,/typed_invalid_forms/);
+  assert.match(native,/typed_mnemonic_counts/);
+  assert.match(native,/Типизировано\*/);
+  assert.match(native,/Не участвует в реконструкции Ladder/);
+  const rust=readFileSync("src-tauri/src/compiler/lossless.rs","utf8");
+  assert.match(rust,/semantics_verified:false/);
+  assert.match(rust,/controller_form_verified/);
+  assert.match(rust,/"MOV"/);
+  assert.match(rust,/"ADD" \| "SUB"/);
+  assert.match(rust,/"SHL" \| "SHR"/);
+});

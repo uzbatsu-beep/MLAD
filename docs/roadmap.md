@@ -157,3 +157,9 @@
 Документы: [architecture.md](architecture.md), [controller_fixture_intake.md](controller_fixture_intake.md), [cioprg_lst_spec.md](cioprg_lst_spec.md), [development_workflow.md](development_workflow.md), [advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.md).
 
 **Настоящий документ — карта решений, а не согласие на запуск M11–M13.**
+
+### PR #19 — Typing extension / offline native (in progress)
+
+- Предложено: `MOV`, `ADD`, `SUB`, `SHL`, `SHR` как типизированные, но **не исполняемые** формы; сохранение неизменных raw bytes/source spans и отчёт по opcode в Native Workspace.
+- Не входит: семантическая эмуляция, flags, влияние на выходные цепи, изменение System/User, OEM writer, FTP/HSES.
+- Валидация: синтетические Rust fixtures + документация + Windows rc7 preview. Проверка на настоящих файлах — только в локальном приватном корпусе, без публикации.
