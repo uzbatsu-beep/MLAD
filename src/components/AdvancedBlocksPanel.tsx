@@ -198,6 +198,31 @@ export function AdvancedBlocksPanel(){
     if(!selected||selected.kind==="GROUP")return;
     update(selected.id, b=>b.kind==="GROUP"?b:{...b,preset});
   }
+  function editOnDiagram(id:string,
+    field:"current"|"output"|"source"|"destination"|"preset"|
+      "enable"|"count"|"reset",
+    value:string) {
+    update(id,b=>{
+      if(b.kind==="GROUP") {
+        if(field==="source")return {...b,source:value};
+        if(field==="destination")return {...b,destination:value};
+        return b;
+      }
+      if(field==="current")return {...b,current:value};
+      if(field==="output")return {...b,output:value};
+      if(field==="preset")return {...b,preset:value.startsWith("M")?
+        {kind:"register",address:value}:{kind:"literal",value:Number(value)}};
+      if(b.kind==="TMR" && field==="enable" && b.enable.kind==="contact")
+        return {...b,enable:{...b.enable,relay:value}};
+      if(b.kind==="CNT" && field==="count" && b.count.kind==="contact")
+        return {...b,count:{...b.count,relay:value}};
+      if(b.kind==="CNT" && field==="reset" && b.reset.kind==="contact")
+        return {...b,reset:{...b.reset,relay:value}};
+      return b;
+    });
+    setSelectedId(id);
+    setStatus(`Адрес ${field} изменён в *.advanced.json: ${value}; проводится проверка Rust. Экспорт CIOPRG.LST запрещён.`);
+  }
 
   return <div style={{width:"100%",height:"100%",minHeight:0,display:"flex",
     background:"#1c252e",color:"#e4edf5",overflow:"hidden",fontSize:13}}>
@@ -258,6 +283,7 @@ export function AdvancedBlocksPanel(){
         <div style={{display:"flex",justifyContent:"space-between",gap:10,
           alignItems:"center",flexWrap:"wrap"}}>
           <strong style={{fontSize:16}}>Рабочее поле · все функциональные блоки ({project.blocks.length})</strong>
+          <span style={{color:"#d2c18e",fontSize:11}}>Двойной щелчок по M-регистру, уставке, адресу C/R, OUT, GSTR/GOUT — изменить · Enter/Esc</span>
           <span style={{fontSize:12,color:"#d4bd82"}}>
             ◉ OFFLINE · только результаты выполненных вручную шагов
           </span>
@@ -302,7 +328,8 @@ export function AdvancedBlocksPanel(){
               }}} style={{cursor:"pointer"}}>
               <AdvancedBlockDiagram block={b}
                 outputState={result} inputState={input} resetState={reset}
-                currentValue={current} groupByte={group}/>
+                currentValue={current} groupByte={group}
+                onEditField={(field,value)=>editOnDiagram(b.id,field,value)}/>
             </div>
           </article>;
         })}
