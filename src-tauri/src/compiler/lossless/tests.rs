@@ -243,3 +243,20 @@ fn tmr_cnt_manual_register_and_decimal_boundaries() {
     assert_eq!(doc.copy_original(),
         b"TMR M559,65535\nCNT M000,M999\nTMR M560,100\nCNT M010,65536\nTMR M999,M010\n");
 }
+
+#[test]
+fn read_only_pages_are_exact_and_keep_original_bytes() {
+    let source = (1..=701).map(|n| format!("* synthetic line {n}\\r\\n"))
+        .collect::<String>();
+    let doc = parse(source.as_bytes());
+    assert_eq!(doc.lines.len(), 701);
+    let first = doc.line_preview_range(1, 250);
+    let middle = doc.line_preview_range(501, 250);
+    let last = doc.line_preview_range(701, 250);
+    assert_eq!(first.len(), 250);
+    assert_eq!(middle[0].line, 501);
+    assert_eq!(middle[0].display_text, "* synthetic line 501");
+    assert_eq!(last.len(), 1);
+    assert_eq!(doc.line_preview_range(702, 250).len(), 0);
+    assert_eq!(doc.copy_original(), source.as_bytes());
+}
