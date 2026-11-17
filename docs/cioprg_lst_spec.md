@@ -152,3 +152,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 - Закрытие пробелов — [приёмка оригиналов](controller_fixture_intake.md) и [roadmap](roadmap.md), а не расширение неподтверждённых шаблонов.
 
 **Нативный экспорт, редактирование защищённых областей и подключение контроллера к работе по-прежнему запрещены.**
+
+## Read-only post-END data classification (PR #18 proposal)
+
+The lossless parser now distinguishes syntactically valid \`END\` from subsequent **observed** \`//ALARMN\` and \`//MESSAGEN\` data markers. Subsequent text is preserved as non-executable, display-only \`PostEndSection\`, \`PostEndData\` or \`PostEndOpaque\` rather than inventing extra Ladder instructions. See [post-END classification and test limitations](post_end_data.md). This is a structural observation and **not** confirmation of a universal OEM grammar.

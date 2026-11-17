@@ -231,3 +231,29 @@ fn missing_end_is_not_reported_as_complete() {
     assert!(!r.end_seen);
     assert!(!r.subset_analysis_complete);
 }
+
+
+#[test]
+fn tail_data_after_end_does_not_become_ladder_rungs_or_warnings() {
+    let doc=parse_document(
+        b"STR #70010\r\nOUT #70020\r\nEND\r\n//ALARM1\r\nOUT #70040\r\n//MESSAGE1\r\nSTR #70011\r\n".to_vec(),
+        ControllerFamily::YRC1000,
+    );
+    let r=analyze(&doc);
+    assert_eq!(r.rungs.len(),1);
+    assert_eq!(r.rungs[0].output,70020);
+    assert_eq!(r.end_seen,true);
+    assert!(!codes(&r).contains(&"AfterEnd"));
+    assert!(!codes(&r).contains(&"UnverifiedSource"));
+    assert!(doc.diagnostics.is_empty());
+    assert_eq!(doc.inspection_report(100,100).post_end_sections,2);
+}
+
+#[test]
+fn unknown_tail_has_one_after_end_marker_and_no_invented_rungs() {
+    let r=report("STR #70010\nOUT #70020\nEND\nSTR #70011\nOUT #70021\nOUT #70022\n");
+    assert_eq!(r.rungs.len(),1);
+    assert_eq!(codes(&r).iter().filter(|c|**c=="AfterEnd").count(),1);
+    assert_eq!(r.unsupported_segments,1);
+    assert!(!r.subset_analysis_complete);
+}

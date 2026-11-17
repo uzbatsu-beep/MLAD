@@ -260,3 +260,62 @@ fn read_only_pages_are_exact_and_keep_original_bytes() {
     assert_eq!(doc.line_preview_range(702, 250).len(), 0);
     assert_eq!(doc.copy_original(), source.as_bytes());
 }
+
+
+#[test]
+fn post_end_alarm_message_rows_are_data_not_false_ladder_instructions() {
+    let raw=b"/CIOPRG DX\r\nPART 1\r\nSTR #20010\r\nOUT #70010\r\nEND\r\n//ALARM1\r\nSTR #20011,OUT #70020,XYZ\r\n//ALARM2\r\nA,B,C\r\n//MESSAGE1\r\nMOV M010,M011\r\n//MESSAGE2\r\nOUT #70040\r\n";
+    let doc=parse(raw);
+    assert_round_trip(raw);
+    let report=doc.inspection_report(100,100);
+    assert_eq!(report.end_line,Some(5));
+    assert_eq!(report.post_end_sections,4);
+    assert_eq!(report.post_end_line_count,8);
+    assert_eq!(report.post_end_unverified_lines,0);
+    assert_eq!(report.recognized_instructions,4);
+    assert_eq!(report.unsupported_lines,0);
+    assert!(doc.diagnostics.is_empty());
+    assert!(matches!(doc.lines[5].kind,LineKind::PostEndSection {..}));
+    assert!(matches!(doc.lines[6].kind,LineKind::PostEndData));
+    assert_eq!(report.lines[6].display_text,"STR #20011,OUT #70020,XYZ");
+    assert_eq!(doc.original_bytes(),raw);
+}
+
+#[test]
+fn post_end_unknown_markers_are_not_silently_interpreted() {
+    let raw=b"STR #70010\nOUT #70020\nEND\n//UNSUPPORTED7\nSTR #70011\n//ALARM1\nalarm text\n//OTHER\nunexpected\n";
+    let doc=parse(raw);
+    let p=doc.inspection_report(100,100);
+    assert_eq!(p.post_end_sections,1);
+    assert_eq!(p.post_end_unverified_lines,3);
+    assert_eq!(p.post_end_line_count,6);
+    assert!(matches!(doc.lines[3].kind,LineKind::PostEndOpaque));
+    assert!(matches!(doc.lines[4].kind,LineKind::PostEndOpaque));
+    assert!(matches!(doc.lines[5].kind,LineKind::PostEndSection{..}));
+    assert!(matches!(doc.lines[6].kind,LineKind::PostEndData));
+    assert!(matches!(doc.lines[7].kind,LineKind::PostEndOpaque));
+    assert!(matches!(doc.lines[8].kind,LineKind::PostEndData));
+    assert_eq!(doc.diagnostics.iter().filter(|d|d.code=="PostEndUnknownStructure").count(),1);
+    assert_eq!(doc.copy_original(),raw);
+}
+
+#[test]
+fn invalid_end_does_not_silence_following_source() {
+    let raw=b"END INVALID\nSTR #70010\nOUT #70020\n";
+    let doc=parse(raw);
+    let p=doc.inspection_report(100,100);
+    assert_eq!(p.end_line,None);
+    assert_eq!(p.post_end_line_count,0);
+    assert!(matches!(doc.lines[1].kind,LineKind::Instruction(_)));
+    assert!(doc.diagnostics.iter().any(|x|x.code=="OperandCount"));
+}
+
+#[test]
+fn mixed_endings_and_opaque_bytes_survive_post_end() {
+    let raw=b"END\r\n//MESSAGE1\rpayload \xff\r\n\n//ALARM2\rbinary \x00";
+    let doc=parse(raw);
+    assert_round_trip(raw);
+    assert_eq!(doc.encoding,EncodingObservation::OpaqueBytes);
+    assert_eq!(doc.inspection_report(50,50).post_end_line_count,5);
+    assert_eq!(doc.original_bytes(),raw);
+}

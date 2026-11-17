@@ -41,6 +41,8 @@ jobs:
         run: npm run test:security
       - name: Native integrated workspace regressions
         run: npm run test:native
+      - name: Diagnostic grouping model tests
+        run: npm run test:diagnostics
       - name: Markdown internal links and formatting
         run: npm run docs:check
       - name: Graph layout and editor model tests
