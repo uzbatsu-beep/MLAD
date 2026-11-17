@@ -1,4 +1,6 @@
-# MLAD PR #8 — Inline editing of operand addresses
+# Inline editing of operand addresses — merged PR #8
+
+**Status (17.11.2026):** merged in `main`. Editable in SVG **only inside JSON draft workflows**. Оригинальный `CIOPRG.LST` остаётся read-only.
 
 ## User workflow
 
@@ -49,3 +51,14 @@ In **Просмотр CIOPRG.LST**, all diagrams remain **read-only**: no editin
 10. Open a genuine `CIOPRG.LST` in the inspector. A double click there must **not** create an input field or modify the native file.
 
 For vendor-native backups, **always use a preserved copy**. Record model, firmware, source SHA-256 and source encoding; never edit the System Ladder on the robot as part of this test.
+
+
+## Известные ограничения и отложенные улучшения
+
+- **Только синтаксис в первом шаге:** например `#XXXXX` может быть корректным текстом, но недопустимым классом или диапазоном в выбранном поколении; Rust-проверка после записи возвращает диагностику, но черновик может сохранить некорректный адрес для исправления.
+- Для **сложных** условий TMR/CNT из нескольких контактов нужно редактировать дерево выражения в панели; инлайн-замена всего дерева одиночным контактом запрещена.
+- `Undo/Redo` в текущей реализации есть у Graph Workspace; отдельная полноценная история изменений `*.advanced.json` пока не реализована.
+- Автоматические тесты проверяют форматы, но реальную работу фокуса и double-click в WebView2 следует подтвердить ручным Windows smoke test.
+- Контроллерный профиль нужно проверить отдельно: фронтенд-валидация не должна становиться основанием для записи в физический робот.
+
+См. [architecture.md](architecture.md) и [development_workflow.md](development_workflow.md).
