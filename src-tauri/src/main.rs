@@ -50,6 +50,7 @@ struct FullCioprgInspection {
     base: compiler::lossless::InspectionReport,
     semantic: compiler::semantic::SemanticPreview,
     advanced: compiler::advanced_source::AdvancedSourceReport,
+    sections: Vec<compiler::native_sections::SourceSectionMarker>,
 }
 
 /// Bound native input before allocation-intensive parsing. Read-only, no mutation.
@@ -122,6 +123,57 @@ async fn cmd_read_cioprg_page(
     })
 }
 
+
+#[derive(Serialize)]
+struct SourceSearchHit {
+    line: usize,
+    preview: String,
+}
+
+#[derive(Serialize)]
+struct CioprgSearchResult {
+    source_sha256: String,
+    hits: Vec<SourceSearchHit>,
+    truncated: bool,
+}
+
+/// ASCII case-insensitive bounded read-only search. Every request checks the
+/// original digest, so results cannot silently combine multiple revisions.
+#[tauri::command]
+async fn cmd_search_cioprg(
+    file_path: String,
+    controller: compiler::memory::ControllerFamily,
+    expected_sha256: String,
+    query: String,
+) -> Result<CioprgSearchResult, String> {
+    let needle = query.trim().as_bytes().to_vec();
+    if needle.len() < 2 || needle.len() > 64 ||
+        needle.iter().any(|b| !b.is_ascii_graphic() && *b != b' ') {
+        return Err("Поиск: от 2 до 64 печатных ASCII-символов".into());
+    }
+    let bytes = read_cioprg_bytes(&file_path).await?;
+    let doc = compiler::lossless::parse_document(bytes, controller);
+    if doc.source_sha256 != expected_sha256 {
+        return Err("Файл изменился после открытия. Откройте его повторно.".into());
+    }
+    let mut hits = Vec::new();
+    let mut truncated = false;
+    for line in &doc.lines {
+        let body = &doc.original_bytes()[line.body_span.start..line.body_span.end];
+        if body.windows(needle.len()).any(|slice| slice.eq_ignore_ascii_case(&needle)) {
+            if hits.len() >= 100 {
+                truncated = true;
+                break;
+            }
+            hits.push(SourceSearchHit {
+                line: line.number,
+                preview: String::from_utf8_lossy(&body[..body.len().min(180)]).into_owned(),
+            });
+        }
+    }
+    Ok(CioprgSearchResult { source_sha256: doc.source_sha256, hits, truncated })
+}
+
 /// Read-only inspection of a native exported CIOPRG.LST file.
 /// This command neither changes the source file nor creates a controller-ready
 /// program. The original byte stream stays in Rust memory during parsing only.
@@ -134,10 +186,12 @@ async fn cmd_inspect_cioprg(
     let doc = compiler::lossless::parse_document(bytes, controller);
     let semantic = compiler::semantic::analyze(&doc);
     let advanced = compiler::advanced_source::inspect(&doc);
+    let sections = compiler::native_sections::scan(&doc);
     Ok(FullCioprgInspection {
         base: doc.inspection_report(600, 500),
         semantic: semantic.preview(200, 200, 500),
         advanced,
+        sections,
     })
 }
 
@@ -359,6 +413,7 @@ fn main() {
             cmd_load_project,
             cmd_inspect_cioprg,
             cmd_read_cioprg_page,
+            cmd_search_cioprg,
             cmd_validate_advanced_draft,
             cmd_load_advanced_draft,
             cmd_save_advanced_draft,
@@ -478,6 +533,36 @@ mod cioprg_page_safety_tests {
         std::fs::write(&path, b"* modified\r\n").unwrap();
         assert!(cmd_read_cioprg_page(
             file_path.clone(), compiler::memory::ControllerFamily::YRC1000, digest, 1,
+        ).await.is_err());
+        std::fs::remove_file(path).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod cioprg_search_tests {
+    use super::*;
+    #[tokio::test]
+    async fn search_reads_source_only_and_checks_snapshot_digest() {
+        let path = std::env::temp_dir().join(format!("mlad-search-{}.LST", uuid::Uuid::new_v4()));
+        let contents = b"/CIOPRG DX\r\nPART 1\r\nMOV M010,M011\r\nEND\r\n//ALARM1\r\n";
+        std::fs::write(&path, contents).unwrap();
+        let p = path.to_string_lossy().into_owned();
+        let initial = cmd_inspect_cioprg(p.clone(), compiler::memory::ControllerFamily::DX200)
+            .await.unwrap();
+        let hash = initial.base.source_sha256;
+        assert!(initial.sections.iter().any(|s| s.category == "Alarm" && s.line == 5));
+        let result = cmd_search_cioprg(
+            p.clone(), compiler::memory::ControllerFamily::DX200, hash.clone(), "mov".into(),
+        ).await.unwrap();
+        assert_eq!(result.hits.len(), 1);
+        assert_eq!(result.hits[0].line, 3);
+        assert_eq!(std::fs::read(&path).unwrap(), contents);
+        assert!(cmd_search_cioprg(
+            p.clone(), compiler::memory::ControllerFamily::DX200, hash.clone(), "".into(),
+        ).await.is_err());
+        std::fs::write(&path, b"changed\r\n").unwrap();
+        assert!(cmd_search_cioprg(
+            p.clone(), compiler::memory::ControllerFamily::DX200, hash, "MOV".into(),
         ).await.is_err());
         std::fs::remove_file(path).unwrap();
     }

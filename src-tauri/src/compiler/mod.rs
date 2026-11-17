@@ -1,5 +1,6 @@
 pub mod parser;
 pub mod lossless;
+pub mod native_sections;
 pub mod semantic;
 pub mod graph_draft;
 pub mod advanced;
