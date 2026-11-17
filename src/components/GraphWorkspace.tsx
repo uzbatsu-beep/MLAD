@@ -249,7 +249,7 @@ export function GraphWorkspace() {
       <section style={{display:"grid",gap:11}}>
         <div style={{display:"flex",justifyContent:"space-between",gap:10,flexWrap:"wrap",alignItems:"center"}}>
           <strong style={{fontSize:15}}>Рабочее поле · все цепи ({project.rungs.length})</strong>
-          <span style={{fontSize:11,color:"#9fb1bc"}}>Один вертикальный список, без скрытых цепей · до 128</span>
+          <span style={{fontSize:11,color:"#9fb1bc"}}>Двойной щелчок по контакту или OUT — адрес на схеме · Enter/Esc</span>
         </div>
         {project.rungs.map((r,index)=>{
           const selected=selectedRung?.id===r.id;
@@ -277,6 +277,22 @@ export function GraphWorkspace() {
               onSelectContact={contactId=>{
                 setActiveRungId(r.id);
                 setSelectedId(contactId);
+              }}
+              onEditContactAddress={(id,value)=>{
+                // Use the rung ID captured by this card, never a possibly stale
+                // active-rung selection during the preceding double click.
+                edit(d=>({...d,rungs:d.rungs.map(row=>row.id===r.id?
+                  {...row,expression:changeAt(row.expression,id,node=>
+                    node.kind==="contact"?{...node,relay:value}:node)}:row)}));
+                setActiveRungId(r.id);
+                setSelectedId(id);
+                setStatus(`Адрес контакта изменён в JSON-черновике: ${value}. Rust проверит профиль контроллера.`);
+              }}
+              onEditOutputAddress={value=>{
+                edit(d=>({...d,rungs:d.rungs.map(row=>row.id===r.id?
+                  {...row,output:value}:row)}));
+                setActiveRungId(r.id);
+                setStatus(`Адрес катушки OUT изменён в JSON-черновике: ${value}.`);
               }}/>
             {r.comment&&<div style={{fontSize:11,color:"#abbec9",marginTop:5}}>
               {r.comment}</div>}
