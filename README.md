@@ -1,7 +1,7 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
 **Текущий статус (17.11.2026): инженерный прототип, OFFLINE / BENCH.**  
-Основная ветка содержит результаты слитых PR **#1–#8** (PR #6 — релизная инфраструктура Windows Bench), включая просмотр `CIOPRG.LST`, Semantic AST, визуальный редактор, TMR/CNT/GSTR/GOUT, цветовую офлайн-диагностику и редактирование операндов двойным щелчком.
+Основная ветка содержит результаты слитых PR **#1–#11** (PR #6 — релизная инфраструктура Windows Bench), включая просмотр `CIOPRG.LST`, Semantic AST, визуальный редактор, TMR/CNT/GSTR/GOUT, цветовую офлайн-диагностику и редактирование операндов двойным щелчком.
 
 > **Внимание:** MLAD **не является проверенным компилятором Yaskawa**. Он не создаёт редактируемый нативный `CIOPRG.LST`, не разрешает запись в робот и не показывает реальные состояния I/O. Команды Tauri для FTP-деплоя и HSES-мониторинга блокируются на стороне Rust. Действия с оборудованием выполняются только штатными средствами Yaskawa и по согласованной безопасной процедуре.
 
@@ -25,7 +25,7 @@
 Текущий стек: **Rust + Tauri v2 + React 18 + TypeScript + Vite 5**, Node.js **22** в GitHub Actions. На Windows используется WebView2; проверить наличие соответствующего Rust toolchain / MSVC и Tauri prerequisites.
 
 ```bash
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm run tauri dev
 ```
 
@@ -36,11 +36,12 @@ npm run test:graph
 npm run test:advanced
 npm run test:visual
 npm run test:inline
+npm run docs:check
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-Примечание: **npm lockfile пока не зафиксирован** в `main`; `npm install` может разрешить иные версии зависимостей в пределах диапазонов. Для воспроизводимых релизов запланирована фиксация lockfile и `npm ci`. `Cargo.lock` хранится в репозитории. Обычный CI работает на Ubuntu, Windows Preview — на `windows-2022`; это не подтверждение готовности сборки на любой ОС.
+В рамках PR #12 `package-lock.json` версии 3 отслеживается Git, а постоянный CI устанавливает зависимости через `npm ci` на Node.js 22. При несовпадении `package.json` и lockfile установка завершится ошибкой: изменения зависимостей оформляются отдельным коммитом с обновлённым lockfile. `Cargo.lock` также хранится в Git. Это фиксирует версии npm-пакетов, но **не** обеспечивает побайтовую воспроизводимость Windows-бинарников или проверку оборудования. Обычный CI работает на Ubuntu; Windows Preview/релизные процессы проверяются отдельно.
 
 ## Пользовательский сценарий
 
