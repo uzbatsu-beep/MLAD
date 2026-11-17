@@ -118,3 +118,24 @@ test("extended arithmetic and shift opcodes are typed read-only and separately c
   assert.match(rust,/"ADD" \| "SUB"/);
   assert.match(rust,/"SHL" \| "SHR"/);
 });
+
+test("dataflow evidence is source-order-only and always unverified",()=>{
+  assert.match(native,/dataflow:\s*StaticDependencyAudit/);
+  assert.match(native,/report\.dataflow\.source_sha256!==report\.source_sha256/);
+  assert.match(native,/aria-label="Статический аудит регистров"/);
+  assert.match(native,/possible_previous_definition/);
+  assert.match(native,/Только гипотезы|только гипотезы/);
+  assert.match(native,/порядок сканирования и арифметические флаги не подтверждены/);
+  assert.match(native,/report\.dataflow\.events_truncated/);
+  assert.match(native,/showLine\(site\.possible_previous_definition!/);
+  const rust=readFileSync("src-tauri/src/compiler/typed_dataflow.rs","utf8");
+  assert.match(rust,/semantics_verified:false/);
+  assert.match(rust,/scan_order_verified:false/);
+  assert.match(rust,/arithmetic_flags_verified:false/);
+  assert.match(rust,/native_write_allowed:false/);
+  assert.match(rust,/definitions\.clear\(\)/);
+  assert.match(rust,/MAX_STATIC_EVENTS_PREVIEW: usize = 1000/);
+  assert.match(rust,/PostEndOpaque/);
+  const main=readFileSync("src-tauri/src/main.rs","utf8");
+  assert.match(main,/typed_dataflow::inspect\(&doc, 1000\)/);
+});
