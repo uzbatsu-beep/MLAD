@@ -13,10 +13,10 @@
 
 ## 2. Команды локальной проверки
 
-Рекомендуемая среда CI: Node.js 22, стабильный Rust, Tauri v2 prerequisites, Windows MSVC для выпуска Windows.
+Рекомендуемая среда CI: Node.js 22, npm 10 (lockfile v3), стабильный Rust, Tauri v2 prerequisites, Windows MSVC для выпуска Windows. Перед разработкой выполнить `npm ci`: оно использует отслеживаемый в Git `package-lock.json`; обновлять зависимости — только осознанным изменением `package.json` вместе с lockfile.
 
 ```bash
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm run test:graph
 npm run test:advanced
 npm run test:visual
@@ -30,7 +30,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 
 Документационная проверка `npm run docs:check` отдельно проверяет относительные ссылки и исторические escaped newline-подстановки; **она не проверяет фактическую доступность внешних ссылок или их достоверность**.
 
-`MLAD validation` запускается на PR в `main` и после push в `main`, выполняет Rust-тесты (Ubuntu), frontend тесты, проверку типов и Vite build. Прогон Windows/MSVC выполняется **отдельным** workflow, а не каждым PR. Полный список тестов зависит от конкретного workflow — проверять YAML и commit SHA.
+`MLAD validation` запускается на PR в `main` и после push в `main`: использует `npm ci --no-audit --no-fund`, проверяет неизменность lockfile после установки, выполняет Rust-тесты (Ubuntu), frontend тесты, проверку типов и Vite build. Прогон Windows/MSVC выполняется **отдельным** workflow, а не каждым PR. Полный список тестов зависит от конкретного workflow — проверять YAML и commit SHA.
 
 ## 3. Quality gates
 
@@ -54,7 +54,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 - [`v0.5.0-rc.1-hardware`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.1-hardware) опубликован **до** PR #7 и #8. Нельзя считать его автоматически обновлённым после merge.
 - Сборка Windows RC содержит автономный WebView2 в NSIS, unsigned EXE; переносимая версия требует установленный WebView2. Для следующих релизов нужна отдельная версионированная pipeline конфигурация.
 
-**Долг по воспроизводимости:** пока npm lockfile отсутствует в git и CI использует `npm install`, а не `npm ci`. Нельзя заявлять exact reproducible build независимо от конкретного build snapshot.
+**PR #12 (воспроизводимость):** `package-lock.json` версии 3 зафиксирован, активный CI переведён на `npm ci`. Это фиксирует версии npm-зависимостей и их integrity-поля, но не является доказательством битово-идентичных сборок: точные toolchain/OS, lockfile Rust, release pipeline, лицензии third-party и Windows smoke остаются отдельными проверками. Исторические RC/preview workflow не переписываются в этом PR.
 
 ## 5. Версионирование документации
 

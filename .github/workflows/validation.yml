@@ -32,8 +32,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install packages (lockfile not yet committed)
-        run: npm install --no-audit --no-fund
+          cache: 'npm'
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Ensure npm install did not mutate dependency manifests
+        run: git diff --exit-code -- package.json package-lock.json
       - name: Markdown internal links and formatting
         run: npm run docs:check
       - name: Graph layout and editor model tests
