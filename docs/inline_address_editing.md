@@ -1,6 +1,8 @@
 # Inline editing of operand addresses — merged PR #8
 
-**Status (17.11.2026):** merged in `main`. Editable in SVG **only inside JSON draft workflows**. Оригинальный `CIOPRG.LST` остаётся read-only.
+> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+
+**Status (18.11.2026):** PR #8 merged; изменение **самого адреса** допускается только в JSON-черновиках. В Native Workspace PR #16 двойной щелчок редактирует лишь **локальный комментарий**, не адрес в оригинальном CIOPRG.LST или IONAME.DAT.
 
 ## User workflow
 

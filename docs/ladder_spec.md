@@ -1,5 +1,7 @@
 # Ladder / CIOPRG.LST — архив предварительной спецификации
 
+> **Исторический документ (навигационная отметка 18.11.2026):** нижеследующие выводы сохраняют дату первоначальной проверки, а не подменяют текущую реализацию. PR #1–#21 merged, Windows rc.9 опубликован. [Текущее состояние MLAD](project_status.md).
+
 The original prototype contained a fabricated `/JOB`-style output template and incomplete instruction examples. These are **not validated as the native Yaskawa Concurrent I/O file** and **must not be exported or deployed as CIOPRG.LST**.
 
 Current source of truth: **[CIOPRG.LST specification baseline](cioprg_lst_spec.md)**.

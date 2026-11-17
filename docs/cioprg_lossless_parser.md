@@ -1,6 +1,8 @@
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
-**Status после PR #8 (17.11.2026):** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
+> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+
+**Status после merged PR #21 (18.11.2026):** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
 
 ## Goals achieved
 

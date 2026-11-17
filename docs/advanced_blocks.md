@@ -1,6 +1,8 @@
-# Yaskawa Advanced CIO Instructions — PR #5, статус после PR #8
+# Yaskawa Advanced CIO Instructions — PR #5, актуализация после PR #21
 
-**Status (17.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
+> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+
+**Status (18.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
 
 Scope: DX100, DX200, YRC1000. Source protocol and run-time details may differ by application, firmware, robot configuration and installed options. The controller profile is mandatory.
 
