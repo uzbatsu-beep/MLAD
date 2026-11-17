@@ -1,5 +1,7 @@
 import type {AdvancedBlock, Preset} from "../ladder/advancedModel.ts";
 import {describeCondition} from "../ladder/advancedModel.ts";
+import {useState} from "react";
+import {SvgOperandInput} from "./SvgOperandInput.tsx";
 import {STATE_BACKGROUNDS,STATE_COLORS,type LogicState} from "../ladder/visualState.ts";
 
 const W="#8799a8", FG="#e6edf3", ACC="#ddb775";
@@ -14,6 +16,9 @@ type Props={
   resetState?:LogicState;
   currentValue?:number|null;
   groupByte?:number|null;
+  /** Only JSON drafts provide this callback; native CIOPRG snapshots don't. */
+  onEditField?:(field:"current"|"output"|"source"|"destination"|"preset"|
+    "enable"|"count"|"reset",value:string)=>void;
 };
 function stateMarker(state:LogicState,x:number,y:number,name:string){
   const color=STATE_COLORS[state];
@@ -32,7 +37,24 @@ function stateMarker(state:LogicState,x:number,y:number,name:string){
  * Layout uses full SVG height and hides overflow-Y to prevent CNT clipping.
  */
 export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UNKNOWN",
-  resetState="UNKNOWN",currentValue=null,groupByte=null}:Props) {
+  resetState="UNKNOWN",currentValue=null,groupByte=null,onEditField}:Props) {
+  const [editing,setEditing]=useState<null|"current"|"output"|"source"|"destination"|
+    "preset"|"enable"|"count"|"reset">(null);
+  const canEdit=!!onEditField;
+  function begin(field:NonNullable<typeof editing>){
+    if(canEdit)setEditing(field);
+  }
+  function keyboardEdit(e:React.KeyboardEvent<SVGGElement>,field:NonNullable<typeof editing>){
+    if(e.key==="F2"){e.preventDefault();begin(field);}
+  }
+  function editProps(field:NonNullable<typeof editing>){
+    return canEdit?{
+      role:"button" as const,tabIndex:0,
+      style:{cursor:"text" as const},
+      onDoubleClick:()=>begin(field),
+      onKeyDown:(e:React.KeyboardEvent<SVGGElement>)=>keyboardEdit(e,field),
+    }:{};
+  }
   const isCnt=block.kind==="CNT";
   const isGrp=block.kind==="GROUP";
   const h=isCnt?246:isGrp?211:185;
@@ -58,12 +80,17 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
         rx={8} fill={STATE_BACKGROUNDS[outputState]} stroke={Q} strokeWidth={2.7}/>
       <text x={382} y={isCnt?77:54} fontSize={18} fontWeight={700}
         textAnchor="middle" fill={ACC}>{title}</text>
-      <text x={382} y={isCnt?107:83} fontSize={15} fontFamily="monospace"
-        textAnchor="middle" fill={FG}>{current}</text>
-      <text x={382} y={isCnt?136:112} fontSize={13} fontFamily="monospace"
-        textAnchor="middle" fill="#bfdbea">
-        {isGrp?"BYTE TRANSFER":`PRESET ${second}`}
-      </text>
+      <g {...editProps(isGrp?"source":"current")}>
+        <text x={382} y={isCnt?107:83} fontSize={15} fontFamily="monospace"
+          textAnchor="middle" fill={FG}>{current}</text>
+        {canEdit&&<title>Двойной щелчок: изменить ${isGrp?"GSTR":"M-регистр"}</title>}
+      </g>
+      <g {...(!isGrp?editProps("preset"):{})}>
+        <text x={382} y={isCnt?136:112} fontSize={13} fontFamily="monospace"
+          textAnchor="middle" fill="#bfdbea">
+          {isGrp?"BYTE TRANSFER":`PRESET ${second}`}
+        </text>
+      </g>
       {!isGrp&&<text x={382} y={isCnt?164:138} fontSize={12}
         fontFamily="monospace" textAnchor="middle" fill={Q}>
         Current={currentValue===null?"?":currentValue} · Q={outputState==="UNKNOWN"?"?":outputState==="TRUE"?"1":"0"}
@@ -73,8 +100,12 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
       </text>}
       <line x1={22} y1={centerY} x2={292} y2={centerY} stroke={W} strokeWidth={2}/>
       <line x1={472} y1={centerY} x2={718} y2={centerY} stroke={W} strokeWidth={2}/>
-      <text x={155} y={centerY-18} fill={FG} fontSize={13} fontFamily="monospace"
-        textAnchor="middle">{short(source,29)}</text>
+      <g {...(isGrp?editProps("source"):
+        block.kind==="TMR"&&block.enable.kind==="contact"?editProps("enable"):
+        block.kind==="CNT"&&block.count.kind==="contact"?editProps("count"): {})}>
+        <text x={155} y={centerY-18} fill={FG} fontSize={13} fontFamily="monospace"
+          textAnchor="middle">{short(source,29)}</text>
+      </g>
       <text x={282} y={centerY-6} fill={STATE_COLORS[inputState]}
         fontWeight={700} fontSize={13} textAnchor="end">
         {isCnt?"C":isGrp?"GSTR":"IN"}
@@ -82,14 +113,18 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
       <text x={483} y={centerY-6} fill={Q} fontWeight={700} fontSize={13}>
         {isGrp?"GOUT":"Q"}
       </text>
-      <text x={586} y={centerY-18} fontFamily="monospace" fontSize={14}
-        textAnchor="middle" fill={FG}>{output}</text>
+      <g {...editProps(isGrp?"destination":"output")}>
+        <text x={586} y={centerY-18} fontFamily="monospace" fontSize={14}
+          textAnchor="middle" fill={FG}>{output}</text>
+      </g>
       {stateMarker(inputState,115,centerY+20,isCnt?"C":isGrp?"IN":"IN")}
       {!isGrp&&stateMarker(outputState,550,centerY+22,"Q")}
       {isCnt&&<>
         <line x1={22} y1={185} x2={292} y2={185} stroke={W} strokeWidth={2}/>
-        <text x={155} y={167} fill={FG} fontFamily="monospace"
-          fontSize={13} textAnchor="middle">{short(reset,28)}</text>
+        <g {...(block.kind==="CNT"&&block.reset.kind==="contact"?editProps("reset"):{})}>
+          <text x={155} y={167} fill={FG} fontFamily="monospace"
+            fontSize={13} textAnchor="middle">{short(reset,28)}</text>
+        </g>
         <text x={282} y={177} fill={STATE_COLORS[resetState]}
           fontWeight={700} textAnchor="end" fontSize={13}>R</text>
         {stateMarker(resetState,115,205,"R")}
@@ -113,6 +148,32 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
       <text x={24} y={h-7} fill="#98aabb" fontSize={10}>
         OFFLINE · Данные введены вручную · Не подтверждено на роботе
       </text>
+      {canEdit&&editing&&(()=>{
+        const kind=editing==="current"?"current":editing==="preset"?"preset":
+          editing==="source"||editing==="destination"?"group":"relay";
+        const position:Record<NonNullable<typeof editing>,{x:number;y:number}>={
+          current:{x:382,y:isCnt?97:73},
+          preset:{x:382,y:isCnt?126:101},
+          source:{x:isGrp?155:382,y:isGrp?centerY-27:centerY},
+          destination:{x:586,y:centerY-27},
+          output:{x:586,y:centerY-27},
+          enable:{x:155,y:centerY-27},
+          count:{x:155,y:centerY-27},
+          reset:{x:155,y:157},
+        };
+        const value=editing==="current"&&block.kind!=="GROUP"?block.current:
+          editing==="preset"&&block.kind!=="GROUP"?presetLabel(block.preset):
+          editing==="source"&&block.kind==="GROUP"?block.source:
+          editing==="destination"&&block.kind==="GROUP"?block.destination:
+          editing==="output"&&block.kind!=="GROUP"?block.output:
+          editing==="enable"&&block.kind==="TMR"&&block.enable.kind==="contact"?block.enable.relay:
+          editing==="count"&&block.kind==="CNT"&&block.count.kind==="contact"?block.count.relay:
+          editing==="reset"&&block.kind==="CNT"&&block.reset.kind==="contact"?block.reset.relay:"";
+        return <SvgOperandInput key={editing} {...position[editing]} value={value}
+          kind={kind} width={editing==="preset"?185:164}
+          onCommit={v=>{setEditing(null);onEditField?.(editing,v);}}
+          onCancel={()=>setEditing(null)}/>;
+      })()}
     </svg>
   </div>;
 }
