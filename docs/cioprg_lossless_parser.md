@@ -1,12 +1,14 @@
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
-**Status:** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
+**Status после PR #8 (17.11.2026):** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
 
 ## Goals achieved
 
 The Rust parser `src-tauri/src/compiler/lossless.rs` operates on **raw bytes**. It does not use UTF-8 decoding as a condition of successful import. It preserves every byte, including BOM, non-UTF-8 character sequences, whitespace and CRLF/LF/CR endings. `copy_original()` is a byte-for-byte copy; the edited/exported/recompiled path does not exist.
 
-The parser calculates a **SHA-256 fingerprint of the immutable raw byte snapshot** for provenance; it is displayed in the inspector and changes if any original byte changes.\n\nThe parser maintains a complete sequence of lines with:
+The parser calculates a **SHA-256 fingerprint of the immutable raw byte snapshot** for provenance; it is displayed in the inspector and changes if any original byte changes.
+
+The parser maintains a complete sequence of lines with:
 
 - 1-based line numbers;
 - byte spans for the entire line and its content without EOL;
@@ -26,9 +28,9 @@ The `cmd_inspect_cioprg` Tauri command accepts a local `.LST` path and **explici
 | `//...` or `/...` | Directive | exact section semantics unverified |
 | `//$M` + 8 rows | Known header marker + row overlays | each row expected 10 integer text fields; never normalize values |
 | `STR`, `STR-NOT`, `AND`, `AND-NOT`, `OR`, `OR-NOT`, `OUT` | Typed bit-operand instruction | expects canonical `#XXXXX` with family-specific address validation |
-| `AND-STR`, `OR-STR` | Recognized structural opcode | zero operands; **execution graph not constructed** |
-| `TMR`, `CNT` | Typed destination/source overlay | destination `Mxxx`, source `Mxxx` or unsigned decimal; **functional semantics not validated** |
-| `GSTR`, `GOUT` | Typed byte-group operand | further instruction-specific restrictions require vendor fixtures |
+| `AND-STR`, `OR-STR` | Recognized structural opcode | zero operands; **сам lexer не строит execution graph; отдельный `semantic.rs` обрабатывает подтверждённое булево подмножество** |
+| `TMR`, `CNT` | Typed destination/source overlay | destination `Mxxx`, source `Mxxx` or unsigned decimal; **lexer не доказывает stateful семантику; `advanced.rs` содержит только локальные test-модели** |
+| `GSTR`, `GOUT` | Typed byte-group operand | консервативная проверка пар и адресов в `advanced_source.rs`; полное vendor-поведение всё ещё требует fixtures |
 | Everything else | Unsupported / opaque | warn, retain bytes and spans; never delete |
 
 The `//$M` header corresponds to eight groups of ten values from M550..M559 down to M480..M489, with application-specific meanings. Parsing a row into ten numbers **does not** authorize modifying that row.
@@ -65,3 +67,11 @@ Manufacturer evidence:
 - [Yaskawa //$M header specification](https://knowledge.motoman.com/hc/en-us/articles/27636724261138-Specification-of-M-header-in-CIOPRG-LST)
 - [Yaskawa editing options and safeguards](https://knowledge.motoman.com/hc/en-us/articles/4408446257175-Options-for-Editing-the-Concurrent-I-O-Ladder)
 - [PR #1 source registry](source_registry.md)
+
+
+## Связь с новой архитектурой
+
+- Следующий уровень `semantic.rs` строит булевые выражения, распознаёт часть `PART/END` и предупреждает о stateful блоках. Он **не** заменяет `copy_original()`.
+- `advanced_source.rs` может показать **узкие** типовые последовательности TMR/CNT/GSTR/GOUT; неизвестная топология не превращается в валидную native цепь.
+- `GraphWorkspace` и `AdvancedBlocksPanel` — независимые JSON-редакторы; двойной щелчок из PR #8 **никогда не делает оригинальный LST редактируемым**.
+- Golden fixture и OEM round-trip: [controller_fixture_intake.md](controller_fixture_intake.md); системные ограничения: [cioprg_lst_spec.md](cioprg_lst_spec.md).

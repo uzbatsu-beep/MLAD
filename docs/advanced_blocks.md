@@ -1,6 +1,6 @@
-# PR #5 — Yaskawa Advanced CIO Instructions: TMR, CNT, GSTR/GOUT
+# Yaskawa Advanced CIO Instructions — PR #5, статус после PR #8
 
-**Status:** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
+**Status (17.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
 
 Scope: DX100, DX200, YRC1000. Source protocol and run-time details may differ by application, firmware, robot configuration and installed options. The controller profile is mandatory.
 
@@ -82,8 +82,8 @@ Errors 4040 (duplicate OUT/GOUT/register writer), 4100 (reused current register)
 1. `src-tauri/src/compiler/advanced.rs` — typed JSON block DTOs and checkers; deterministic offline `TimerState`, `CounterState`, `group_copy`, and three-valued Boolean condition evaluator.
 2. `src-tauri/src/compiler/advanced_source.rs` — **read-only** recognition of simple, manually confirmed instruction sequences in the immutable `LosslessDocument`. A complex expression is flagged as unverified rather than being transformed to a synthetic circuit.
 3. `src-tauri/src/compiler/lossless.rs` — fixed TMR/CNT operand lexer: current M000..M559, 16-bit decimal preset, and M000..M999 preset register. All original bytes, line endings and SHA-256 still preserved exactly.
-4. `src/components/AdvancedBlocksPanel.tsx` — independent dedicated editor with distinct C/R inputs, preset type, register and output fields, profile selection and explicit offline single-step buttons. A `GROUP` card always contains **both** GSTR and GOUT.
-5. `src/components/AdvancedBlockDiagram.tsx` — SVG function block with visible TMR/CNT state, C/R inputs and group ports; never draws a misleading bare contact-to-coil wire.
+4. `src/components/AdvancedBlocksPanel.tsx` — independent dedicated editor with distinct C/R inputs, preset type, register and output fields, profile selection and explicit offline single-step buttons. A `GROUP` card always contains **both** GSTR and GOUT. Since PR #7 **all blocks** appear in the same scrollable workspace, with an independent last *manual* sample per block; edits reset outdated result to UNKNOWN.
+5. `src/components/AdvancedBlockDiagram.tsx` — SVG function block with visible TMR/CNT state, C/R inputs and group ports plus group bit LEDs; never draws a misleading bare contact-to-coil wire. Since PR #8 simple C/R, current Mxxx, preset, OUT and byte operands can be edited by double-click in **JSON**; complex conditions remain in the expression editor.
 6. `src/components/CioprgInspector.tsx` — source inventory, validated simple example diagrams and explicit unknown-pattern warnings. It **cannot** edit a native program.
 7. Backend IPC: `cmd_validate_advanced_draft`, `cmd_load_advanced_draft`, `cmd_save_advanced_draft`, `cmd_test_tmr_step`, `cmd_test_cnt_step`, `cmd_test_group_copy`.
 
@@ -103,7 +103,7 @@ Automated Rust tests verify:
 - Native simple pattern recognition on all three generations, malformed patterns, unpaired/duplicated GOUT and immutable byte round-trips.
 - JSON schema and explicit disabled export/test authorization.
 
-Frontend tests verify the editor models and correct separate COUNT vs RESET pins, group pairing and canonical review-only strings. GitHub Actions runs the full Rust, graph, advanced UI tests and production frontend build.
+Frontend tests verify typed advanced models, group pairing and canonical review-only strings. `MLAD validation` also runs graph/tri-state/inline-operand tests, Rust and TypeScript/Vite; the CI does not independently test real Yaskawa execution.
 
 ### A realistic bench verification plan (not executed by MLAD)
 
@@ -117,4 +117,15 @@ A full **unexecuted test-case/acceptance matrix** for DX100/DX200/YRC1000 is pro
 6. Collect anonymized vendor-native `CIOPRG.LST` examples from all three controllers, with firmware and source file hashes; add golden fixtures and independent Ladder Editor comparison before enabling any native writer.
 7. Repeat on each exact hardware/firmware/application combination required for deployment.
 
-**No controller operation, hardware authorization, remote upload, or full native CIOPRG compiler is implemented in PR #5.**
+**В текущем `main` после PR #8 по-прежнему нет** разрешённой контроллерной операции, hardware authorization, remote upload или полного native CIOPRG compiler. См. [матрицу испытаний](advanced_hardware_test_matrix.md) и [обработку реальных экспортов](controller_fixture_intake.md).
+
+
+## Состояние UI и требования к данным после PR #8
+
+- **TMR/CNT:** на рабочем поле видны current/preset и C/R/Q, результат OFFLINE равен UNKNOWN до ручного шага. Нельзя отображать рассчитанное Q как наблюдённый физический выход.
+- **GSTR/GOUT:** видны независимые биты b7..b0 после ручного byte test; не выдавать это за live feedback.
+- **Inline:** double-click/F2 открывает ввод с предварительной проверкой (`M000..M559`, байт `#XXXX0`, уставка `0..65535`/`M000..M999`). После изменения Rust повторно проверяет модель по DX100/DX200/YRC1000; успешная проверка синтаксиса frontend не заменяет профиль.
+- **Сложные условия COUNT/RESET:** редактировать дерево AND/OR через редактор выражения; двойной щелчок не должен молча упрощать его до одиночного контакта.
+- Файл `CIOPRG.LST` в Inspector всегда открывается без команды `onEditField`, даже если тот же SVG-компонент умеет показывать редактируемые блоки.
+
+Детали: [inline_address_editing.md](inline_address_editing.md), [ui_multi_rung_state.md](ui_multi_rung_state.md).

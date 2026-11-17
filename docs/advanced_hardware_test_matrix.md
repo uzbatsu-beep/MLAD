@@ -1,8 +1,8 @@
-# MLAD PR #5 — Hardware Bench Validation Matrix (manual procedure, not executed)
+# MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.
 
-**Safety / setup gate:** No MLAD CIOPRG export, deployment or live I/O control exists in PR #5. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
+**Safety / setup gate (status после PR #8):** No MLAD CIOPRG export, deployment or live I/O control exists in the current `main`. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
 
 ## Reference instructions under test
 
@@ -100,4 +100,19 @@ Comments and snippets above are explanatory, **not** a validated controller-nati
 
 For each completed case, capture controller family, exact firmware, application/installed options, case ID, approved test configuration, source and destination addresses, initial register state, input edge timestamps, actual monitored register/output values, expected result, pass/fail, anomalies and restoration evidence. Store any OEM program exports privately until sanitization and approvals are complete.
 
-**All cases in this matrix are currently UNEXECUTED.**
+**В репозитории нет опубликованных результатов выполнения этих аппаратных тестов.** Кейсы считаются **неподтверждёнными**, пока не приложены стендовый протокол, точный model/firmware и измеренные значения. Локальные тесты MLAD/CI не засчитываются за аппаратное исполнение.
+
+
+## Дополнительные UI и неизменность исходника (после PR #7/#8)
+
+| ID | Действие | Ожидаемый результат |
+|---|---|---|
+| U-01 | Создать несколько цепей в `*.graph.json` | Все цепи отображаются одновременно |
+| U-02 | Вручную переключать `? / 0 / 1` в Graph Workspace | Цвет NO/NC/OUT вычисляется локально; **не** LIVE |
+| U-03 | Двойной щелчок по NO/NC/OUT в JSON | Изменение только JSON-проекта, Enter/Esc и Undo/Redo |
+| U-04 | Двойной щелчок по M-регистру/уставке TMR или CNT C/R | Редактирование только отдельного `*.advanced.json`, reset старого sample |
+| U-05 | Изменить GSTR/GOUT адрес `#20010` на `#20011` | UI отказывает в неверном выравнивании байта |
+| U-06 | Двойной щелчок в Inspector реального `CIOPRG.LST` | Изменить файл/открыть inline-редактор **нельзя** |
+| U-07 | Сравнить SHA-256 исходной копии до/после Inspector | Значения идентичны; модифицированный LST не создаётся |
+
+Результаты UI тестов документируются отдельно от T/C/B/N аппаратных кейсов. Порядок получения и анонимизации исходных файлов: [controller_fixture_intake.md](controller_fixture_intake.md).

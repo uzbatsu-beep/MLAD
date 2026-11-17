@@ -1,15 +1,16 @@
-# PR #4 — Ladder Graph Editor & Visualization
+# Ladder Graph Editor & Visualization — PR #4 + интерфейсные изменения PR #7/#8
 
 **Status:** interactive **JSON graph-draft editor** + independent **read-only CIOPRG.LST semantic visualization**.
 Target families: DX100, DX200, YRC1000. **This is not a robot-compatible editor/exporter yet.**
 
 ## 1. Design and safety separation
 
-The project has three distinct surfaces. **They must not be conflated**:
+The project has four distinct surfaces. **They must not be conflated**:
 
 | Surface | Source format | Mutates file? | Native CIOPRG.LST export? | Sends commands to robot? |
 |---|---|---|---|---|
 | Graph Workspace (new default) | `*.graph.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
+| Advanced Workspace | `*.advanced.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
 | Read-only Inspector | Original `CIOPRG.LST` | **Never** | **No** | **No** |
 | Legacy JSON interface | `project.json` (`Vec<Rung>`) | Yes, legacy JSON only | **No** | **No** |
 
@@ -41,7 +42,7 @@ Neither `PART 1` / `PART 2` markers nor a successful semantic graph imply that *
 - Each expression is a *binary tree*, not a raw flat `Vec<Instruction>`.
 - Stable unique IDs support selecting a contact and editing the expression without accidental changes elsewhere.
 - Controls: add rung, remove rung (confirmation), select contact, insert AND/OR branch, toggle NC, edit address/coil/comment, delete contact (promote sibling), undo and redo. Zoom and scroll support large diagrams.
-- The frontend `src/ladder/graphModel.ts` contains pure immutable updates, AST conversion and a bounded, deterministic SVG layout. The renderer `src/components/LadderCircuit.tsx` displays electrical-style series and parallel wiring and a coil, without live power-state claims.
+- The frontend `src/ladder/graphModel.ts` contains pure immutable updates, AST conversion and a bounded, deterministic SVG layout. The renderer `src/components/LadderCircuit.tsx` displays electrical-style series and parallel wiring and a coil. Since PR #7 it shows all rungs together and colors contacts/coils by explicit `TRUE/FALSE/UNKNOWN` offline test values, **without live power-state claims**. Since PR #8 editable JSON diagrams support **double-click/F2** on contact/OUT addresses, Enter to save and Esc to cancel. The original `CIOPRG.LST` Inspector never receives edit callbacks.
 - An optional, clearly labelled **offline three-valued condition calculator** tests user-entered 0/1/unknown contacts; it does not simulate controller scan state, motion, robot safety or timers.
 - A Graph Workspace stays mounted when switching to the legacy tab, so unsaved changes are not lost by tab navigation.
 
@@ -76,15 +77,15 @@ PR #3's `SemanticPreview` now also returns the first **4,096 indexed expression 
 - Rust graph draft model tests: JSON round-trip, controller-specific classes, duplicate coils, stable IDs, invalid addresses, structural/node/depth limits, self-feedback.
 - TypeScript graph-model tests: AND/OR circuit geometry, NC inversion, immutable insert/delete, nested branching, semantic indexed-node conversion, invalid AST and layout guardrails.
 - Existing lossless-parser byte-for-byte and semantic-logic tests remain unchanged.
-- GitHub Actions executes `cargo test --locked`, `npm run test:graph` and `npm run build` on PR.
+- Current `MLAD validation` on PR/main runs `cargo test --locked`, `npm run test:graph`, `npm run test:advanced`, `npm run test:visual`, `npm run test:inline` and `npm run build`. This does **not** execute a manual Windows GUI test.
 
 ## 6. Operator quick-start
 
 1. Launch MLAD and open the **Графический редактор** tab. This is an independent JSON project, not an editable controller program.
 2. Select controller family **DX100 / DX200 / YRC1000** and a rung in the left column. Click a contact in the diagram to select it.
 3. Use **+ Последовательно (AND)** for series contacts or **+ Параллельно (OR)** for parallel branches. If no contact is selected, these commands wrap the entire current expression.
-4. Edit relay addresses, choose NO/NC or change the OUT address. The Rust validator reports malformed, controller-incompatible or duplicate addresses.
-5. Use **↶ Отмена / ↷ Повтор** to navigate changes. Optional **Локальная проверка логики** lets you assign synthetic 0/1/? values to contacts; it **never** reads the robot.
+4. Edit relay addresses and OUT either in property fields or by **double-click/F2** on a label inside the editable SVG; Enter saves, Esc cancels. The Rust validator checks selected controller ranges and diagnoses invalid or duplicate addresses. For complex advanced input conditions, use the expression editor instead of replacing them with one contact.
+5. Use **↶ Отмена / ↷ Повтор** to navigate graph changes. Above the **combined view of all rungs**, set manual `? / 0 / 1` inputs to see gray/red/green contacts and coils; it **never** reads the robot. Advanced blocks have their own independent local state tests.
 6. Save to a file named **`ladder.graph.json`** or any `*.graph.json`; the backend copies the previous draft to `*.graph.json.bak` before overwriting.
 7. To inspect a real robot backup, choose **Просмотр CIOPRG.LST** and select the family and source file path. Select a recognized rung and view its **read-only** electrical-style diagram. If the AST is unsupported or truncated, an explicit diagnostic is shown rather than a guessed diagram.
 8. **No operation in this workflow creates controller-ready CIOPRG.LST or uploads anything to the robot.**
@@ -92,9 +93,17 @@ PR #3's `SemanticPreview` now also returns the first **4,096 indexed expression 
 ## 7. Deferred engineering work
 
 - Real examples and golden fixtures exported by DX100, DX200 and YRC1000 to confirm file-level ownership and executable semantics.
-- Authoritative instruction-specific semantics of `TMR`, `CNT`, `GSTR`, `GOUT`, `BMOV`, arithmetic and function blocks.
+- A typed offline **subset** for `TMR`, `CNT`, `GSTR` and `GOUT` is implemented in PR #5, but native scan-time equivalence, remaining `BMOV`, arithmetic and functional semantics are still unverified.
 - Native CIOPRG compiler, verified System/User boundaries, approved connection and deployment workflow.
 - Correct Yaskawa HSES and live scan-level diagnostics; current graph editor does not attempt monitoring.
 - Independent Ladder Editor 32 round-trip and safe laboratory controller tests.
 
 **No industrial controller, system ladder, or robot file was modified by this PR.**
+
+
+## 8. Дополнительные UI-контракты
+
+- Общая компоновка и значения подсветки: [ui_multi_rung_state.md](ui_multi_rung_state.md).
+- Inline-редактирование, ограничения F2/Enter/Esc и read-only Inspector: [inline_address_editing.md](inline_address_editing.md).
+- Схемы TMR, CNT с раздельными C/R и групповой передачи: [advanced_blocks.md](advanced_blocks.md).
+- У JSON-черновиков нет подтверждённой трансляции в native файл робота. Результаты `cmd_validate_graph_draft` не дают права на экспорт.

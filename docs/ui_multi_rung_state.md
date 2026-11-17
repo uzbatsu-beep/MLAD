@@ -1,4 +1,6 @@
-# MLAD PR #7 — Multiple visible rungs and offline tri-state visualization
+# Multiple visible rungs and offline tri-state visualization — merged PR #7
+
+**Status (17.11.2026):** merged in `main`. Subsequent PR #8 added in-SVG operand editing to JSON drafts. This document explains only offline state indication.
 
 ## User-reported issues (Windows Bench v0.5.0-rc.1)
 
@@ -74,4 +76,12 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 7. Update a TMR preset or CNT current address; verify the edited block's previous output returns to unknown.
 8. Verify HSES/FTP stays disabled and no option to export native `CIOPRG.LST` appears.
 
-Windows GUI smoke tests are **not** part of static CI and must be completed using the Preview artifact.
+Windows GUI smoke tests are **not** part of static CI. PR #7/PR #8 preview artifacts are historical GitHub Actions artifacts with limited retention; use a current Windows build to repeat manual acceptance. UI screenshots and user feedback establish visibility of chains and blocks but do **not** establish controller behavior.
+
+
+## После PR #8: как выбирать и редактировать
+
+- **Один щелчок** выбирает контакт/блок; цвет состояния определяется отдельно, не выделением.
+- **Двойной щелчок / F2** по адресу в JSON-черновике открывает inline-ввод; Enter сохраняет, Esc отменяет. Нельзя редактировать оригинальную схему `CIOPRG.LST`.
+- У Advanced блоков изменение адреса/уставки удаляет предыдущий ручной sample; он возвращается к UNKNOWN, а не отображается устаревшим зелёным.
+- Подробные сценарии: [inline_address_editing.md](inline_address_editing.md).

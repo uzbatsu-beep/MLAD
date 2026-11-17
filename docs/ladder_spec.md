@@ -1,4 +1,4 @@
-# Ladder / CIOPRG.LST: superseded preliminary notes
+# Ladder / CIOPRG.LST — архив предварительной спецификации
 
 The original prototype contained a fabricated `/JOB`-style output template and incomplete instruction examples. These are **not validated as the native Yaskawa Concurrent I/O file** and **must not be exported or deployed as CIOPRG.LST**.
 
@@ -9,3 +9,9 @@ Current requirements include lossless raw-file preservation, typed operands, cor
 The baseline documents what manufacturer sources establish and marks unknown file-level grammar explicitly. A complete verified grammar still requires untouched real-controller exports for each generation.
 
 See also [typed memory model](typed_memory_model.md) and [source registry](source_registry.md).
+
+## Состояние на 17.11.2026
+
+С момента создания этого файла в `main` объединены read-only `lossless.rs`, `semantic.rs`, ограниченная native-инвентаризация TMR/CNT/GSTR/GOUT и два независимых JSON-редактора. Это не превращает прежний шаблон `/JOB` в правильную грамматику `CIOPRG.LST`. Для ввода адресов на графе используется [inline-редактирование](inline_address_editing.md) **только в JSON**.
+
+Источники и статус: [полная карта документации](README.md), [базовая спецификация](cioprg_lst_spec.md) и [архитектура](architecture.md).

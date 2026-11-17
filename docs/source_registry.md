@@ -1,6 +1,6 @@
 # Source register — Yaskawa Concurrent I/O / Ladder Editor
 
-Updated 2026-11-16. References are for **DX100, DX200, YRC1000** (not automatically YRC1000micro). Manufacturer instructions take precedence over MLAD prose and third-party mirrors.
+Updated 2026-11-17 (after merged PR #8). References are for **DX100, DX200, YRC1000** (not automatically YRC1000micro). Manufacturer instructions take precedence over MLAD prose and third-party mirrors.
 
 | ID | Controller | Relevant material | Confidence / access |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Updated 2026-11-16. References are for **DX100, DX200, YRC1000** (not automatica
 3. **CIOPRG.LST filename and system/user ownership**: manufacturer CIO overview.
 4. **`//$M` section**: manufacturer article shows a concrete eight-row data mapping.
 
-## PR #5 — verified advanced instruction details (2026-11-16)
+## Advanced instructions — documented behavior and implementation evidence
 
 - **DX100 RE-CKI-A453 §§12.2.12–14 (manual pp. 12-11–12-13):**
   `TMR` 0.1 s clock, start OFF resets; `CNT` has C and independent R,
@@ -54,3 +54,14 @@ Updated 2026-11-16. References are for **DX100, DX200, YRC1000** (not automatica
 ### Handling the fixtures
 
 Do not commit proprietary customer ladder content or network credentials. Use private, access-controlled golden fixtures when available; publish only minimal synthetic snippets where permission allows. Record manufacturer manual/revision, software version, application type and source file SHA-256 for reproducibility.
+
+
+## Уровни подтверждения и требуемые доказательства после PR #8
+
+- **MANUAL:** номер документа, раздел и семейство подтверждают оператор и формат операнда **в руководстве**. Это не доказательство 100% совместимости исполняемого `CIOPRG.LST`.
+- **SOURCE / TEST:** код Rust/TypeScript плюс CI подтверждают реализованную логику и отрицательные случаи на синтетических данных. Тесты не заменяют чтение оригинального файла или проверку аппаратного scan.
+- **REAL FILE:** хешированная оригинальная копия, model/firmware/application и результат штатного Ladder Editor. **Таких golden fixtures пока нет в публичном репозитории.**
+- **BENCH:** воспроизводимые измерения на DX100/DX200/YRC1000, protocol/тест-кейс/права и результат OEM. **Таких результатов в репозитории пока нет.**
+- **UNVERIFIED:** HSES framing/command map, полномасштабная грамматика CIOPRG, System/User boundary, аппаратные семантические нюансы и native deployment. Запрещено превращать предположения в код контроллерной записи.
+
+См. [architecture.md](architecture.md), [controller_fixture_intake.md](controller_fixture_intake.md), [development_workflow.md](development_workflow.md).

@@ -1,4 +1,4 @@
-# Memory map: superseded preliminary notes
+# Memory map — архив предварительной карты адресов
 
 **Do not use earlier versions of this file as a source of address validity or write permission.**
 
@@ -16,3 +16,9 @@ The implementation of these ranges, typed bit/byte/word/register addresses and t
 - Read the [CIOPRG.LST specification baseline](cioprg_lst_spec.md) before attempting a compiler.
 
 Source index: [source registry](source_registry.md).
+
+## Статус UI после PR #8
+
+В новых вкладках MLAD оператор выбирает `DX100`, `DX200` или `YRC1000`; Rust использует профиль в `memory.rs` и отдельных валидаторах JSON / read-only Inspector. Фронтенд inline-ввода проверяет только **формат**, после чего Rust проверяет типы и диапазоны. Legacy JSON workflow сохраняет совместимые ограничения.
+
+Никакая успешная проверка диапазона не означает разрешённую аппаратную запись. См. [typed_memory_model.md](typed_memory_model.md), [architecture.md](architecture.md) и [документацию](README.md).
