@@ -139,3 +139,15 @@ test("dataflow evidence is source-order-only and always unverified",()=>{
   const main=readFileSync("src-tauri/src/main.rs","utf8");
   assert.match(main,/typed_dataflow::inspect\(&doc, 1000\)/);
 });
+
+test("OEM manual source panel never claims runtime verification",()=>{
+  assert.match(native,/oemManualEntry\(selectedTyped\.instruction\.mnemonic\)/);
+  assert.match(native,/Справка OEM/);
+  assert.match(native,/не результат выполнения/);
+  assert.match(native,/EN=OFF/);
+  const rust=readFileSync("src-tauri/src/compiler/reference_semantics.rs","utf8");
+  assert.match(rust,/fn evaluate_reference/);
+  assert.match(rust,/controller_execution_verified:false/);
+  assert.match(rust,/native_write_allowed:false/);
+  assert.doesNotMatch(rust,/tauri::command|cmd_deploy_to_robot|TcpStream|UdpSocket/);
+});

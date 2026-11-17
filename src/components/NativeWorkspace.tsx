@@ -5,6 +5,7 @@ import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
 import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
 import { invoke } from "@tauri-apps/api/core";
 import {groupDiagnostics} from "../ladder/diagnosticsModel.ts";
+import {oemManualEntry} from "../ladder/oemReference.ts";
 import "./native-workspace.css";
 
 type Controller = "DX100" | "DX200" | "YRC1000";
@@ -809,6 +810,30 @@ export function NativeWorkspace() {
               <div style={{fontSize:11,color:"#e0b985",marginTop:7}}>
                 Не участвует в реконструкции Ladder. Изменение файла запрещено.
               </div>
+              {oemManualEntry(selectedTyped.instruction.mnemonic)&&<details
+                style={{marginTop:9,padding:"6px 7px",border:"1px solid #566d61",borderRadius:5}}>
+                <summary style={{cursor:"pointer",color:"#b8d6c4"}}>
+                  Справка OEM · {oemManualEntry(selectedTyped.instruction.mnemonic)?.section}
+                  {" · не результат выполнения"}
+                </summary>
+                {(()=>{
+                  const rule=oemManualEntry(selectedTyped.instruction.mnemonic);
+                  if(!rule)return null;
+                  return <div style={{display:"grid",gap:5,marginTop:7,fontSize:11}}>
+                    <b>{rule.format}</b>
+                    <span>{rule.whenOn}</span>
+                    <span>Carry: {rule.carry}</span>
+                    <span>Zero: {rule.zero}</span>
+                    <span>Error: {rule.error}</span>
+                    <span>Операнды: {rule.limits}</span>
+                    <span style={{color:"#e6bd81"}}>Не подтверждено: {rule.unresolved}</span>
+                    <span style={{color:"#e6bd81"}}>
+                      EN=OFF: команда не записывает D; переходы флагов между командами
+                      не моделируются. Испытания на конкретном контроллере отсутствуют.
+                    </span>
+                  </div>;
+                })()}
+              </details>}
             </div>}
             {!selectedTyped&&<p style={{fontSize:11,color:"#aec6d2"}}>
               Выберите типизированную строку в исходном тексте, чтобы увидеть операнды.

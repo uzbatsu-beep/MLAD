@@ -43,6 +43,8 @@ jobs:
         run: npm run test:native
       - name: Diagnostic grouping model tests
         run: npm run test:diagnostics
+      - name: OEM manual reference labels (no execution)
+        run: npm run test:oem-reference
       - name: Markdown internal links and formatting
         run: npm run docs:check
       - name: Graph layout and editor model tests
