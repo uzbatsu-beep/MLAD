@@ -50,7 +50,7 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 2. **Семантика пяти команд:** документированы основные формулы и правила Carry/Zero/Error; MOV→byte при значении 256, Carry при SHL/SHR n=0/16, конфликты регистров, EN/скан и перенос правил между DX100/DX200/YRC1000 требуют независимых тестов.
 3. **Native CIO grammar:** неизвестные инструкции/секции сохраняются без потерь, но полный OEM-синтаксис, System/User ownership и безопасная сериализация **не подтверждены**.
 4. **IONAME:** парсер основан на наблюдаемой структуре 4-slot, а карта индексов на CIO-адреса и OEM-совместимый writer **не подтверждены**; комментарии хранятся локально и могут пропасть при очистке профиля.
-5. **Безопасность Tauri:** сетевой runtime HSES/FTP исключён из сборки; команды включения/загрузки отказывают. Остаются: review `csp: null`, filesystem symlink/race/TOCTOU, атомарность записи JSON и защита профиля.
+5. **Безопасность Tauri:** сетевой runtime HSES/FTP исключён из сборки; команды включения/загрузки отказывают. Остаются: review `csp: null`, filesystem symlink/race/TOCTOU, transactional backup, Windows smoke и защита профиля. PR #24 предлагает staging/rename и bounded JSON I/O, но **не** полное устранение гонок.
 6. **Лицензирование:** GPL-3.0-only установлен; third-party notices/SBOM и происхождение всех материалов требуют отдельного аудита.
 7. **UX:** source paging реализован; не каждая нативная команда имеет диаграмму, долгосрочный portable sidecar для комментариев не завершён.
 
@@ -60,7 +60,7 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 | --- | --- |
 | M0: PR-база и CI | Выполнено: #1–#21 merged, main CI SUCCESS |
 | M1: приватные OEM golden fixtures | Частично: 5 исходников исследованы, нет полной модели controller/firmware/OEM outcome |
-| M2: hardening/воспроизводимость | Частично: отказ сети, npm/Cargo locks; CSP/TOCTOU/JSON атомарность открыты |
+| M2: hardening/воспроизводимость | Частично: отказ сети, lockfiles и CI; в Draft PR #24 предлагается stage/rename JSON с резервной копией. CSP/TOCTOU/Windows smoke остаются |
 | M3: Native Workspace | Основной read-only workflow реализован (#15–#17) |
 | M4: навигация и диагностика | Реализована база; расширенные фильтры/cross-ref/performance остаются |
 | M5: Typed Syntax | Частично реализовано для 5 команд, другой синтаксис остаётся opaque |
@@ -85,6 +85,11 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 
 ## 7. GitHub Community Standards (PR #23)
 
-Для участия и безопасного сообщения об ошибках предложены [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md), [SECURITY.md](../SECURITY.md), [ACCESSIBILITY.md](../ACCESSIBILITY.md), три [Issue forms](../.github/ISSUE_TEMPLATE) и [шаблон PR](../.github/PULL_REQUEST_TEMPLATE.md). Это **правила подачи и ревью**, не изменение parser/runtime, границ OFFLINE или статуса OEM-верификации.
+Для участия и безопасного сообщения об ошибках уже слиты в `main` (PR #23) [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md), [SECURITY.md](../SECURITY.md), [ACCESSIBILITY.md](../ACCESSIBILITY.md), три [Issue forms](../.github/ISSUE_TEMPLATE) и [шаблон PR](../.github/PULL_REQUEST_TEMPLATE.md). Это **правила подачи и ревью**, не изменение parser/runtime, границ OFFLINE или статуса OEM-верификации.
 
 Публичные Issues не предназначены для реальных `CIOPRG.LST`, `IONAME.DAT`, закрытых карт памяти/сети и деталей уязвимостей. Включение GitHub Private Vulnerability Reporting зависит от настроек репозитория и проверяется владельцем отдельно. Публикация SECURITY.md **не включает** этот механизм автоматически.
+
+
+## 8. Статус PR #24 — сохранение JSON (ещё не в main)
+
+Рабочая ветка предлагает единый модуль `draft_io.rs` для staged JSON write/backup, проверки ограничений размера 2 МиБ при чтении/записи и отказов при прямых symlink. Это **кандидат** на завершение части M2, а не релизная функция. После merge надо отдельно проверить Windows и продолжить CSP/TOCTOU; нативные роботовые файлы и сетевое управление остаются вне области изменений. [Контракт и пределы](json_persistence_safety.md).
