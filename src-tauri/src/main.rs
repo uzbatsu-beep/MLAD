@@ -52,6 +52,7 @@ struct FullCioprgInspection {
     semantic: compiler::semantic::SemanticPreview,
     advanced: compiler::advanced_source::AdvancedSourceReport,
     sections: Vec<compiler::native_sections::SourceSectionMarker>,
+    dataflow: compiler::typed_dataflow::StaticAudit,
 }
 
 /// Bound native input before allocation-intensive parsing. Read-only, no mutation.
@@ -292,11 +293,13 @@ async fn cmd_inspect_cioprg(
     let semantic = compiler::semantic::analyze(&doc);
     let advanced = compiler::advanced_source::inspect(&doc);
     let sections = compiler::native_sections::scan(&doc);
+    let dataflow = compiler::typed_dataflow::inspect(&doc, 1000);
     Ok(FullCioprgInspection {
         base: doc.inspection_report(600, 500),
         semantic: semantic.preview(200, 200, 500),
         advanced,
         sections,
+        dataflow,
     })
 }
 

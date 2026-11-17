@@ -131,10 +131,28 @@ function toReadOnlyAdvanced(b:AdvancedSourceBlock):AdvancedBlock|null{
 type NativeSection = {line:number;category:string;label:string};
 type SearchHit = {line:number;preview:string};
 type SearchResponse = {source_sha256:string;hits:SearchHit[];truncated:boolean};
+type StaticCandidateSite={
+  spelling:string;kind:string;span:{start:number;end:number};
+  role:"Source"|"ShiftAmount"|"Destination";
+  possible_previous_definition:number|null;
+};
+type StaticCandidateEvent={
+  line:number;mnemonic:string;syntax_shape_valid:boolean;controller_form_verified:boolean;
+  semantics_verified:boolean;execution_condition_verified:boolean;arithmetic_flags_verified:boolean;
+  sites:StaticCandidateSite[];possible_prior_lines:number[];
+};
+type StaticDependencyAudit={
+  source_sha256:string;total_candidates:number;valid_shape_candidates:number;
+  invalid_shape_candidates:number;possible_source_order_links:number;continuity_barriers:number;
+  events_truncated:boolean;events:StaticCandidateEvent[];
+  semantics_verified:boolean;scan_order_verified:boolean;arithmetic_flags_verified:boolean;
+  native_write_allowed:boolean;
+};
 type Report = {
   advanced: AdvancedSourceReport;
   sections: NativeSection[];
   semantic: SemanticPreview;
+  dataflow: StaticDependencyAudit;
   controller: Controller;
   encoding: Encoding;
   byte_length: number;
@@ -266,6 +284,12 @@ export function NativeWorkspace() {
     if(selectedLine===null)return null;
     return getTypedCandidate(pageLines.find(l=>l.line===selectedLine)?.kind);
   },[selectedLine,pageLines]);
+  const selectedStatic=useMemo(()=>{
+    if(!report||selectedLine===null)return null;
+    // Same inspected immutable source snapshot as the paginated source.
+    if(report.dataflow.source_sha256!==report.source_sha256)return null;
+    return report.dataflow.events.find(e=>e.line===selectedLine)??null;
+  },[report,selectedLine]);
   const filteredIoname=useMemo(()=>{
     if(!ioname)return [];
     const query=ionameQuery.trim().toLowerCase();
@@ -404,6 +428,15 @@ export function NativeWorkspace() {
       typed_valid_forms:report.typed_valid_forms,
       typed_invalid_forms:report.typed_invalid_forms,
       typed_mnemonic_counts:report.typed_mnemonic_counts,
+      static_dataflow_summary:{
+        total_candidates:report.dataflow.total_candidates,
+        possible_source_order_links:report.dataflow.possible_source_order_links,
+        continuity_barriers:report.dataflow.continuity_barriers,
+        preview_truncated:report.dataflow.events_truncated,
+        semantics_verified:report.dataflow.semantics_verified,
+        scan_order_verified:report.dataflow.scan_order_verified,
+        arithmetic_flags_verified:report.dataflow.arithmetic_flags_verified,
+      },
       end_line:report.end_line,post_end_line_count:report.post_end_line_count,
       post_end_sections:report.post_end_sections,post_end_unverified_lines:report.post_end_unverified_lines,
       sections:report.sections,parser_diagnostics:report.diagnostics,
@@ -779,6 +812,51 @@ export function NativeWorkspace() {
             </div>}
             {!selectedTyped&&<p style={{fontSize:11,color:"#aec6d2"}}>
               Выберите типизированную строку в исходном тексте, чтобы увидеть операнды.
+            </p>}
+          </section>
+          <section aria-label="Статический аудит регистров" style={{
+            marginBottom:12,padding:9,border:"1px solid #5f6654",borderRadius:5,
+            background:"#252b2d",fontSize:12,
+          }}>
+            <strong>Статические связи · только гипотезы</strong>
+            <p style={{fontSize:11,color:"#e7c58e",lineHeight:1.5}}>
+              Здесь показаны только совпадения имён M-регистров в соседних
+              типизированных командах. Это НЕ граф фактического исполнения:
+              условия, порядок сканирования и арифметические флаги не подтверждены.
+            </p>
+            <div style={{fontSize:11,color:"#bbceda",display:"grid",gap:3}}>
+              <span>Форм в документе: {report.dataflow.total_candidates}</span>
+              <span>Потенциальных текстовых связей: {report.dataflow.possible_source_order_links}</span>
+              <span>Разрывов непрерывности: {report.dataflow.continuity_barriers}</span>
+              {report.dataflow.events_truncated&&<span style={{color:"#e7bd85"}}>
+                Подробные записи ограничены первыми {report.dataflow.events.length} строками-кандидатами.
+              </span>}
+            </div>
+            {selectedStatic&&<div style={{borderTop:"1px solid #58635e",marginTop:9,paddingTop:7}}>
+              <strong>Строка L{selectedStatic.line} · {selectedStatic.mnemonic}</strong>
+              {!selectedStatic.controller_form_verified&&<p style={{fontSize:11,color:"#e4b886"}}>
+                Семейство контроллера: форма не подтверждена.
+              </p>}
+              <div style={{display:"grid",gap:5,marginTop:6}}>
+                {selectedStatic.sites.map((site,i)=><div key={i} style={{fontSize:11,
+                  display:"flex",flexWrap:"wrap",alignItems:"center",gap:6}}>
+                  <code>{site.role==="Destination"?"D?":
+                    site.role==="ShiftAmount"?"n?":"S?"} {site.spelling}</code>
+                  <span style={{color:"#8fadb9"}}>{site.kind}</span>
+                  {site.possible_previous_definition!==null&&
+                    <button type="button" style={{...btn,padding:"3px 6px",fontSize:10}}
+                      title="Только возможная текстовая связь, не подтверждённое значение"
+                      onClick={()=>void showLine(site.possible_previous_definition!)}>
+                      Возможный источник: L{site.possible_previous_definition} ↗
+                    </button>}
+                </div>)}
+              </div>
+              <small style={{display:"block",color:"#e7c58e",marginTop:7}}>
+                Роли S?/D? обозначают только позиции операндов. Ни одна запись не верифицирована как действие робота.
+              </small>
+            </div>}
+            {!selectedStatic&&<p style={{fontSize:11,color:"#a7c1c7"}}>
+              Выберите типизированную строку исходника для анализа соседних ссылок.
             </p>}
           </section>
           <section aria-label="Редактор локальных комментариев" style={{

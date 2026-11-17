@@ -163,3 +163,10 @@
 - Предложено: `MOV`, `ADD`, `SUB`, `SHL`, `SHR` как типизированные, но **не исполняемые** формы; сохранение неизменных raw bytes/source spans и отчёт по opcode в Native Workspace.
 - Не входит: семантическая эмуляция, flags, влияние на выходные цепи, изменение System/User, OEM writer, FTP/HSES.
 - Валидация: синтетические Rust fixtures + документация + Windows rc7 preview. Проверка на настоящих файлах — только в локальном приватном корпусе, без публикации.
+
+### PR #20 — Evidence-oriented static dependency audit (in progress)
+
+- Read-only, bounded inventory of syntactically typed source/destination operand positions; exact M-register match may propose *source-order-only* predecessor links.
+- Any unsupported/malformed, known boolean/advanced, PART, END or post-END boundary breaks tentative continuity.
+- No runtime values, arithmetic flags, scan-cycle semantics, control-flow simulation, hardware I/O or controller upload.
+- OEM semantic verification is gated by an explicit evidence matrix and controller-specific bench results. Draft PR, no merge before owner approval.
