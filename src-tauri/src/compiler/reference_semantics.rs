@@ -159,8 +159,12 @@ pub fn evaluate_reference(input:ReferenceInput)->ReferenceOutcome {
             }
             // The manual describes shifts of 16-bit S, zero fill, and output
             // of the shifted-out bit to Carry. n=0/n=16 are separated below.
-            let value=if input.opcode==Shl {a.wrapping_shl(u32::from(b))}
-                      else {a.wrapping_shr(u32::from(b))};
+            // Rust wrapping_shl(16) masks count modulo 16 and would
+            // incorrectly keep the original value. An actual logical shift
+            // by the full 16-bit width produces zero in this reference model.
+            let value=if b==16 {0}
+                else if input.opcode==Shl {a << u32::from(b)}
+                else {a >> u32::from(b)};
             if b==0||b==16 {
                 return result(input,ManualDerived(value),
                     ReferenceFlagVector {
