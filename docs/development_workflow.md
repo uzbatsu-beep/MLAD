@@ -11,12 +11,15 @@
 5. Перед изменением архитектуры контроллера согласовывать System/User boundaries; включение аппаратной связи и native writer — **отдельные решения и отдельные PR**.
 6. Запрещать регрессии: исходный `CIOPRG.LST` не изменяется от просмотра; редактирование JSON никогда не ведёт к FTP/HSES.
 
+7. Для публичного Issue используйте формы Bug Report, Feature Request, Controller Compatibility в [ISSUE_TEMPLATE](../.github/ISSUE_TEMPLATE); настоящие программы роботов и secrets запрещены. Для уязвимостей — [SECURITY.md](../SECURITY.md) и приватный канал, если он доступен. Для PR — [PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md).
+
 ## 2. Команды локальной проверки
 
 Рекомендуемая среда CI: Node.js 22, npm 10 (lockfile v3), стабильный Rust, Tauri v2 prerequisites, Windows MSVC для выпуска Windows. Перед разработкой выполнить `npm ci`: оно использует отслеживаемый в Git `package-lock.json`; обновлять зависимости — только осознанным изменением `package.json` вместе с lockfile.
 
 ```bash
 npm ci --no-audit --no-fund
+npm run test:community
 npm run test:security
 npm run test:native
 npm run test:diagnostics

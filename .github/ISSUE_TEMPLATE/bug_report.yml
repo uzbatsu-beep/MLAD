@@ -1,0 +1,91 @@
+name: "Ошибка MLAD (Bug Report)"
+description: "Ошибка парсера, Native Workspace, JSON-черновика или сборки. Только обезличенный синтетический пример."
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **MLAD — OFFLINE/BENCH.** Не публикуйте реальные CIOPRG.LST, IONAME.DAT, IP-адреса, резервные копии роботов, ключи, журналы с конфиденциальными данными или информацию о производственном оборудовании.
+        Если ошибка является уязвимостью, используйте SECURITY.md вместо публичной заявки.
+  - type: dropdown
+    id: component
+    attributes:
+      label: "Подсистема"
+      options:
+        - "Native Workspace / CIOPRG.LST"
+        - "IONAME.DAT / локальные комментарии"
+        - "Ladder / Semantic AST"
+        - "TMR / CNT / GSTR-GOUT"
+        - "Typed MOV / ADD / SUB / SHL / SHR"
+        - "JSON Graph / Advanced Draft"
+        - "UI / Accessibility"
+        - "CI / Windows packaging"
+        - "Документация / другое"
+    validations:
+      required: true
+  - type: input
+    id: revision
+    attributes:
+      label: "Версия MLAD / commit"
+      description: "Например: v0.5.0-rc.9-oem-reference или краткий SHA. Не указывайте индивидуальные версии контроллеров, если они конфиденциальны."
+      placeholder: "Версия релиза или SHA commit"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: "ОС и среда"
+      placeholder: "Windows 10 x64, WebView2 установлен"
+    validations:
+      required: true
+  - type: dropdown
+    id: controller
+    attributes:
+      label: "Выбранный профиль контроллера (если применимо)"
+      options:
+        - "Не применимо"
+        - "DX100"
+        - "DX200"
+        - "YRC1000"
+        - "Другой / неизвестен"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Шаги воспроизведения"
+      description: "Используйте только созданные вами синтетические данные, не копию программы реального робота."
+      placeholder: "1. Открыть синтетический файл ...\n2. Выбрать ...\n3. Получить ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Ожидаемый результат"
+      description: "Если ожидаемое поведение OEM не подтверждено, так и укажите."
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Фактический результат"
+      description: "Только очищенные журналы, текст ошибок и разрешённые скриншоты."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Документы и уровень подтверждения (если применимо)"
+      description: "Ссылка на раздел руководства; отдельно: синтаксис, ManualDerived, локальный тест или OEM BenchVerified. Не представляйте предположение как подтверждение."
+      placeholder: "Источник, ревизия, страница; что НЕ проверялось"
+    validations:
+      required: false
+  - type: checkboxes
+    id: data_safety
+    attributes:
+      label: "Проверка безопасности публикации"
+      options:
+        - label: "Я не включил в публичное описание реальные файлы роботов, секреты, адреса производственной сети и иные закрытые данные."
+          required: true
+        - label: "Я проверил, что эта заявка не содержит сведений о ещё не устранённой уязвимости."
+          required: true

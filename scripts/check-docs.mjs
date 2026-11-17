@@ -16,7 +16,8 @@ function walk(directory){
   });
 }
 const markdownFiles=[
-  ...["README.md","CONTRIBUTING.md"].map(p=>path.join(root,p)),
+  ...["README.md","CONTRIBUTING.md","SECURITY.md","CODE_OF_CONDUCT.md","ACCESSIBILITY.md",
+    ".github/PULL_REQUEST_TEMPLATE.md"].map(p=>path.join(root,p)),
   ...walk(path.join(root,"docs")),
 ].filter(p=>fs.existsSync(p));
 const issues=[];

@@ -81,3 +81,10 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 - [Архитектура и доверие](architecture.md), [исследование пяти команд](oem_5_opcode_analysis.md), [исходники и доказательность](source_registry.md).
 - [Релиз rc.9](releases/v0.5.0-rc.9-oem-reference.md) — исторические сведения именно об этом релизе.
 - [Процесс CI / Release](development_workflow.md), [лицензия](licensing.md).
+
+
+## 7. GitHub Community Standards (PR #23)
+
+Для участия и безопасного сообщения об ошибках предложены [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md), [SECURITY.md](../SECURITY.md), [ACCESSIBILITY.md](../ACCESSIBILITY.md), три [Issue forms](../.github/ISSUE_TEMPLATE) и [шаблон PR](../.github/PULL_REQUEST_TEMPLATE.md). Это **правила подачи и ревью**, не изменение parser/runtime, границ OFFLINE или статуса OEM-верификации.
+
+Публичные Issues не предназначены для реальных `CIOPRG.LST`, `IONAME.DAT`, закрытых карт памяти/сети и деталей уязвимостей. Включение GitHub Private Vulnerability Reporting зависит от настроек репозитория и проверяется владельцем отдельно. Публикация SECURITY.md **не включает** этот механизм автоматически.

@@ -1,0 +1,68 @@
+name: "Предложение функции (Feature Request)"
+description: "Безопасное улучшение OFFLINE UX, диагностики, парсера или документации."
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Проект MLAD не предоставляет управление роботами, native CIOPRG writer, FTP/HSES или live I/O. Предложения, затрагивающие безопасность, должны отдельно согласовываться; добавление функции в issue не означает разрешения на её реализацию.
+        Не публикуйте приватные производственные данные. См. CONTRIBUTING.md и SECURITY.md.
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Направление"
+      options:
+        - "Native Workspace / доступность"
+        - "Read-only CIOPRG/IONAME"
+        - "Логика Ladder / диагностика"
+        - "Типизированные инструкции / research"
+        - "JSON Draft Editor"
+        - "Тесты / CI / безопасность"
+        - "Документация / процесс"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Какую инженерную проблему решаем?"
+      description: "Опишите наблюдаемую проблему, а не только желаемую кнопку."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: "Предлагаемое поведение"
+      description: "Опишите изменения, ограничения и способ работы без настоящего оборудования."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Критерии приёмки и тестирования"
+      description: "Какие сценарии/синтетические фикстуры докажут работоспособность? Какие проверки потребуют OEM стенда?"
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: "Может ли изменение затронуть границы безопасности?"
+      options:
+        - "Нет: только UI / документация / автономные тесты"
+        - "Неизвестно: требуется отдельный review"
+        - "Да: файлы / полномочия / реальная семантика / сетевой доступ"
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: "Документальные основания и нерешённые вопросы"
+      description: "Для правил Yaskawa — редакция, страница, уровень доказательности; иначе «не применимо»."
+    validations:
+      required: false
+  - type: checkboxes
+    id: safe_input
+    attributes:
+      label: "Публикация"
+      options:
+        - label: "Описание не содержит реальные программы, закрытые конфигурации роботов, секреты или IP производственных сетей."
+          required: true

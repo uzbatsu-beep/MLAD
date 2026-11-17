@@ -1,0 +1,82 @@
+name: "Совместимость контроллера (Controller Compatibility)"
+description: "Ограниченные сведения о синтаксисе/отображении DX100, DX200, YRC1000 — без публикации оригиналов."
+title: "[Controller] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Важное ограничение:** MLAD распознаёт лишь частичный синтаксис и НЕ подтверждает аппаратную/firmware эквивалентность. Не публикуйте реальные CIOPRG.LST/IONAME.DAT, SHA-256 закрытых файлов, серийные номера, конфигурации, реальные I/O-адреса или журналы с параметрами машины.
+        Все примеры должны быть самостоятельно составленными синтетическими конструкциями.
+  - type: dropdown
+    id: generation
+    attributes:
+      label: "Семейство контроллера"
+      options:
+        - "DX100"
+        - "DX200"
+        - "YRC1000"
+        - "Неизвестно / другое"
+    validations:
+      required: true
+  - type: dropdown
+    id: check_type
+    attributes:
+      label: "Что именно сопоставляется?"
+      options:
+        - "Формат файла / секции PART, END, ALARM, MESSAGE"
+        - "Булевая Ladder-топология"
+        - "MOV / ADD / SUB / SHL / SHR: форма"
+        - "TMR / CNT / GSTR / GOUT"
+        - "IONAME.DAT / отображение имен"
+        - "Неизвестный синтаксис"
+        - "Другое"
+    validations:
+      required: true
+  - type: textarea
+    id: synthetic_sample
+    attributes:
+      label: "Минимальный СИНТЕТИЧЕСКИЙ пример"
+      description: "Перепишите вручную выдуманные адреса/параметры; не вырезайте фрагменты из приватных роботов."
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: discrepancy
+    attributes:
+      label: "Что показал MLAD и как должно быть?"
+      description: "Отдельно укажите, что наблюдали, а что лишь предполагаете."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Свидетельства: руководство / OEM Editor / контроллер"
+      description: "Разрешённые публичные ссылки на manual/revision/page, независимо подтверждённые результаты. Не публикуйте закрытые журналы и скриншоты."
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: "Уровень подтверждения"
+      options:
+        - "SyntheticTested (только автономный тест)"
+        - "ManualDerived (описано в руководстве)"
+        - "OEM Editor (проверено штатным ПО, без робота)"
+        - "BenchVerified (проверено на стенде с разрешением)"
+        - "Unknown"
+    validations:
+      required: true
+  - type: textarea
+    id: unknowns
+    attributes:
+      label: "Что НЕ проверялось"
+      description: "Версия firmware/опции, реальное EN, Carry/Zero/Error, записи в файлы — без закрытых идентификаторов."
+    validations:
+      required: true
+  - type: checkboxes
+    id: confidential
+    attributes:
+      label: "Разрешение на публикацию"
+      options:
+        - label: "Все сведения разрешены к публичному размещению и не содержат фрагменты программ/конфигураций реальных роботов."
+          required: true
