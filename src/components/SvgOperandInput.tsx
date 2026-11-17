@@ -23,7 +23,7 @@ export function SvgOperandInput({x,y,value,kind,onCommit,onCancel,width=140}:{
   }
   return <foreignObject x={x-width/2} y={y-15} width={width} height={error?69:43}
     style={{overflow:"visible"}}>
-    <div xmlns="http://www.w3.org/1999/xhtml"
+    <div
       style={{background:"#18232d",border:"2px solid #e4c582",borderRadius:6,
         padding:3,boxSizing:"border-box",fontFamily:"sans-serif"}}
       onMouseDown={e=>e.stopPropagation()}
