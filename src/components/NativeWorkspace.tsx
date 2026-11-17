@@ -4,6 +4,7 @@ import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
 import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
 import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
 import { invoke } from "@tauri-apps/api/core";
+import {groupDiagnostics} from "../ladder/diagnosticsModel.ts";
 import "./native-workspace.css";
 
 type Controller = "DX100" | "DX200" | "YRC1000";
@@ -125,6 +126,10 @@ type Report = {
   line_count: number;
   recognized_instructions: number;
   unsupported_lines: number;
+  end_line: number|null;
+  post_end_line_count: number;
+  post_end_sections: number;
+  post_end_unverified_lines: number;
   diagnostics: Diagnostic[];
   lines: PreviewLine[];
   preview_truncated: boolean;
@@ -227,6 +232,7 @@ export function NativeWorkspace() {
   const [searchTruncated,setSearchTruncated]=useState(false);
   const [searchBusy,setSearchBusy]=useState(false);
   const [filter,setFilter]=useState<"all"|"Error"|"Warning">("all");
+  const [groupedDiagnostics,setGroupedDiagnostics]=useState(true);
   const [json,setJson]=useState("");
 
   const visibleRungs=useMemo(()=>{
@@ -253,6 +259,7 @@ export function NativeWorkspace() {
       ...report.semantic.diagnostics.map(d=>({severity:d.level,line:d.line,code:d.code,message:d.message})),
     ].filter(x=>filter==="all"||x.severity===filter).sort((a,b)=>a.line-b.line);
   },[report,filter]);
+  const diagnosticGroups=useMemo(()=>groupDiagnostics(diags),[diags]);
 
   async function openSource(selectedPath:string=path){
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
@@ -369,6 +376,8 @@ export function NativeWorkspace() {
       controller:report.controller,source_sha256:report.source_sha256,
       byte_length:report.byte_length,line_count:report.line_count,encoding:report.encoding,
       recognized_instructions:report.recognized_instructions,unsupported_lines:report.unsupported_lines,
+      end_line:report.end_line,post_end_line_count:report.post_end_line_count,
+      post_end_sections:report.post_end_sections,post_end_unverified_lines:report.post_end_unverified_lines,
       sections:report.sections,parser_diagnostics:report.diagnostics,
       semantic_diagnostics:report.semantic.diagnostics,
       semantic_diagnostics_truncated:report.semantic.diagnostics_truncated,
@@ -475,6 +484,10 @@ export function NativeWorkspace() {
         <span>{report.controller} · <b>{report.line_count}</b> строк · {report.byte_length} байт</span>
         <span style={{color:"#a6d5b5"}}>{report.recognized_instructions} распознано</span>
         <span style={{color:"#edc38b"}}>{report.unsupported_lines} opaque/unknown</span>
+        {report.end_line!==null&&<span title="Текстовая классификация, не подтверждение OEM-грамматики">
+          END L{report.end_line} · после END {report.post_end_line_count} строк · {report.post_end_sections} разделов
+          {report.post_end_unverified_lines>0?" · неизвестных "+report.post_end_unverified_lines:""}
+        </span>}
         <span title={report.source_sha256}>SHA-256: {report.source_sha256.slice(0,16)}…</span>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"220px minmax(300px,1fr) 290px",flex:1,minHeight:0}}>
@@ -556,7 +569,9 @@ export function NativeWorkspace() {
                 <span style={{width:51,flexShrink:0,textAlign:"right",color:"#849eaf"}}>{l.line}</span>
                 <span style={{width:142,flexShrink:0,color:
                   lineCategory(l.kind)==="UnsupportedInstruction"?"#e4b97e":"#85abb9"}}>
-                  {lineCategory(l.kind)}</span>
+                  {lineCategory(l.kind)==="PostEndSection"?"Раздел данных":lineCategory(l.kind)==="PostEndData"?
+                    "Данные после END":lineCategory(l.kind)==="PostEndOpaque"?
+                    "Неизвестно после END":lineCategory(l.kind)}</span>
                 <span>{l.display_text||" "}</span>
               </button>)}
             </div>
@@ -732,7 +747,7 @@ export function NativeWorkspace() {
             </button>)}
           </div>}
           <hr style={{borderColor:"#3a4d5e"}}/>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:5}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:5,flexWrap:"wrap"}}>
             <strong>Диагностика ({diags.length})</strong>
             <select aria-label="Фильтр сообщений" style={{...field,padding:4}} value={filter}
               onChange={e=>setFilter(e.target.value as typeof filter)}>
@@ -740,21 +755,42 @@ export function NativeWorkspace() {
               <option value="Warning">Предупр.</option>
             </select>
           </div>
+          <label style={{display:"flex",gap:6,alignItems:"center",fontSize:11,marginTop:7}}>
+            <input aria-label="Группировать диагностику" type="checkbox" checked={groupedDiagnostics}
+              onChange={e=>setGroupedDiagnostics(e.target.checked)}/>
+            Группировать по коду ({diagnosticGroups.length} групп)
+          </label>
           <p style={{fontSize:11,color:"#ddb781"}}>
-            Частичная семантика, не OEM-верификация.
+            Частичная семантика, не OEM-верификация. Группировка не исключает исходные строки.
           </p>
           <div style={{maxHeight:"45%",overflowY:"auto"}}>
-            {diags.slice(0,250).map((d,i)=><button type="button" key={i}
-              onClick={()=>void showLine(d.line)}
-              style={{...itemStyle,whiteSpace:"normal",borderBottom:"1px solid #314557"}}>
-              <b style={{color:d.severity==="Error"?"#f7a8aa":"#e6be83"}}>
-                {d.severity==="Error"?"ERROR":"WARN"} · L{d.line}</b>
-              <div>{d.code}</div><div style={{fontSize:11,color:"#b5c8d5"}}>{d.message}</div>
-            </button>)}
-            {!diags.length&&<small>Ошибок в распознанной части не найдено.</small>}
+            {groupedDiagnostics?
+              diagnosticGroups.map(g=><details key={g.severity+":"+g.code}
+                style={{border:"1px solid #33495a",borderRadius:4,marginBottom:5,padding:"4px 5px"}}>
+                <summary style={{fontSize:11,cursor:"pointer",color:g.severity==="Error"?"#f4adb3":"#edc28a"}}>
+                  {g.severity==="Error"?"ERROR":"WARN"} · {g.code} · {g.items.length} · первая L{g.firstLine}
+                </summary>
+                <div style={{maxHeight:240,overflowY:"auto",marginTop:6}}>
+                  {g.items.map((d,i)=><button type="button" key={i}
+                    onClick={()=>void showLine(d.line)}
+                    style={{...itemStyle,whiteSpace:"normal",borderBottom:"1px solid #30465a"}}>
+                    L{d.line}: {d.message}
+                  </button>)}
+                </div>
+              </details>):
+              diags.map((d,i)=><button type="button" key={i}
+                onClick={()=>void showLine(d.line)}
+                style={{...itemStyle,whiteSpace:"normal",borderBottom:"1px solid #314557"}}>
+                <b style={{color:d.severity==="Error"?"#f7a8aa":"#e6be83"}}>
+                  {d.severity==="Error"?"ERROR":"WARN"} · L{d.line}</b>
+                <div>{d.code}</div><div style={{fontSize:11,color:"#b5c8d5"}}>{d.message}</div>
+              </button>)}
+            {!diags.length&&<small>В доступном подмножестве сообщений нет.</small>}
           </div>
           {(report.diagnostics.length>=500||report.semantic.diagnostics_truncated)&&
-            <p style={{fontSize:11,color:"#e7bc83"}}>Количество диагностик ограничено.</p>}
+            <p style={{fontSize:11,color:"#e7bc83"}}>
+              Backend ограничил число сообщений: часть диагностик может отсутствовать.
+            </p>
           <hr style={{borderColor:"#3a4d5e"}}/>
           <div>Выбрана строка: {selectedLine??"—"}</div>
           <div style={{marginTop:8,fontSize:11}}>
