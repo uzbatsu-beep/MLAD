@@ -3,6 +3,7 @@ pub mod lossless;
 pub mod native_sections;
 pub mod ioname;
 pub mod semantic;
+pub mod typed_dataflow;
 pub mod graph_draft;
 pub mod advanced;
 pub mod advanced_source;
