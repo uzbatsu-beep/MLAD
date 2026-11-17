@@ -1,7 +1,7 @@
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
 **Implementation:** [`src-tauri/src/compiler/memory.rs`](../src-tauri/src/compiler/memory.rs).
-**Version:** 0.1 baseline. Do not use this table to authorize HSES writes or deployments.
+**Version:** 0.1 address-baseline, уточнение статуса 17.11.2026. Do not use this table to authorize HSES writes or deployments.
 **Evidence:** DX100 `RE-CKI-A453` §2 table 2-1; DX200 `RE-CKI-A465` §2 table 2-1; YRC1000 Concurrent I/O §2 table 2-1. See [source_registry.md](source_registry.md).
 
 ## 1. Addressing model
@@ -68,7 +68,15 @@ LadderWritePolicy = Denied | Candidate | RequiresReview
 - `relay_write_policy` is deliberately conservative: certain classes are denied as `OUT` targets, and specific control inputs require review. **Candidate is not permission to write to hardware**, only that the generic category may be the destination of some ladder instructions.
 - System Ladder ownership is not inferred from the address. A user program may reference system signals without owning their definitions. **System vs User** is a file/program region property, not a relay address property.
 
-The legacy validator `validate_rungs` assumes YRC1000 only for backward compatibility; callers working with DX100/DX200 **must** use `validate_rungs_for_controller(rungs, family)`. The UI does not yet expose model selection; the export and deployment paths are therefore not safe.
+The legacy validator `validate_rungs` assumes YRC1000 only for backward compatibility; callers working with DX100/DX200 **must** use `validate_rungs_for_controller(rungs, family)`. **В новых вкладках UI выбор DX100/DX200/YRC1000 уже реализован** (Graph Workspace, Advanced CIO и Inspector). Старый JSON-интерфейс сохраняет ограничения legacy. Выбор семейства **не** задаёт автоматически точные firmware, установленные опции, физическую конфигурацию и право на запись в робот; export/deployment по-прежнему запрещены.
+
+## Текущее применение профилей после PR #8
+
+- `graph_draft.rs` проверяет JSON-адреса и классы выходов по выбранному семейству.
+- `advanced.rs` дополнительно ограничивает current M000–M559 для TMR/CNT, preset M000–M999 или 0–65535, а адреса `GSTR/GOUT` — байтовыми группами с битом 0.
+- `inlineOperand.ts` делает **только** предварительную проверку синтаксиса во фронтенде; контроллерозависимые диапазоны проверяет Rust. Успешный inline ввод — не аппаратное подтверждение.
+- `lossless.rs` и `semantic.rs` работают по явно указанному профилю при чтении исходного `CIOPRG.LST`, сохраняя неопознанные части без правки.
+- Точный model/firmware/application профиль и ограничения физического I/O ещё предстоит подтвердить реальными выгрузками и документацией.
 
 ## 5. Validation checklist
 
