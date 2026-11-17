@@ -102,7 +102,7 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
           textAnchor="middle" fill={FG}>{current}</text>
         {canEdit&&<title>Двойной щелчок: изменить ${isGrp?"GSTR":"M-регистр"}</title>}
       </g>
-      <g {...(!isGrp?editProps("preset",block.kind!=="GROUP"&&block.preset.kind==="register"?second:undefined):{})}>
+      <g {...(!isGrp?editProps("preset",block.preset.kind==="register"?second:undefined):{})}>
         <text x={382} y={isCnt?136:112} fontSize={13} fontFamily="monospace"
           textAnchor="middle" fill="#bfdbea">
           {isGrp?"BYTE TRANSFER":`PRESET ${second}`}
