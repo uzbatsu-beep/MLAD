@@ -64,6 +64,16 @@ GitHub Actions — [MLAD validation](.github/workflows/validation.yml). Windows 
 - [Корпус оригинальных файлов](docs/controller_fixture_intake.md), [программа стендовых испытаний](docs/advanced_hardware_test_matrix.md).
 - [Каталог всех Markdown](docs/README.md), [процесс PR и выпусков](docs/development_workflow.md).
 
+## Сообщество, сообщения об ошибках и безопасность
+
+- [Открыть ошибку, предложение функции или проверку совместимости](https://github.com/uzbatsu-beep/MLAD/issues/new/choose) — через структурированные формы с **синтетическими** воспроизводимыми примерами.
+- [SECURITY.md](SECURITY.md) — порядок **непубличного** сообщения об уязвимостях; не публикуйте эксплойты/закрытые данные оборудования.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — правила профессионального взаимодействия.
+- [CONTRIBUTING.md](CONTRIBUTING.md) и [шаблон PR](.github/PULL_REQUEST_TEMPLATE.md) — тесты, источники и ревью.
+- [ACCESSIBILITY.md](ACCESSIBILITY.md) — доступность интерфейса и известные ограничения, **без заявления соответствия WCAG**.
+
+**GitHub Community Standards — организационная документация, не сертификат безопасности.** Публичные Issues и PR не предназначены для оригинальных CIOPRG.LST, IONAME.DAT, сетевых параметров, закрытых журналов и программ роботов.
+
 ## Лицензия
 
 **GNU GPL-3.0-only** — [LICENSE](LICENSE). Правообладатель собственных оригинальных материалов MLAD: **Фёдор Сергеевич Кочедыков** (физическое лицо), © 2026. Право собственности на чужие библиотеки, материалы Yaskawa и пользовательские данные не переходит к MLAD; third-party notices и chain-of-title ещё требуют отдельной проверки. Подробнее: [docs/licensing.md](docs/licensing.md).

@@ -12,6 +12,11 @@
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
 | Правила вкладов | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| Сообщество и шаблоны Issues | [CONTRIBUTING.md](../CONTRIBUTING.md) / [Issue templates](../.github/ISSUE_TEMPLATE) |
+| Ответственное сообщение об уязвимостях | [SECURITY.md](../SECURITY.md) |
+| Кодекс взаимодействия | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) |
+| Доступность интерфейса и ограничения | [ACCESSIBILITY.md](../ACCESSIBILITY.md) |
+| Шаблон PR с ограничениями MLAD | [PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md) |
 | Лицензия и сторонние компоненты | [licensing.md](licensing.md) |
 | Исторический аудит документации на 17.11.2026 | [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.md) |
 

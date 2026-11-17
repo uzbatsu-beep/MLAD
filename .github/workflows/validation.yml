@@ -37,6 +37,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Ensure npm install did not mutate dependency manifests
         run: git diff --exit-code -- package.json package-lock.json
+      - name: GitHub Community Standards and Issue Form contract
+        run: npm run test:community
       - name: Offline controller safety invariants
         run: npm run test:security
       - name: Native integrated workspace regressions

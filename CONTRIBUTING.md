@@ -25,10 +25,22 @@
 
 Исходный код MLAD предлагается на условиях [GNU GPL-3.0-only](LICENSE). Включаемые в MLAD программные изменения должны допускать распространение на этих условиях; автор вкладов должен обладать необходимыми правами на их публикацию. Не импортировать код, схемы, фирменную документацию и `CIOPRG.LST` третьих лиц без разрешения. Исходные лицензии зависимостей должны учитываться отдельно; не считать GPL автоматическим изменением лицензии сторонних библиотек. См. [docs/licensing.md](docs/licensing.md).
 
+## Community Standards и безопасная подача материалов
+
+- Прочитайте [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md) и [ACCESSIBILITY.md](ACCESSIBILITY.md).
+- Новые ошибки, запросы функций и совместимость DX100/DX200/YRC1000 оформляйте через [структурированные Issues](https://github.com/uzbatsu-beep/MLAD/issues/new/choose) **только с синтетическими примерами**. Если обнаружена уязвимость, **не** раскрывайте детали публично, следуйте SECURITY.md.
+- Для PR используйте [шаблон проверки](.github/PULL_REQUEST_TEMPLATE.md): границы безопасности, уровень доказательности, негативные тесты, непроверенные сценарии и явное разрешение на слияние.
+- Репозиторий открыт: нельзя прикладывать реальные CIOPRG.LST, IONAME.DAT, закрытые схемы, производственные IP или секреты.
+
 ## Локальная проверка
 
 ```bash
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
+npm run test:community
+npm run test:security
+npm run test:native
+npm run test:diagnostics
+npm run test:oem-reference
 npm run test:graph
 npm run test:advanced
 npm run test:visual
