@@ -90,3 +90,14 @@ test("contextual scale controls share the tab toolbar and remain independent",()
     body.indexOf('{tab==="ioname"&&<div'));
   assert.doesNotMatch(blocks,/setBlockZoom\(/);
 });
+
+test("post-END categories are explicit; diagnostic grouping keeps navigation",()=>{
+  assert.match(native,/post_end_line_count/);
+  assert.match(native,/PostEndSection/);
+  assert.match(native,/PostEndData/);
+  assert.match(native,/PostEndOpaque/);
+  assert.match(native,/groupedDiagnostics/);
+  assert.match(native,/groupDiagnostics\(diags\)/);
+  assert.match(native,/Группировать по коду/);
+  assert.match(native,/g\.items\.map/);
+});
