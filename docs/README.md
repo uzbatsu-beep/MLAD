@@ -1,51 +1,69 @@
-# MLAD — навигация по технической документации
+# MLAD — каталог технической документации
 
-**Текущая документация после PR #9, 17.11.2026.** Дорожная карта v2 является **проектом для обсуждения**; несогласованные этапы не означают утверждённую реализацию.
+**Актуально для `main` от 18.11.2026:** PR #1–#21 merged; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
 
-Документы разделяют **доказательства производителя**, **фактически реализованный код**, **проверки CI** и **неподтверждённое поведение на оборудовании**. «Доступен в UI» не означает «разрешён к загрузке в контроллер».
+## С чего начать
 
-## Начало работы
+| Что нужно | Документ |
+| --- | --- |
+| Назначение и быстрый старт | [README репозитория](../README.md) |
+| Полная сверенная функциональность, риски, прогресс | [project_status.md](project_status.md) |
+| Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
+| Компоненты и разрешения доступа | [architecture.md](architecture.md) |
+| Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
+| Правила вкладов | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| Лицензия и сторонние компоненты | [licensing.md](licensing.md) |
+| Исторический аудит документации на 17.11.2026 | [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.md) |
 
-| Задача | Документ |
-|---|---|
-| Назначение и статус проекта | [README репозитория](../README.md) |
-| Реальная архитектура, границы и технический долг | [architecture.md](architecture.md) |
-| Разработка, тесты, PR и выпуск версий | [development_workflow.md](development_workflow.md) |
-| Дорожная карта v2: все этапы, зависимости, варианты приоритета и нерешённые вопросы | [roadmap.md](roadmap.md) — обсуждение |
-| Получение и хранение оригинальных файлов Yaskawa | [controller_fixture_intake.md](controller_fixture_intake.md) |
-| Правила для разработчиков | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| Что именно исправлено в аудите 17.11.2026 | [Документ аудита](documentation_audit_2026-11-17.md) |
+## Исходные файлы, адреса и семантика
 
-## Контракты данных и анализ
+| Направление | Документ |
+| --- | --- |
+| Первичные источники/ревизии Yaskawa | [source_registry.md](source_registry.md) |
+| Native CIOPRG: известное и неизвестное | [cioprg_lst_spec.md](cioprg_lst_spec.md) |
+| Байт-сохраняющий импорт | [cioprg_lossless_parser.md](cioprg_lossless_parser.md) |
+| Post-END ALARM/MESSAGE | [post_end_data.md](post_end_data.md) |
+| Структура контроллерного корпуса, защита исходников | [controller_fixture_intake.md](controller_fixture_intake.md) |
+| DX100/DX200/YRC1000 memory profiles | [typed_memory_model.md](typed_memory_model.md) |
+| Булева Semantic AST | [semantic_ast.md](semantic_ast.md) |
+| Типизированные MOV/ADD/SUB/SHL/SHR | [typed_opcode_grammar.md](typed_opcode_grammar.md) |
+| Проверенная документация по пяти командам и неизвестные края | [oem_5_opcode_analysis.md](oem_5_opcode_analysis.md) |
+| Статические гипотезы M-зависимостей, OEM-допуски | [semantic_verification_matrix.md](semantic_verification_matrix.md) |
+| TMR/CNT/GSTR/GOUT | [advanced_blocks.md](advanced_blocks.md) |
+| Матрица **не проведённых** испытаний на роботе | [advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.md) |
+| HSES **не включён** | [hse_protocol.md](hse_protocol.md) |
 
-- [source_registry.md](source_registry.md) — реестр первоисточников, оговорки о достоверности.
-- [typed_memory_model.md](typed_memory_model.md) — адреса и контроллерные профили DX100/DX200/YRC1000.
-- [cioprg_lst_spec.md](cioprg_lst_spec.md) — подтверждённые и неизвестные части нативного файла.
-- [cioprg_lossless_parser.md](cioprg_lossless_parser.md) — текущий побайтовый просмотр и защита исходных данных.
-- [semantic_ast.md](semantic_ast.md) — анализ булевых подмножеств, барьеры на stateful инструкциях.
-- [advanced_blocks.md](advanced_blocks.md) — TMR, CNT, GSTR/GOUT, офлайн-модели.
-- [advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.md) — **ещё не выполненные** испытания на контроллерах.
-- [hse_protocol.md](hse_protocol.md) — **неверифицированный** сетевой модуль и требования перед его включением.
+## Интерфейс и пользовательские данные
 
-## Интерфейс
+- [graph_editor.md](graph_editor.md) — безопасные JSON черновики; не native export.
+- [ui_multi_rung_state.md](ui_multi_rung_state.md) — визуальные цепи и OFFLINE tri-state.
+- [inline_address_editing.md](inline_address_editing.md) — редактирование адресов в JSON и локальных заметок отдельно.
+- [ioname_annotations.md](ioname_annotations.md) — имена I/O и локальные комментарии без изменения native файлов.
 
-- [graph_editor.md](graph_editor.md) — JSON-редактор цепей, валидация и безопасное сохранение.
-- [ui_multi_rung_state.md](ui_multi_rung_state.md) — все цепи/блоки на поле, OFFLINE TRUE/FALSE/UNKNOWN.
-- [inline_address_editing.md](inline_address_editing.md) — изменение адресов на схеме двойным щелчком или F2.
-- [releases/v0.5.0-rc.1-hardware.md](releases/v0.5.0-rc.1-hardware.md) — **исторические** примечания к конкретному pre-release.
+## Release notes (архивные документы конкретных сборок)
 
-## Лицензирование
+Все release notes ниже относятся **только к своему tag/commit**. Они не изменяются задним числом, чтобы не искажать воспроизводимые сведения о ранее опубликованном артефакте.
 
-- [LICENSE](../LICENSE) — полный текст GNU GPL-3.0-only.
-- [licensing.md](licensing.md) — область действия, авторство, вклад сторонних лиц и проверки перед выпуском бинарных релизов.
+| Релиз | Особенность | Файл |
+| --- | --- | --- |
+| rc.1 | Первый Windows hardware bench preview | [rc.1](releases/v0.5.0-rc.1-hardware.md) |
+| rc.2 | Native read-only CIOPRG | [rc.2](releases/v0.5.0-rc.2-cioprg.md) |
+| rc.3 | Встроенный Native Workspace | [rc.3](releases/v0.5.0-rc.3-workspace.md) |
+| rc.4 | IONAME / локальные комментарии | [rc.4](releases/v0.5.0-rc.4-annotations.md) |
+| rc.5 | Компактная панель и системные диалоги | [rc.5](releases/v0.5.0-rc.5-layout.md) |
+| rc.6 | Post-END и группировка диагностики | [rc.6](releases/v0.5.0-rc.6-postend.md) |
+| rc.7 | Типизация пяти команд | [rc.7](releases/v0.5.0-rc.7-typed.md) |
+| rc.8 | Статические гипотезы источников | [rc.8](releases/v0.5.0-rc.8-evidence.md) |
+| **rc.9** | **OEM reference для пяти команд — текущая** | [rc.9](releases/v0.5.0-rc.9-oem-reference.md) |
 
-## Переадресация старых путей
+Текущий [GitHub Release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); опубликованный архив исходников соответствует релизному commit, а не будущим изменениям `main`.
 
-- [ladder_spec.md](ladder_spec.md), [memory_map.md](memory_map.md), [references.md](references.md) — только исторические заметки, ссылающиеся на действующие контракты. Не использовать как независимые спецификации.
+## Архивные перенаправления
 
-### Политика документации
+- [ladder_spec.md](ladder_spec.md) → [cioprg_lst_spec.md](cioprg_lst_spec.md).
+- [memory_map.md](memory_map.md) → [typed_memory_model.md](typed_memory_model.md).
+- [references.md](references.md) → [source_registry.md](source_registry.md).
 
-1. Для каждого нового формата/инструкции указывать **источник, область действия (контроллер, firmware), статус и тест**.
-2. Ссылку на руководство не считать доказательством полного формата `CIOPRG.LST`.
-3. Не менять исходники документов релизов «задним числом», чтобы не исказить содержание уже опубликованного ZIP; новые уточнения явно отделять от содержания исторического артефакта.
-4. Истинное аппаратное состояние можно заявлять только при подтверждённом протоколе, проверенных маппингах, валидированных ответах и независимых bench-тестах.
+## Дисциплина доказательности
+
+Точные различия: `Documented/ManualDerived` ≠ `SyntheticTested` ≠ `OEMBenchVerified` ≠ `Authorized`. Read-only GUI ≠ возможность native export или загрузки в робот. Каждая новая функция требует исходного OEM-источника, тестов отрицательных случаев, привязки к ControllerFamily, сценария безопасности и актуализации статуса, не стирая историю.
