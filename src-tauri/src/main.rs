@@ -52,14 +52,8 @@ struct FullCioprgInspection {
     advanced: compiler::advanced_source::AdvancedSourceReport,
 }
 
-/// Read-only inspection of a native exported CIOPRG.LST file.
-/// This command neither changes the source file nor creates a controller-ready
-/// program. The original byte stream stays in Rust memory during parsing only.
-#[tauri::command]
-async fn cmd_inspect_cioprg(
-    file_path: String,
-    controller: compiler::memory::ControllerFamily,
-) -> Result<FullCioprgInspection, String> {
+/// Bound native input before allocation-intensive parsing. Read-only, no mutation.
+async fn read_cioprg_bytes(file_path: &str) -> Result<Vec<u8>, String> {
     const MAX_CIO_FILE_BYTES: u64 = 16 * 1024 * 1024;
 
     let path = std::path::Path::new(&file_path);
@@ -88,6 +82,55 @@ async fn cmd_inspect_cioprg(
         }
     }
 
+    Ok(bytes)
+}
+
+#[derive(Serialize)]
+struct CioprgReadPage {
+    source_sha256: String,
+    start_line: usize,
+    line_count: usize,
+    lines: Vec<compiler::lossless::LinePreview>,
+}
+
+/// Read a small display page of the *same* unchanged snapshot that was inspected.
+/// Changes on disk invalidate the old digest rather than silently showing mixed files.
+#[tauri::command]
+async fn cmd_read_cioprg_page(
+    file_path: String,
+    controller: compiler::memory::ControllerFamily,
+    expected_sha256: String,
+    start_line: usize,
+) -> Result<CioprgReadPage, String> {
+    const PAGE_SIZE: usize = 250;
+    if start_line == 0 || start_line > 200_000 {
+        return Err("Недопустимая начальная строка (1..200000)".into());
+    }
+    let bytes = read_cioprg_bytes(&file_path).await?;
+    let doc = compiler::lossless::parse_document(bytes, controller);
+    if doc.source_sha256 != expected_sha256 {
+        return Err("Файл изменился после первичного просмотра. Откройте его повторно.".into());
+    }
+    if start_line > doc.lines.len() && !(start_line == 1 && doc.lines.is_empty()) {
+        return Err("Начальная строка находится за концом файла".into());
+    }
+    Ok(CioprgReadPage {
+        source_sha256: doc.source_sha256.clone(),
+        start_line,
+        line_count: doc.lines.len(),
+        lines: doc.line_preview_range(start_line, PAGE_SIZE),
+    })
+}
+
+/// Read-only inspection of a native exported CIOPRG.LST file.
+/// This command neither changes the source file nor creates a controller-ready
+/// program. The original byte stream stays in Rust memory during parsing only.
+#[tauri::command]
+async fn cmd_inspect_cioprg(
+    file_path: String,
+    controller: compiler::memory::ControllerFamily,
+) -> Result<FullCioprgInspection, String> {
+    let bytes = read_cioprg_bytes(&file_path).await?;
     let doc = compiler::lossless::parse_document(bytes, controller);
     let semantic = compiler::semantic::analyze(&doc);
     let advanced = compiler::advanced_source::inspect(&doc);
@@ -315,6 +358,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
+            cmd_read_cioprg_page,
             cmd_validate_advanced_draft,
             cmd_load_advanced_draft,
             cmd_save_advanced_draft,
@@ -404,5 +448,37 @@ mod offline_controller_safety_tests {
         ] {
             assert!(cmd_deploy_to_robot(ip.into(), path.into()).await.is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod cioprg_page_safety_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn original_remains_byte_identical_across_pages_and_rejects_stale_digest() {
+        let path = std::env::temp_dir().join(format!("mlad-page-{}.LST", uuid::Uuid::new_v4()));
+        let content = (1..=710).map(|n| format!("* test-{n}\r\n"))
+            .collect::<String>();
+        std::fs::write(&path, content.as_bytes()).unwrap();
+        let file_path = path.to_string_lossy().into_owned();
+        let initial = cmd_inspect_cioprg(file_path.clone(), compiler::memory::ControllerFamily::YRC1000)
+            .await.unwrap();
+        let digest = initial.base.source_sha256;
+        let page = cmd_read_cioprg_page(
+            file_path.clone(), compiler::memory::ControllerFamily::YRC1000, digest.clone(), 501,
+        ).await.unwrap();
+        assert_eq!(page.start_line, 501);
+        assert_eq!(page.lines.first().unwrap().line, 501);
+        assert_eq!(page.lines.last().unwrap().line, 710);
+        assert_eq!(std::fs::read(&path).unwrap(), content.as_bytes());
+        assert!(cmd_read_cioprg_page(
+            file_path.clone(), compiler::memory::ControllerFamily::YRC1000, digest.clone(), 0,
+        ).await.is_err());
+        std::fs::write(&path, b"* modified\r\n").unwrap();
+        assert!(cmd_read_cioprg_page(
+            file_path.clone(), compiler::memory::ControllerFamily::YRC1000, digest, 1,
+        ).await.is_err());
+        std::fs::remove_file(path).unwrap();
     }
 }

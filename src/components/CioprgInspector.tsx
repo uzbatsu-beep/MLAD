@@ -129,6 +129,14 @@ type Report = {
   original_round_trip_only: boolean;
 };
 
+type ReadPage = {
+  source_sha256: string;
+  start_line: number;
+  line_count: number;
+  lines: PreviewLine[];
+};
+const PAGE_SIZE = 250;
+
 const panel: React.CSSProperties = {
   background: "#252526",
   border: "1px solid #454952",
@@ -163,6 +171,12 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [selectedGraphRung, setSelectedGraphRung] = useState(1);
   const [diagramZoom, setDiagramZoom] = useState(1);
+  const [pageLines, setPageLines] = useState<PreviewLine[]>([]);
+  const [pageStart, setPageStart] = useState(1);
+  const [pageBusy, setPageBusy] = useState(false);
+  const [jumpLine, setJumpLine] = useState("");
+  const [focusLine, setFocusLine] = useState<number | null>(null);
+  const [reportJson, setReportJson] = useState("");
   const graphPreview = useMemo(() => {
     if (!report) return null;
     const rung=report.semantic.rungs.find(r=>r.number===selectedGraphRung)??report.semantic.rungs[0];
@@ -174,16 +188,84 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
   async function inspect() {
     setIssue("");
     setReport(null);
+    setPageLines([]);
+    setPageStart(1);
+    setReportJson("");
+    setFocusLine(null);
     setBusy(true);
     try {
       const result = await invoke<Report>("cmd_inspect_cioprg", { filePath: path.trim(), controller });
       setReport(result);
+      setPageLines(result.lines.slice(0, PAGE_SIZE));
+      setPageStart(1);
       setSelectedGraphRung(1);
     } catch (err) {
       setIssue(String(err));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function showPage(targetLine: number) {
+    if (!report || pageBusy || !Number.isInteger(targetLine) || targetLine < 1 ||
+        targetLine > report.line_count) return;
+    const start = Math.floor((targetLine - 1) / PAGE_SIZE) * PAGE_SIZE + 1;
+    setIssue("");
+    setFocusLine(targetLine);
+    if (start + PAGE_SIZE - 1 <= report.lines.length) {
+      setPageLines(report.lines.slice(start - 1, start - 1 + PAGE_SIZE));
+      setPageStart(start);
+      return;
+    }
+    setPageBusy(true);
+    try {
+      const result = await invoke<ReadPage>("cmd_read_cioprg_page", {
+        filePath: path.trim(), controller, expectedSha256: report.source_sha256,
+        startLine: start,
+      });
+      if (result.source_sha256 !== report.source_sha256 ||
+          result.line_count !== report.line_count || result.start_line !== start) {
+        throw new Error("Получена страница другого снимка исходного файла");
+      }
+      setPageLines(result.lines);
+      setPageStart(start);
+    } catch (err) {
+      setIssue(String(err));
+    } finally {
+      setPageBusy(false);
+    }
+  }
+
+  function prepareReportJson() {
+    if (!report) return;
+    const summary = {
+      preview: "MLAD CIOPRG offline read-only diagnostic report",
+      controller: report.controller,
+      source_sha256: report.source_sha256,
+      byte_length: report.byte_length,
+      line_count: report.line_count,
+      encoding: report.encoding,
+      recognized_instructions: report.recognized_instructions,
+      unsupported_lines: report.unsupported_lines,
+      m_headers: report.m_headers,
+      original_round_trip_only: report.original_round_trip_only,
+      edited_export_allowed: report.edited_export_allowed,
+      system_user_boundaries_verified: report.system_user_boundaries_verified,
+      parser_diagnostics: report.diagnostics,
+      semantic: {
+        rung_count: report.semantic.rung_count,
+        node_count: report.semantic.node_count,
+        reference_count: report.semantic.reference_count,
+        unsupported_segments: report.semantic.unsupported_segments,
+        diagnostic_count: report.semantic.diagnostic_count,
+        rungs_truncated: report.semantic.rungs_truncated,
+        diagnostics_truncated: report.semantic.diagnostics_truncated,
+        diagnostics: report.semantic.diagnostics,
+      },
+      advanced_warnings: report.advanced.warnings,
+      notes: "No robot connection, no controller acceptance claim. Diagnostic count may be limited.",
+    };
+    setReportJson(JSON.stringify(summary, null, 2));
   }
 
   return (
@@ -364,15 +446,51 @@ export function CioprgInspector({ onClose }: { onClose: () => void }) {
               )}
             </div>
             <div style={panel}>
-              <strong>Предпросмотр (максимум 600 строк; текст только для чтения)</strong>
-              {report.preview_truncated && <div style={{ color: "#e9c47a" }}>Показана только начальная часть файла.</div>}
+              <strong>Исходный CIOPRG.LST — постраничный просмотр, только чтение</strong>
+              <div style={{color:"#d9bb7a",marginTop:6,fontSize:12}}>
+                Показан полный документ по страницам до {PAGE_SIZE} строк.
+                Переключение страниц не изменяет оригинал; при изменении файла после открытия загрузка страницы отменяется.
+              </div>
+              <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginTop:10}}>
+                <button type="button" style={btn} disabled={pageBusy||pageStart<=1}
+                  onClick={()=>void showPage(Math.max(1,pageStart-PAGE_SIZE))}>← Назад</button>
+                <span style={{fontSize:12}}>Строки {pageLines.length ? pageStart : 0}–{pageLines.length ? pageLines[pageLines.length-1].line : 0} из {report.line_count}</span>
+                <button type="button" style={btn}
+                  disabled={pageBusy||pageStart+PAGE_SIZE>report.line_count}
+                  onClick={()=>void showPage(pageStart+PAGE_SIZE)}>Вперёд →</button>
+                <label style={{fontSize:12}}>К строке{" "}
+                  <input type="number" min={1} max={report.line_count} value={jumpLine}
+                    onChange={e=>setJumpLine(e.target.value)} style={{...field,width:90}} />
+                </label>
+                <button type="button" style={btn} disabled={pageBusy||!jumpLine.trim()}
+                  onClick={()=>void showPage(Number(jumpLine))}>Перейти</button>
+                {pageBusy && <span>Чтение страницы…</span>}
+              </div>
               <div style={{ marginTop: "10px", maxHeight: "55vh", overflow: "auto", fontFamily: "monospace", fontSize: "12px" }}>
-                {report.lines.map(l => <div key={l.line} style={{ display: "flex", gap: "10px", whiteSpace: "pre" }}>
+                {pageLines.map(l => <div key={l.line} style={{
+                  display: "flex", gap: "10px", whiteSpace: "pre",
+                  background: l.line === focusLine ? "#3c414d" : "transparent",
+                }}>
                   <span style={{ color: "#7f93a6", minWidth: "46px", textAlign: "right", userSelect: "none" }}>{l.line}</span>
                   <span style={{ color: "#8daeb9", width: "145px", flexShrink: 0, userSelect: "none" }}>{lineCategory(l.kind)}</span>
                   <span>{l.display_text || " "}</span>
                 </div>)}
               </div>
+            </div>
+            <div style={panel}>
+              <button type="button" style={btn} onClick={prepareReportJson}>
+                Сформировать JSON-отчёт диагностики
+              </button>
+              <span style={{marginLeft:10,fontSize:12,color:"#d9bb7a"}}>
+                Отчёт содержит диагностические адреса. Проверяйте перед распространением.
+              </span>
+              {reportJson && (
+                <div style={{marginTop:10}}>
+                  <div style={{fontSize:12,marginBottom:6}}>Выделите текст (Ctrl+A в поле), скопируйте (Ctrl+C) и сохраните как JSON.</div>
+                  <textarea readOnly value={reportJson} spellCheck={false} rows={12}
+                    style={{...field,width:"100%",boxSizing:"border-box",fontFamily:"monospace",fontSize:12}} />
+                </div>
+              )}
             </div>
           </>
         )}

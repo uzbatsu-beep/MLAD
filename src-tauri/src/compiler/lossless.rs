@@ -142,20 +142,25 @@ impl LosslessDocument {
     /// No API for edited CIOPRG export is provided in PR #2.
     pub fn copy_original(&self) -> Vec<u8> { self.raw.clone() }
 
-    pub fn inspection_report(&self, max_preview_lines: usize, max_diagnostics: usize) -> InspectionReport {
-        let recognized_instructions = self.lines.iter().filter(|l|
-            matches!(l.kind, LineKind::Instruction(_))).count();
-        let unsupported_lines = self.lines.iter().filter(|l|
-            matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque)).count();
-
-        let lines = self.lines.iter().take(max_preview_lines).map(|l| LinePreview {
+    /// Display-only page of lines, 1-based. Never use lossy display_text for export.
+    pub fn line_preview_range(&self, start_line: usize, limit: usize) -> Vec<LinePreview> {
+        self.lines.iter().skip(start_line.saturating_sub(1)).take(limit).map(|l| LinePreview {
             line: l.number,
             ending: l.ending,
             body_span: l.body_span,
             kind: l.kind.clone(),
             display_text: String::from_utf8_lossy(&self.raw[l.body_span.start..l.body_span.end])
                 .to_string(),
-        }).collect();
+        }).collect()
+    }
+
+    pub fn inspection_report(&self, max_preview_lines: usize, max_diagnostics: usize) -> InspectionReport {
+        let recognized_instructions = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::Instruction(_))).count();
+        let unsupported_lines = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque)).count();
+
+        let lines = self.line_preview_range(1, max_preview_lines);
 
         InspectionReport {
             controller: self.controller,
