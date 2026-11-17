@@ -59,7 +59,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 - Версия `0.5.0` в `package.json`/`tauri.conf.json` относится к базе приложения; строка `UI Preview PR #8` задавалась переменной сборки, а не меняла нативную версию Tauri.
 - Никогда не считайте отсутствие ошибок сборки доказательством совместимости с конкретным DX100/DX200/YRC1000 или firmware.
 
-См. [дисциплину сборок и качества](docs/development_workflow.md), [архитектуру](docs/architecture.md) и [дорожную карту](docs/roadmap.md).
+См. [дисциплину сборок и качества](docs/development_workflow.md), [архитектуру](docs/architecture.md) и [дорожную карту v2 — проект для обсуждения, без утверждённых будущих этапов](docs/roadmap.md).
 
 ## Карта документации
 
