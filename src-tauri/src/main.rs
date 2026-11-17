@@ -174,6 +174,30 @@ async fn cmd_search_cioprg(
     Ok(CioprgSearchResult { source_sha256: doc.source_sha256, hits, truncated })
 }
 
+/// Import only a *display snapshot* of IONAME.DAT, without editing source or
+/// assuming its sequential IN/OUT indices are CIO #XXXXX physical addresses.
+#[tauri::command]
+async fn cmd_inspect_ioname(file_path: String)
+    -> Result<compiler::ioname::IonameReport, String> {
+    const MAX_IONAME_BYTES: u64 = 4 * 1024 * 1024;
+    let path=std::path::Path::new(&file_path);
+    if !path.file_name().and_then(|n|n.to_str())
+        .is_some_and(|n|n.eq_ignore_ascii_case("IONAME.DAT")) {
+        return Err("Для просмотра выберите IONAME.DAT (копию файла)".into());
+    }
+    let meta=tokio::fs::symlink_metadata(path).await
+        .map_err(|e|format!("Нет доступа к IONAME.DAT: {e}"))?;
+    if meta.file_type().is_symlink() || !meta.is_file() || meta.len()>MAX_IONAME_BYTES {
+        return Err("IONAME.DAT: обычный файл без symlink размером до 4 МиБ".into());
+    }
+    let bytes=tokio::fs::read(path).await
+        .map_err(|e|format!("Не удалось прочитать IONAME.DAT: {e}"))?;
+    if bytes.len() as u64>MAX_IONAME_BYTES {
+        return Err("IONAME.DAT превышает 4 МиБ".into());
+    }
+    Ok(compiler::ioname::inspect(&bytes))
+}
+
 /// Read-only inspection of a native exported CIOPRG.LST file.
 /// This command neither changes the source file nor creates a controller-ready
 /// program. The original byte stream stays in Rust memory during parsing only.
@@ -414,6 +438,7 @@ fn main() {
             cmd_inspect_cioprg,
             cmd_read_cioprg_page,
             cmd_search_cioprg,
+            cmd_inspect_ioname,
             cmd_validate_advanced_draft,
             cmd_load_advanced_draft,
             cmd_save_advanced_draft,

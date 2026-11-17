@@ -81,3 +81,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## Native Workspace UI (PR #15, until merge)
 
 Proposed main-window integration of the original read-only CIOPRG.LST, with left section tree, center paged source/recognized diagrams and right diagnostics/search. Legacy project.json remains under a compatibility menu. See [Native Workspace preview notes](docs/releases/v0.5.0-rc.3-workspace.md). No native writer, HSES or deployment permission is added.
+
+## PR #16 — все распознанные Ladder-цепи и локальные комментарии
+
+Предлагаются вывод всех доступных SemanticPreview цепей, масштабирование расширенных блоков, просмотр IONAME.DAT и локальное редактирование комментариев двойным щелчком. Оригинальные файлы не изменяются. [Архитектура и ограничения](docs/ioname_annotations.md).

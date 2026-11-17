@@ -20,32 +20,36 @@ type Props={
   signalValues?: SignalSnapshot;
   /** Responsive SVG with a single shared vertical workspace scroll. */
   fitToWidth?: boolean;
+  /** Local annotations only: editing never modifies native CIO addresses. */
+  onEditComment?: (address:string)=>void;
+  commentForAddress?: (address:string)=>string;
 };
 const WIRE="#8293a3";
 const TEXT="#e4ecf3";
 const SELECTED="#efc978";
 
-function ContactSymbol({ item, ox, oy, selected, onClick, onDoubleClick, readOnly, state }:{
+function ContactSymbol({ item, ox, oy, selected, onClick, onDoubleClick, readOnly, state, comment }:{
   item:ContactLocation;ox:number;oy:number;selected:boolean;
-  onClick?:()=>void;onDoubleClick?:()=>void;readOnly:boolean;state:LogicState|null;
+  onClick?:()=>void;onDoubleClick?:()=>void;readOnly:boolean;state:LogicState|null;comment?:string;
 }) {
   const x=ox+item.x, y=oy+item.y+item.height/2;
   const stroke=state?STATE_COLORS[state]:WIRE;
   const border=selected?SELECTED:state?stroke:"transparent";
   const fill=state?STATE_BACKGROUNDS[state]:"transparent";
   const stateText=state===null?"без диагностики":state==="UNKNOWN"?"?":state==="TRUE"?"1":"0";
-  return <g role={readOnly?"img":"button"} tabIndex={readOnly?undefined:0}
+  return <g role={readOnly&&!onDoubleClick?"img":"button"} tabIndex={readOnly&&!onDoubleClick?undefined:0}
     aria-label={`${item.normallyClosed?"NC":"NO"} ${item.relay}, ${stateText}`}
     onClick={onClick}
     onDoubleClick={onDoubleClick}
     onKeyDown={event=>{
-      if(readOnly) return;
+      if(readOnly&&!onDoubleClick) return;
       if(event.key==="F2"){event.preventDefault();onDoubleClick?.();return;}
       if(event.key==="Enter"||event.key===" ") {
         event.preventDefault();onClick?.();
       }
     }}
-    style={{cursor:readOnly?"default":"pointer",outline:"none"}}>
+    style={{cursor:onDoubleClick?"text":readOnly?"default":"pointer",outline:"none"}}>
+    {!!comment&&<title>{item.relay}: {comment} · двойной щелчок для правки комментария</title>}
     <rect x={x+3} y={y-37} width={item.width-6} height={75} rx={7}
       fill={fill} stroke={border} strokeWidth={selected?2.5:1.2}/>
     <line x1={x} y1={y} x2={x+51} y2={y} stroke={stroke} strokeWidth={2.4}/>
@@ -68,7 +72,7 @@ function ContactSymbol({ item, ox, oy, selected, onClick, onDoubleClick, readOnl
  */
 export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
   onSelectContact,onEditContactAddress,onEditOutputAddress,
-  readOnly=true,signalValues,fitToWidth=false}:Props) {
+  readOnly=true,signalValues,fitToWidth=false,onEditComment,commentForAddress}:Props) {
   const [editing,setEditing]=useState<{kind:"contact";id:string}|{kind:"output"}|null>(null);
   const result=useMemo(()=>{
     try{return {layout:layoutCircuit(expression),error:""};}
@@ -115,18 +119,23 @@ export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
         state={signalValues?contactLogicState(contact,signalValues):null}
         onClick={!readOnly?()=>onSelectContact?.(contact.id):undefined}
         onDoubleClick={!readOnly&&onEditContactAddress?
-          ()=>{onSelectContact?.(contact.id);setEditing({kind:"contact",id:contact.id});}:undefined}
+          ()=>{onSelectContact?.(contact.id);setEditing({kind:"contact",id:contact.id});}:
+          readOnly&&onEditComment?()=>onEditComment(contact.relay):undefined}
+        comment={commentForAddress?.(contact.relay)}
         readOnly={readOnly}/>)}
       <line x1={ox+layout.width} y1={cy} x2={outX-22} y2={cy}
         stroke={WIRE} strokeWidth={2}/>
-      <g role={!readOnly&&onEditOutputAddress?"button":"img"}
-        tabIndex={!readOnly&&onEditOutputAddress?0:undefined}
+      <g role={(!readOnly&&onEditOutputAddress)||(readOnly&&onEditComment)?"button":"img"}
+        tabIndex={(!readOnly&&onEditOutputAddress)||(readOnly&&onEditComment)?0:undefined}
         aria-label={`OUT ${output}. Двойной щелчок или F2 для изменения адреса`}
-        style={{cursor:!readOnly&&onEditOutputAddress?"text":"default"}}
-        onDoubleClick={!readOnly&&onEditOutputAddress?()=>setEditing({kind:"output"}):undefined}
-        onKeyDown={e=>{if(!readOnly&&onEditOutputAddress&&e.key==="F2"){
-          e.preventDefault();setEditing({kind:"output"});
+        style={{cursor:(!readOnly&&onEditOutputAddress)||(readOnly&&onEditComment)?"text":"default"}}
+        onDoubleClick={!readOnly&&onEditOutputAddress?()=>setEditing({kind:"output"}):
+          readOnly&&onEditComment?()=>onEditComment(output):undefined}
+        onKeyDown={e=>{if(e.key==="F2"){
+          if(!readOnly&&onEditOutputAddress){e.preventDefault();setEditing({kind:"output"});}
+          else if(readOnly&&onEditComment){e.preventDefault();onEditComment(output);}
         }}}>
+        {!!commentForAddress?.(output)&&<title>{output}: {commentForAddress(output)}</title>}
       <rect x={outX-35} y={cy-41} width={70} height={84}
         rx={8} fill={coilFill} stroke={coilState?coilStroke:"transparent"} strokeWidth={1.5}/>
       <path d={`M ${outX-20},${cy-19} Q ${outX-39},${cy} ${outX-20},${cy+19}`}
@@ -153,5 +162,14 @@ export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
           onCommit={value=>{setEditing(null);onEditOutputAddress(value);}}
           onCancel={()=>setEditing(null)}/>}
     </svg>
+    {commentForAddress&&<div style={{display:"flex",gap:8,flexWrap:"wrap",padding:"4px 10px",fontSize:11}}>
+      {Array.from(new Set([...layout.contacts.map(c=>c.relay),output]))
+        .filter(addr=>Boolean(commentForAddress(addr))).map(addr=>
+        <button type="button" key={addr} onDoubleClick={()=>onEditComment?.(addr)}
+          title="Двойной щелчок — изменить локальный комментарий" style={{
+            color:"#c9e2d8",border:"1px solid #405b57",background:"#1d3837",
+            borderRadius:4,padding:"3px 7px",cursor:"text",
+          }}>{addr}: {commentForAddress(addr)}</button>)}
+    </div>}
   </div>;
 }
