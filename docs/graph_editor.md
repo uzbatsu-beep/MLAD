@@ -9,9 +9,9 @@ The project has four distinct surfaces. **They must not be conflated**:
 
 | Surface | Source format | Mutates file? | Native CIOPRG.LST export? | Sends commands to robot? |
 |---|---|---|---|---|
-| Graph Workspace (new default) | `*.graph.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
+| Graph Workspace (отдельная вкладка JSON draft; не default) | `*.graph.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
 | Advanced Workspace | `*.advanced.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
-| Read-only Inspector | Original `CIOPRG.LST` | **Never** | **No** | **No** |
+| Native Workspace (основная вкладка, read-only) | Original `CIOPRG.LST` | **Never** | **No** | **No** |
 | Legacy JSON interface | `project.json` (`Vec<Rung>`) | Yes, legacy JSON only | **No** | **No** |
 
 The unverified HSES monitor is disabled **in both the visible interface and the backend Tauri command**, because a single relay being true cannot establish the powered state of a complete rung; proper scan semantics and HSES protocol validation remain a separate workstream.

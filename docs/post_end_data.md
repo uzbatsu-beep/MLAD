@@ -1,6 +1,6 @@
 # MLAD — read-only post-END data classification and diagnostics
 
-**Scope:** PR #18 / proposed Windows rc.6. Not a complete Yaskawa file grammar, a native editor or a vendor-certified compiler.
+**Scope на 18.11.2026:** PR #18 **merged**, [Windows rc.6 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.6-postend); поддержка входит в текущий `main`. Описан наблюдаемый post-END формат, **не** полная OEM грамматика/редактор. [Текущий статус](project_status.md).
 
 ## Observed exports, not assumed OEM specification
 

@@ -2,7 +2,7 @@
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.
 
-**Safety / setup gate (status после PR #8):** No MLAD CIOPRG export, deployment or live I/O control exists in the current `main`. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
+**Safety / setup gate (актуализация 18.11.2026, после PR #21):** No MLAD CIOPRG export, deployment or live I/O control exists in the current `main`. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
 
 ## Reference instructions under test
 
@@ -112,7 +112,19 @@ For each completed case, capture controller family, exact firmware, application/
 | U-03 | Двойной щелчок по NO/NC/OUT в JSON | Изменение только JSON-проекта, Enter/Esc и Undo/Redo |
 | U-04 | Двойной щелчок по M-регистру/уставке TMR или CNT C/R | Редактирование только отдельного `*.advanced.json`, reset старого sample |
 | U-05 | Изменить GSTR/GOUT адрес `#20010` на `#20011` | UI отказывает в неверном выравнивании байта |
-| U-06 | Двойной щелчок в Inspector реального `CIOPRG.LST` | Изменить файл/открыть inline-редактор **нельзя** |
+| U-06 | Двойной щелчок по адресу Native Workspace реального `CIOPRG.LST` | Допустим **только локальный комментарий**, не изменение адреса или оригинала |
 | U-07 | Сравнить SHA-256 исходной копии до/после Inspector | Значения идентичны; модифицированный LST не создаётся |
 
 Результаты UI тестов документируются отдельно от T/C/B/N аппаратных кейсов. Порядок получения и анонимизации исходных файлов: [controller_fixture_intake.md](controller_fixture_intake.md).
+
+## Дополнительные тесты после PR #21 — не выполнены на оборудовании
+
+| ID | Изолированный bench | Подтверждение |
+| --- | --- | --- |
+| EN-01 | MOV/ADD/SUB/SHL/SHR при EN=0/1 | Запись D и флаги в контексте скана |
+| MOV-01 | 255/256/257 в byte и word | Усечение/Carry на границе 256 |
+| SHIFT-01 | n=0/1/8/15/16 | Carry и последний вытесненный бит |
+| SCAN-01 | Две влияющие на #51400/#51401/#51402 команды | Порядок очистки/обновления по сканам |
+| GEN-01 | DX100/DX200/YRC1000, отдельные firmware | Различия поколений |
+
+Отсутствие доступа к роботам означает **NOT RUN** для всех этих тестов, независимо от CI и ручной reference-модели. [Подробнее](oem_5_opcode_analysis.md).

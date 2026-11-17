@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Применение:** PR после #8; изоляция изменений и запрет непроверенных операций с Yaskawa.
+**Актуализация:** 18.11.2026, `main` PR #1–#21 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [rc.9 Windows SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155). Основной процесс — отдельный PR, CI и явное согласование владельца. [Текущий статус](project_status.md).
 
 ## 1. Git и изменение функций
 
@@ -17,6 +17,10 @@
 
 ```bash
 npm ci --no-audit --no-fund
+npm run test:security
+npm run test:native
+npm run test:diagnostics
+npm run test:oem-reference
 npm run test:graph
 npm run test:advanced
 npm run test:visual
@@ -46,15 +50,13 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 
 При отклонении по Q2/Q3/Q6 нельзя объявлять прошедший CI «готовностью к загрузке на робот».
 
-## 4. Реальный статус релизных workflow на 17.11.2026
+## 4. Реальный статус релизных workflow на 18.11.2026
 
-- [`.github/workflows/validation.yml`](../.github/workflows/validation.yml): постоянно действующий, только проверки.
-- [`.github/workflows/windows-bench-rc.yml`](../.github/workflows/windows-bench-rc.yml): **исторический**, настроен на branch `release/0.5.0-rc1-hardware` и фиксированный tag `v0.5.0-rc.1-hardware`; **не использовать повторно для новой версии без изменения tag и проверки идемпотентности публикации**.
-- [`.github/workflows/windows-ui-preview.yml`](../.github/workflows/windows-ui-preview.yml): исторический preview для `feat/pr8-inline-operand-editing`; артефакты Actions ограничены сроком хранения, **не равны GitHub Release**.
-- [`v0.5.0-rc.1-hardware`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.1-hardware) опубликован **до** PR #7 и #8. Нельзя считать его автоматически обновлённым после merge.
-- Сборка Windows RC содержит автономный WebView2 в NSIS, unsigned EXE; переносимая версия требует установленный WebView2. Для следующих релизов нужна отдельная версионированная pipeline конфигурация.
-
-**PR #12 (воспроизводимость):** `package-lock.json` версии 3 зафиксирован, активный CI переведён на `npm ci`. Это фиксирует версии npm-зависимостей и их integrity-поля, но не является доказательством битово-идентичных сборок: точные toolchain/OS, lockfile Rust, release pipeline, лицензии third-party и Windows smoke остаются отдельными проверками. Исторические RC/preview workflow не переписываются в этом PR.
+- [`validation.yml`](../.github/workflows/validation.yml) — действующий Ubuntu pipeline: Rust tests, npm ci с lockfile, безопасность, Native Workspace, diagnostics, OEM справка, графика, TypeScript/Vite и docs-check. Последний `main` [SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563).
+- [`windows-oem-reference-rc9.yml`](../.github/workflows/windows-oem-reference-rc9.yml) — последний проверенный Windows x64 NSIS/portable/source/SHA256 pipeline. [RC9 SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155), [релиз опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).
+- Исторические Windows workflows `windows-bench-rc.yml`, `windows-ui-preview.yml` и `windows-*-rc[2-8].yml` привязаны к исходным branch/tag и **не** автоматически пересобирают старые версии. Для нового RC нужен отдельный tag/branch и запрет перезаписи существующего релиза.
+- `package-lock.json` (v3) и `Cargo.lock` отслеживаются в Git; npm 22/CI через `npm ci`; Rust использует `cargo test --locked`. Это не битовая воспроизводимость Windows EXE и не аппаратная верификация.
+- Для выпуска: проверить Windows MSVC, portable ZIP, NSIS, source archive, SHA256SUMS, GPL/third-party notices, WebView2 и отдельный ручной Windows smoke. **Ни один GitHub workflow не закрывает OEM bench gate.**
 
 ## 5. Версионирование документации
 
