@@ -246,7 +246,7 @@ fn tmr_cnt_manual_register_and_decimal_boundaries() {
 
 #[test]
 fn read_only_pages_are_exact_and_keep_original_bytes() {
-    let source = (1..=701).map(|n| format!("* synthetic line {n}\\r\\n"))
+    let source = (1..=701).map(|n| format!("* synthetic line {n}\r\n"))
         .collect::<String>();
     let doc = parse(source.as_bytes());
     assert_eq!(doc.lines.len(), 701);
