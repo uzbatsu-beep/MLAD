@@ -27,6 +27,7 @@ npm run test:graph
 npm run test:advanced
 npm run test:visual
 npm run test:inline
+npm run docs:check
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
