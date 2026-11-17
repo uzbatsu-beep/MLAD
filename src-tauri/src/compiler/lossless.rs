@@ -6,6 +6,7 @@
 //! controller programs. See docs/cioprg_lossless_parser.md.
 
 use serde::Serialize;
+use std::collections::BTreeMap;
 use sha2::{Digest, Sha256};
 use super::memory::{
     parse_group, parse_register, parse_relay, ControllerFamily, RelayGroupWidth,
@@ -143,6 +144,7 @@ pub struct InspectionReport {
     pub typed_candidate_count: usize,
     pub typed_valid_forms: usize,
     pub typed_invalid_forms: usize,
+    pub typed_mnemonic_counts: BTreeMap<String,usize>,
     pub unsupported_lines: usize,
     pub m_headers: Vec<MHeaderInfo>,
     pub diagnostics: Vec<ParseDiagnostic>,
@@ -185,6 +187,12 @@ impl LosslessDocument {
             matches!(&l.kind, LineKind::TypedCandidate { instruction, .. }
                 if instruction.syntax_valid)).count();
         let typed_invalid_forms = typed_candidate_count - typed_valid_forms;
+        let mut typed_mnemonic_counts: BTreeMap<String,usize> = BTreeMap::new();
+        for line in &self.lines {
+            if let LineKind::TypedCandidate { instruction, .. } = &line.kind {
+                *typed_mnemonic_counts.entry(instruction.mnemonic.clone()).or_default() += 1;
+            }
+        }
         let unsupported_lines = self.lines.iter().filter(|l|
             matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque |
                 LineKind::PostEndOpaque)).count();
@@ -213,6 +221,7 @@ impl LosslessDocument {
             typed_candidate_count,
             typed_valid_forms,
             typed_invalid_forms,
+            typed_mnemonic_counts,
             unsupported_lines,
             m_headers: self.m_headers.clone(),
             diagnostics: self.diagnostics.iter().take(max_diagnostics).cloned().collect(),
