@@ -63,7 +63,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 
 ## Карта документации
 
-Полный актуальный каталог: **[docs/README.md](docs/README.md)**.  
+Полный актуальный каталог: **[docs/README.md](docs/README.md)**; [результаты аудита 17.11.2026](docs/documentation_audit_2026-11-17.md).  
 Первоисточники: [source_registry.md](docs/source_registry.md), [инструкция формата CIOPRG](docs/cioprg_lst_spec.md).  
 Внесение изменений: **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
