@@ -2,20 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod compiler;
-pub mod network;
+// Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use tauri::State;
-
-// Глобальное потокобезопасное состояние сетевого клиента
-pub struct AppNetworkState {
-    pub hse_client: Arc<Mutex<Option<network::YaskawaHseClient>>>,
-    pub monitor_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
-}
-
 // Структура данных инструкции для десериализации запросов от фронтенда
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LadderInstruction {
@@ -296,28 +286,17 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
     Ok(validation_errors)
 }
 
-/// Команда Tauri: Переключение режима онлайн-мониторинга через UDP/HSE протокол
+/// Offline-only deny stub; argument names preserved for existing Tauri callers.
 #[tauri::command]
-async fn cmd_toggle_monitoring(
-    ip: String,
-    active: bool,
-    state: State<'_, AppNetworkState>,
-    app_handle: tauri::AppHandle,
-) -> Result<(), String> {
-    let _ = (ip, app_handle);
-    // Legacy HSES client uses an unverified protocol framing. Stop any old
-    // local poll and never open a new socket until protocol verification.
-    let mut monitor = state.monitor_handle.lock().await;
-    if let Some(handle) = monitor.take() {
-        handle.abort();
-    }
+async fn cmd_toggle_monitoring(ip: String, active: bool) -> Result<(), String> {
+    let _ = ip;
     if active {
         Err("Мониторинг HSES отключён: сетевой протокол и семантика данных не верифицированы".into())
     } else {
+        // Stop remains idempotent; there is no network client or task to stop.
         Ok(())
     }
 }
-
 
 /// Команда Tauri: Деплой запрещён до аппаратной и форматной верификации
 #[tauri::command]
@@ -333,10 +312,6 @@ fn main() {
     info!("Запуск бэкенда среды разработки Next-Gen Yaskawa Motoman Ladder IDE...");
 
     tauri::Builder::default()
-        .manage(AppNetworkState {
-            hse_client: Arc::new(Mutex::new(None)),
-            monitor_handle: Arc::new(Mutex::new(None)),
-        })
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
@@ -402,4 +377,32 @@ mod graph_write_safety_tests {
         assert!(check_advanced_path("ladder.advanced.json").is_ok());
     }
 
+}
+
+#[cfg(test)]
+mod offline_controller_safety_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn monitoring_enable_is_denied_for_every_address() {
+        for ip in ["127.0.0.1", "192.0.2.4", "not-an-ip", ""] {
+            assert!(cmd_toggle_monitoring(ip.into(), true).await.is_err());
+        }
+    }
+
+    #[tokio::test]
+    async fn monitoring_stop_has_no_live_state_to_touch() {
+        assert!(cmd_toggle_monitoring("".into(), false).await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn deployment_is_always_rejected_even_for_native_filename() {
+        for (ip, path) in [
+            ("192.0.2.4", "CIOPRG.LST"),
+            ("127.0.0.1", "draft.graph.json"),
+            ("", "../CIOPRG.LST"),
+        ] {
+            assert!(cmd_deploy_to_robot(ip.into(), path.into()).await.is_err());
+        }
+    }
 }

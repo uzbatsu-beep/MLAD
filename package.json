@@ -12,7 +12,8 @@
     "test:advanced": "node --experimental-strip-types --test src/ladder/advancedModel.test.ts",
     "test:visual": "node --experimental-strip-types --test src/ladder/visualState.test.ts",
     "test:inline": "node --experimental-strip-types --test src/ladder/inlineOperand.test.ts",
-    "docs:check": "node scripts/check-docs.mjs"
+    "docs:check": "node scripts/check-docs.mjs",
+    "test:security": "node --test scripts/offline-boundary.test.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
