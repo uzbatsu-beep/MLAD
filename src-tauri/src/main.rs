@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod compiler;
+mod draft_io;
 // Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
@@ -36,11 +37,10 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
         // Do not present it as a safe importer for a real controller export.
         Err("Импорт CIOPRG.LST временно заблокирован: требуется lossless parser и проверка System/User Ladder".to_string())
     } else {
-        // Чтение стандартного Git-friendly JSON проекта нашей среды
-        let content = std::fs::read_to_string(&file_path)
-            .map_err(|e| format!("Не удалось прочитать файл проекта: {}", e))?;
-        let rungs: Vec<Rung> = serde_json::from_str(&content)
-            .map_err(|e| format!("Ошибка разбора JSON проекта: {}", e))?;
+        check_legacy_json_path(&file_path)?;
+        let bytes = draft_io::read_bounded(std::path::Path::new(&file_path))?;
+        let rungs: Vec<Rung> = serde_json::from_slice(&bytes)
+            .map_err(|e| format!("Ошибка разбора JSON проекта: {e}"))?;
         Ok(rungs)
     }
 }
@@ -344,19 +344,13 @@ async fn cmd_load_graph_draft(
     file_path: String,
 ) -> Result<compiler::graph_draft::GraphDraft, String> {
     let path = check_graph_draft_path(&file_path)?;
-    let info = tokio::fs::metadata(path).await
-        .map_err(|e| format!("Не удалось прочитать черновик: {e}"))?;
-    if !info.is_file() || info.len() > 2 * 1024 * 1024 {
-        return Err("Размер черновика превышает 2 МиБ или путь не является файлом".into());
-    }
-    let bytes = tokio::fs::read(path).await
-        .map_err(|e| format!("Ошибка чтения черновика: {e}"))?;
+    let bytes = draft_io::read_bounded(path)?;
     let text = std::str::from_utf8(&bytes).map_err(|e| format!("Ошибка UTF-8: {e}"))?;
     let (draft, _) = compiler::graph_draft::read_draft_json(text)?;
     Ok(draft)
 }
 
-/// Graph drafts are JSON-only, with a best-effort backup of the previous JSON.
+/// Graph drafts are JSON-only, with an atomic per-file replacement + backup.
 /// Invalid *relay addresses* can be saved for later editing; invalid structure
 /// (duplicate node IDs, wrong version, excessive depth/size) is rejected.
 #[tauri::command]
@@ -367,18 +361,9 @@ async fn cmd_save_graph_draft(
     let path = check_graph_draft_path(&file_path)?;
     reject_existing_symlink(path).await?;
     let (content, result) = compiler::graph_draft::checked_draft_json(&project)?;
-    if path.exists() {
-        let info = tokio::fs::metadata(path).await
-            .map_err(|e| format!("Не удалось проверить существующий черновик: {e}"))?;
-        if !info.is_file() { return Err("Путь не является обычным файлом".into()); }
-        let backup = path.with_file_name(format!(
-            "{}.bak", path.file_name().unwrap().to_string_lossy()
-        ));
-        tokio::fs::copy(path, backup).await
-            .map_err(|e| format!("Не удалось создать резервную копию: {e}"))?;
-    }
-    tokio::fs::write(path, content).await
-        .map_err(|e| format!("Не удалось сохранить графический черновик: {e}"))?;
+    let target=path.to_path_buf();
+    tokio::task::spawn_blocking(move || draft_io::write_atomic(&target, content.as_bytes()))
+        .await.map_err(|e| format!("Ошибка потока сохранения JSON: {e}"))??;
     Ok(result)
 }
 
@@ -416,11 +401,7 @@ async fn cmd_load_advanced_draft(
     file_path: String,
 ) -> Result<compiler::advanced::AdvancedDraft,String> {
     let path=check_advanced_path(&file_path)?;
-    let meta=tokio::fs::metadata(path).await.map_err(|e|e.to_string())?;
-    if !meta.is_file()||meta.len()>2*1024*1024 {
-        return Err("Недопустимый файл или превышение 2 МиБ".into());
-    }
-    let bytes=tokio::fs::read(path).await.map_err(|e|e.to_string())?;
+    let bytes=draft_io::read_bounded(path)?;
     let s=std::str::from_utf8(&bytes).map_err(|e|e.to_string())?;
     Ok(compiler::advanced::deserialize_checked(s)?.0)
 }
@@ -433,13 +414,9 @@ async fn cmd_save_advanced_draft(
     let path=check_advanced_path(&file_path)?;
     reject_existing_symlink(path).await?;
     let (json,validation)=compiler::advanced::serialize_checked(&project)?;
-    if path.exists() {
-        let filename=path.file_name().unwrap().to_string_lossy();
-        let backup=path.with_file_name(format!("{filename}.bak"));
-        reject_existing_symlink(&backup).await?;
-        tokio::fs::copy(path,backup).await.map_err(|e|format!("Backup: {e}"))?;
-    }
-    tokio::fs::write(path,json).await.map_err(|e|e.to_string())?;
+    let target=path.to_path_buf();
+    tokio::task::spawn_blocking(move || draft_io::write_atomic(&target,json.as_bytes()))
+        .await.map_err(|e| format!("Ошибка потока сохранения advanced JSON: {e}"))??;
     Ok(validation)
 }
 
@@ -479,8 +456,9 @@ async fn cmd_save_project(file_path: String, data: Vec<Rung>) -> Result<Vec<comp
     // 2. Сериализация в формат JSON для удобного версионирования в Git
     let json_content = serde_json::to_string_pretty(&data)
         .map_err(|e| format!("Ошибка сериализации данных: {}", e))?;
-    std::fs::write(&file_path, json_content)
-        .map_err(|e| format!("Не удалось записать JSON на диск: {}", e))?;
+    let target=std::path::PathBuf::from(file_path);
+    tokio::task::spawn_blocking(move || draft_io::write_atomic(&target,json_content.as_bytes()))
+        .await.map_err(|e| format!("Ошибка потока сохранения legacy JSON: {e}"))??;
         
     // STOP: /JOB, //INST and IOCPT are not a verified CIOPRG.LST format.
     // Save only the editable JSON project until a lossless controller-specific
