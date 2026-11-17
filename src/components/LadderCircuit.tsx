@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { SvgOperandInput } from "./SvgOperandInput.tsx";
 import { layoutCircuit, type GraphExpr, type ContactLocation } from "../ladder/graphModel.ts";
 import {
   contactLogicState, expressionLogicState, STATE_BACKGROUNDS, STATE_COLORS,
@@ -11,6 +12,9 @@ type Props={
   zoom?: number;
   selectedContactId?: string | null;
   onSelectContact?: (id:string)=>void;
+  /** Invoked only in the editable JSON draft (never in native CIOPRG viewer). */
+  onEditContactAddress?: (id:string,value:string)=>void;
+  onEditOutputAddress?: (value:string)=>void;
   readOnly?: boolean;
   /** Present only in manually driven offline diagnostics; never live HSES. */
   signalValues?: SignalSnapshot;
@@ -21,9 +25,9 @@ const WIRE="#8293a3";
 const TEXT="#e4ecf3";
 const SELECTED="#efc978";
 
-function ContactSymbol({ item, ox, oy, selected, onClick, readOnly, state }:{
+function ContactSymbol({ item, ox, oy, selected, onClick, onDoubleClick, readOnly, state }:{
   item:ContactLocation;ox:number;oy:number;selected:boolean;
-  onClick?:()=>void;readOnly:boolean;state:LogicState|null;
+  onClick?:()=>void;onDoubleClick?:()=>void;readOnly:boolean;state:LogicState|null;
 }) {
   const x=ox+item.x, y=oy+item.y+item.height/2;
   const stroke=state?STATE_COLORS[state]:WIRE;
@@ -33,8 +37,11 @@ function ContactSymbol({ item, ox, oy, selected, onClick, readOnly, state }:{
   return <g role={readOnly?"img":"button"} tabIndex={readOnly?undefined:0}
     aria-label={`${item.normallyClosed?"NC":"NO"} ${item.relay}, ${stateText}`}
     onClick={onClick}
+    onDoubleClick={onDoubleClick}
     onKeyDown={event=>{
-      if(!readOnly && (event.key==="Enter"||event.key===" ")) {
+      if(readOnly) return;
+      if(event.key==="F2"){event.preventDefault();onDoubleClick?.();return;}
+      if(event.key==="Enter"||event.key===" ") {
         event.preventDefault();onClick?.();
       }
     }}
@@ -60,7 +67,9 @@ function ContactSymbol({ item, ox, oy, selected, onClick, readOnly, state }:{
  * Source-only inspector without signals stays neutral, not deceptively TRUE.
  */
 export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
-  onSelectContact,readOnly=true,signalValues,fitToWidth=false}:Props) {
+  onSelectContact,onEditContactAddress,onEditOutputAddress,
+  readOnly=true,signalValues,fitToWidth=false}:Props) {
+  const [editing,setEditing]=useState<{kind:"contact";id:string}|{kind:"output"}|null>(null);
   const result=useMemo(()=>{
     try{return {layout:layoutCircuit(expression),error:""};}
     catch(e){return {layout:null,error:String(e)};}
@@ -105,9 +114,19 @@ export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
         selected={contact.id===selectedContactId}
         state={signalValues?contactLogicState(contact,signalValues):null}
         onClick={!readOnly?()=>onSelectContact?.(contact.id):undefined}
+        onDoubleClick={!readOnly&&onEditContactAddress?
+          ()=>{onSelectContact?.(contact.id);setEditing({kind:"contact",id:contact.id});}:undefined}
         readOnly={readOnly}/>)}
       <line x1={ox+layout.width} y1={cy} x2={outX-22} y2={cy}
         stroke={WIRE} strokeWidth={2}/>
+      <g role={!readOnly&&onEditOutputAddress?"button":"img"}
+        tabIndex={!readOnly&&onEditOutputAddress?0:undefined}
+        aria-label={`OUT ${output}. Двойной щелчок или F2 для изменения адреса`}
+        style={{cursor:!readOnly&&onEditOutputAddress?"text":"default"}}
+        onDoubleClick={!readOnly&&onEditOutputAddress?()=>setEditing({kind:"output"}):undefined}
+        onKeyDown={e=>{if(!readOnly&&onEditOutputAddress&&e.key==="F2"){
+          e.preventDefault();setEditing({kind:"output"});
+        }}}>
       <rect x={outX-35} y={cy-41} width={70} height={84}
         rx={8} fill={coilFill} stroke={coilState?coilStroke:"transparent"} strokeWidth={1.5}/>
       <path d={`M ${outX-20},${cy-19} Q ${outX-39},${cy} ${outX-20},${cy+19}`}
@@ -121,6 +140,18 @@ export function LadderCircuit({expression,output,zoom=1,selectedContactId=null,
       </text>
       <text x={outX} y={cy+37} fill={TEXT} fontSize={13}
         fontFamily="monospace" textAnchor="middle">{output}</text>
+      </g>
+      {!readOnly && onEditContactAddress && layout.contacts.map(contact=>
+        editing?.kind==="contact" && editing.id===contact.id?
+        <SvgOperandInput key={contact.id}
+          x={ox+contact.x+72} y={oy+contact.y+contact.height/2}
+          value={contact.relay} kind="relay" width={160}
+          onCommit={value=>{setEditing(null);onEditContactAddress(contact.id,value);}}
+          onCancel={()=>setEditing(null)}/>:null)}
+      {!readOnly && onEditOutputAddress && editing?.kind==="output" &&
+        <SvgOperandInput x={outX} y={cy} value={output} kind="relay" width={150}
+          onCommit={value=>{setEditing(null);onEditOutputAddress(value);}}
+          onCancel={()=>setEditing(null)}/>}
     </svg>
   </div>;
 }

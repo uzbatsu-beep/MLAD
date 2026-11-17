@@ -40,5 +40,7 @@ jobs:
         run: npm run test:advanced
       - name: Tri-state visualization tests
         run: npm run test:visual
+      - name: Inline operand validation tests
+        run: npm run test:inline
       - name: Typecheck and build
         run: npm run build
