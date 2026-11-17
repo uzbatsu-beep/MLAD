@@ -4,6 +4,7 @@ import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
 import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
 import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
 import { invoke } from "@tauri-apps/api/core";
+import "./native-workspace.css";
 
 type Controller = "DX100" | "DX200" | "YRC1000";
 type Encoding = "Utf8" | "Utf8Bom" | "OpaqueBytes";
@@ -201,6 +202,7 @@ export function NativeWorkspace() {
   const [controller,setController]=useState<Controller>("YRC1000");
   const [report,setReport]=useState<Report|null>(null);
   const [busy,setBusy]=useState(false);
+  const [filePickerBusy,setFilePickerBusy]=useState<"cioprg"|"ioname"|null>(null);
   const [issue,setIssue]=useState("");
   const [tab,setTab]=useState<"source"|"diagram"|"blocks"|"ioname">("source");
   const [pageStart,setPageStart]=useState(1);
@@ -252,10 +254,11 @@ export function NativeWorkspace() {
     ].filter(x=>filter==="all"||x.severity===filter).sort((a,b)=>a.line-b.line);
   },[report,filter]);
 
-  async function openSource(){
+  async function openSource(selectedPath:string=path){
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     try{
-      const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:path.trim(),controller});
+      const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
+      setPath(selectedPath);
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
       setPageStart(1);setSelectedLine(null);
@@ -264,6 +267,21 @@ export function NativeWorkspace() {
       setIoname(null);setLinkEntry(null);
     }catch(error){setIssue(String(error));}finally{setBusy(false);}
   }
+
+  /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
+  async function chooseFile(kind:"cioprg"|"ioname"){
+    if(filePickerBusy||busy||ionameBusy)return;
+    setFilePickerBusy(kind);setIssue("");
+    try{
+      const chosen=await invoke<string|null>("cmd_pick_native_file",{kind});
+      if(!chosen)return; // User cancelled; preserve previous file and annotations.
+      if(kind==="cioprg")await openSource(chosen);
+      else await importIoname(chosen);
+    }catch(error){setIssue("Не удалось выбрать файл: "+String(error));}
+    finally{setFilePickerBusy(null);}
+  }
+  const shortName=(filePath:string):string=>filePath.split(/[\\/]/).filter(Boolean).at(-1)??"Файл не выбран";
+
   async function showLine(line:number){
     if(!report||pageBusy||!Number.isInteger(line)||line<1||line>report.line_count)return;
     const start=Math.floor((line-1)/PAGE_SIZE)*PAGE_SIZE+1;
@@ -321,11 +339,12 @@ export function NativeWorkspace() {
     persistAnnotations(next);
     cancelEdit();
   }
-  async function importIoname(){
-    if(!ionamePath.trim()||ionameBusy)return;
+  async function importIoname(selectedPath:string=ionamePath){
+    if(!selectedPath.trim()||ionameBusy)return;
     setIonameBusy(true);setIssue("");setIoname(null);setLinkEntry(null);
     try{
-      const value=await invoke<IonameReport>("cmd_inspect_ioname",{filePath:ionamePath.trim()});
+      const value=await invoke<IonameReport>("cmd_inspect_ioname",{filePath:selectedPath.trim()});
+      setIonamePath(selectedPath);
       setIoname(value);setTab("ioname");
       if(!value.header_valid)setIssue("IONAME.DAT: заголовок/секции не подтверждены; показаны только безопасно распознанные позиции.");
     }catch(error){setIssue(String(error));}finally{setIonameBusy(false);}
@@ -383,52 +402,65 @@ export function NativeWorkspace() {
     display:"flex",flex:1,minHeight:0,minWidth:0,flexDirection:"column",
     background:"#101820",color:"#dce5ef",
   }}>
-    <header style={{background:"#1c2b39",padding:"10px 14px",borderBottom:"1px solid #42566a",
-      display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-      <div>
-        <strong style={{fontSize:18}}>Программа робота · CIOPRG.LST</strong>
-        <div style={{fontSize:12,color:"#dcb97d",marginTop:4}}>
-          Native Source · Только чтение · Границы System/User не подтверждены
-        </div>
+    <header className="native-compact-header">
+      <div className="native-header-title">
+        <strong>Программа робота · CIOPRG.LST</strong>
+        <small>Native Source · Только чтение · System/User не подтверждены</small>
       </div>
-      <span style={{fontSize:12,color:"#a5d6b6"}}>● ЛОКАЛЬНО · OFFLINE</span>
+      <form className="native-header-file" aria-label="Открыть CIOPRG.LST"
+        onSubmit={event=>{event.preventDefault();void openSource();}}>
+        <div className="native-file-caption">
+          <b>CIOPRG.LST</b>
+          <span title={path}>{shortName(path)}</span>
+        </div>
+        <div className="native-file-inputs">
+          <input aria-label="Путь к файлу CIOPRG.LST" title={path}
+            value={path} onChange={event=>setPath(event.target.value)}
+            placeholder="Выберите файл программы…" style={field}/>
+          <button type="button" className="native-pick-file" title="Стандартный диалог открытия .LST"
+            aria-label="Выбрать файл CIOPRG.LST" disabled={!!filePickerBusy||busy}
+            onClick={()=>void chooseFile("cioprg")}>
+            {filePickerBusy==="cioprg"?"Выбор…":"Обзор…"}
+          </button>
+          <button type="submit" className="native-open-file" disabled={!path.trim()||busy||!!filePickerBusy}>
+            {busy?"Чтение…":"Открыть"}
+          </button>
+        </div>
+        <div className="native-file-controller">
+          <label htmlFor="native-controller">Контроллер</label>
+          <select id="native-controller" aria-label="Семейство контроллера" value={controller}
+            onChange={event=>setController(event.target.value as Controller)} style={field}>
+            <option value="DX100">DX100</option><option value="DX200">DX200</option>
+            <option value="YRC1000">YRC1000</option>
+          </select>
+        </div>
+      </form>
+      <form className="native-header-file" aria-label="Открыть IONAME.DAT"
+        onSubmit={event=>{event.preventDefault();void importIoname();}}>
+        <div className="native-file-caption">
+          <b>IONAME.DAT</b>
+          <span title={ionamePath}>{shortName(ionamePath)}</span>
+        </div>
+        <div className="native-file-inputs">
+          <input aria-label="Путь к IONAME.DAT" title={ionamePath}
+            value={ionamePath} onChange={event=>setIonamePath(event.target.value)}
+            placeholder="Выберите файл имён I/O…" style={field}/>
+          <button type="button" className="native-pick-file" title="Стандартный диалог открытия IONAME.DAT"
+            aria-label="Выбрать файл IONAME.DAT" disabled={!!filePickerBusy||ionameBusy}
+            onClick={()=>void chooseFile("ioname")}>
+            {filePickerBusy==="ioname"?"Выбор…":"Обзор…"}
+          </button>
+          <button type="submit" className="native-open-file"
+            disabled={!ionamePath.trim()||ionameBusy||!!filePickerBusy}>
+            {ionameBusy?"Чтение…":"Открыть"}
+          </button>
+        </div>
+        <small className="native-file-status">
+          {ioname?"Загружено "+ioname.entries.length+" позиций · оригинал неизменён":"Файл не загружен"}
+        </small>
+      </form>
+      <div className="native-header-offline">● OFFLINE</div>
     </header>
-    <form onSubmit={e=>{e.preventDefault();void openSource();}} style={{
-      display:"flex",flexWrap:"wrap",gap:8,alignItems:"end",padding:"10px 14px",
-      background:"#1a2733",borderBottom:"1px solid #35485b",
-    }}>
-      <label style={{display:"grid",gap:5,flex:"1 1 390px",fontSize:12}}>
-        Путь к копии CIOPRG.LST
-        <input aria-label="Путь к файлу CIOPRG.LST" style={{...field,width:"100%",boxSizing:"border-box"}}
-          value={path} onChange={e=>setPath(e.target.value)} placeholder="C:\backup\CIOPRG.LST"/>
-      </label>
-      <label style={{display:"grid",gap:5,fontSize:12}}>Контроллер
-        <select style={field} value={controller} onChange={e=>setController(e.target.value as Controller)}>
-          <option value="DX100">DX100</option><option value="DX200">DX200</option>
-          <option value="YRC1000">YRC1000</option>
-        </select>
-      </label>
-      <button type="submit" style={{...btn,background:"#396c59"}} disabled={!path.trim()||busy}>
-        {busy?"Чтение...":"Открыть исходник"}
-      </button>
-    </form>
-    <form onSubmit={e=>{e.preventDefault();void importIoname();}} style={{
-      display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
-      padding:"7px 14px",borderBottom:"1px solid #35485b",background:"#182837",
-    }}>
-      <label style={{display:"flex",flex:"1 1 310px",alignItems:"center",gap:8,fontSize:12}}>
-        IONAME.DAT:
-        <input aria-label="Путь к IONAME.DAT" placeholder="C:\backup\IONAME.DAT"
-          value={ionamePath} onChange={e=>setIonamePath(e.target.value)}
-          style={{...field,minWidth:0,flex:1}}/>
-      </label>
-      <button type="submit" style={btn} disabled={!ionamePath.trim()||ionameBusy}>
-        {ionameBusy?"Чтение имён…":"Загрузить имена I/O"}
-      </button>
-      {ioname&&<span style={{fontSize:11,color:"#b8d6c8"}}>
-        Импорт: {ioname.entries.length} позиций · родной файл не изменён
-      </span>}
-    </form>
     {issue&&<div role="alert" style={{background:"#56363c",color:"#ffd5d6",padding:"8px 14px"}}>
       {issue}
     </div>}
@@ -472,11 +504,31 @@ export function NativeWorkspace() {
         <section aria-label="Рабочее поле CIOPRG" style={{
           display:"flex",flexDirection:"column",minWidth:0,minHeight:0,background:"#0f1923",
         }}>
-          <nav style={{display:"flex",gap:8,flexWrap:"wrap",padding:9,borderBottom:"1px solid #35485b"}}>
-            {tabButton("source","Исходный текст")}
-            {tabButton("diagram","Ladder ("+report.semantic.rung_count+")")}
-            {tabButton("blocks","TMR / CNT / GSTR ("+report.advanced.blocks.length+")")}
-            {tabButton("ioname","Имена I/O"+(ioname?" ("+ioname.entries.length+")":""))}
+          <nav className="native-context-toolbar" aria-label="Вкладки и инструменты схем">
+            <div className="native-context-tabs">
+              {tabButton("source","Исходный текст")}
+              {tabButton("diagram","Ladder ("+report.semantic.rung_count+")")}
+              {tabButton("blocks","TMR / CNT / GSTR ("+report.advanced.blocks.length+")")}
+              {tabButton("ioname","Имена I/O"+(ioname?" ("+ioname.entries.length+")":""))}
+            </div>
+            {tab==="diagram"&&<div role="group" aria-label="Масштаб Ladder" className="native-context-actions">
+              <strong>Все цепи ({visibleRungs.length})</strong>
+              <button type="button" style={btn} aria-label="Уменьшить масштаб Ladder"
+                onClick={()=>setZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
+              <span aria-live="polite">{Math.round(zoom*100)}%</span>
+              <button type="button" style={btn} aria-label="Увеличить масштаб Ladder"
+                onClick={()=>setZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
+              <button type="button" style={btn} onClick={()=>setZoom(1)}>100%</button>
+            </div>}
+            {tab==="blocks"&&<div role="group" aria-label="Масштаб TMR CNT GSTR" className="native-context-actions">
+              <strong>Все блоки ({report.advanced.blocks.length})</strong>
+              <button type="button" style={btn} aria-label="Уменьшить масштаб блоков"
+                onClick={()=>setBlockZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
+              <span aria-live="polite">{Math.round(blockZoom*100)}%</span>
+              <button type="button" style={btn} aria-label="Увеличить масштаб блоков"
+                onClick={()=>setBlockZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
+              <button type="button" style={btn} onClick={()=>setBlockZoom(1)}>100%</button>
+            </div>}
           </nav>
           {tab==="source"&&<>
             <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
@@ -513,14 +565,6 @@ export function NativeWorkspace() {
             </div>
           </>}
           {tab==="diagram"&&<div style={{overflow:"auto",flex:1,padding:15}}>
-            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
-              position:"sticky",top:-15,zIndex:2,background:"#101820",padding:"9px 0"}}>
-              <strong>Все распознанные цепи ({visibleRungs.length})</strong>
-              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
-              <span style={{fontSize:12}}>Масштаб {Math.round(zoom*100)}%</span>
-              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
-              <button type="button" style={btn} onClick={()=>setZoom(1)}>100%</button>
-            </div>
             <p style={{color:"#e4bd80",fontSize:12}}>
               Все цепи, доступные в ограниченном Semantic AST. Неизвестные команды не преобразуются в предполагаемую схему.
               Двойной щелчок по заголовку цепи или адресам изменяет только локальный комментарий.
@@ -564,14 +608,6 @@ export function NativeWorkspace() {
             {report.semantic.nodes_truncated&&<p style={{color:"#e5b986"}}>Узлы AST ограничены; некоторые схемы могут отсутствовать.</p>}
           </div>}
           {tab==="blocks"&&<div style={{flex:1,overflow:"auto",padding:15}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",
-              position:"sticky",top:-15,zIndex:2,background:"#101820",padding:"8px 0"}}>
-              <strong>Все блоки ({report.advanced.blocks.length})</strong>
-              <button type="button" style={btn} onClick={()=>setBlockZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
-              <span style={{fontSize:12}}>Масштаб {Math.round(blockZoom*100)}%</span>
-              <button type="button" style={btn} onClick={()=>setBlockZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
-              <button type="button" style={btn} onClick={()=>setBlockZoom(1)}>100%</button>
-            </div>
             <p style={{color:"#e4bd80",fontSize:12}}>
               Визуализируются только подтверждённые простые топологии. Остальные доступны в исходнике.
             </p>
