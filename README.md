@@ -89,3 +89,7 @@ Proposed main-window integration of the original read-only CIOPRG.LST, with left
 ## PR #17 — компактная панель Native Workspace (до merge)
 
 Два открытия файлов через нативные диалоги Windows, компактный заголовок и контекстный масштаб на строке вкладок, без изменения оригинальных CIO-файлов. [План проверки Windows rc.5](docs/releases/v0.5.0-rc.5-layout.md).
+
+## PR #18 — post-END structure and condensed diagnostics
+
+The read-only Native Workspace distinguishes observed `ALARM/MESSAGE` sections after `END` from the verified instruction subset. Diagnostic messages can be grouped by severity/code without losing per-line navigation. [Engineering limitations](docs/post_end_data.md). Original files remain immutable and the native writer / HSES / FTP are disabled.
