@@ -14,6 +14,7 @@
 | Приоритеты следующих этапов и критерии готовности | [roadmap.md](roadmap.md) |
 | Получение и хранение оригинальных файлов Yaskawa | [controller_fixture_intake.md](controller_fixture_intake.md) |
 | Правила для разработчиков | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| Что именно исправлено в аудите 17.11.2026 | [Документ аудита](documentation_audit_2026-11-17.md) |
 
 ## Контракты данных и анализ
 
