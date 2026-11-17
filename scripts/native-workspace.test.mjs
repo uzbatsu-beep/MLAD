@@ -82,10 +82,11 @@ test("contextual scale controls share the tab toolbar and remain independent",()
   assert.match(nav,/setBlockZoom\(/);
   assert.match(nav,/Все цепи/);
   assert.match(nav,/Все блоки/);
-  const ladder=native.slice(native.indexOf('{tab==="diagram"&&<div'),
-    native.indexOf('{tab==="blocks"&&<div'));
+  const body=native.slice(native.indexOf('</nav>',native.indexOf('<nav className="native-context-toolbar"'))+6);
+  const ladder=body.slice(body.indexOf('{tab==="diagram"&&<div'),
+    body.indexOf('{tab==="blocks"&&<div'));
   assert.doesNotMatch(ladder,/setZoom\(/);
-  const blocks=native.slice(native.indexOf('{tab==="blocks"&&<div'),
-    native.indexOf('{tab==="ioname"&&<div'));
+  const blocks=body.slice(body.indexOf('{tab==="blocks"&&<div'),
+    body.indexOf('{tab==="ioname"&&<div'));
   assert.doesNotMatch(blocks,/setBlockZoom\(/);
 });
