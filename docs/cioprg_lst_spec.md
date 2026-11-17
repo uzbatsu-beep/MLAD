@@ -1,6 +1,8 @@
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-**Status (17.11.2026):** документируемая **частичная** спецификация; реализованы read-only lossless/semantic/advanced source inspection. **NOT** a complete verified file grammar, native writer or certified controller compiler.
+> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+
+**Status (18.11.2026, after merged PR #21):** документируемая **частичная** спецификация; реализованы read-only lossless/semantic/advanced source inspection. **NOT** a complete verified file grammar, native writer or certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
 **Safety:** inspect/view of user-supplied `.LST` is available in a bounded read-only workflow; modified regeneration and controller deployment remain **disabled** until real-controller fixtures, protected boundaries, instruction semantics and vendor round-trip verification are established.
 
@@ -153,7 +155,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 **Нативный экспорт, редактирование защищённых областей и подключение контроллера к работе по-прежнему запрещены.**
 
-## Read-only post-END data classification (PR #18 proposal)
+## Read-only post-END data classification (PR #18 merged)
 
 The lossless parser now distinguishes syntactically valid \`END\` from subsequent **observed** \`//ALARMN\` and \`//MESSAGEN\` data markers. Subsequent text is preserved as non-executable, display-only \`PostEndSection\`, \`PostEndData\` or \`PostEndOpaque\` rather than inventing extra Ladder instructions. See [post-END classification and test limitations](post_end_data.md). This is a structural observation and **not** confirmation of a universal OEM grammar.
 

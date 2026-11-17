@@ -1,5 +1,7 @@
 # Memory map — архив предварительной карты адресов
 
+> **Архивный указатель (сверка 18.11.2026):** этот файл сохраняется для ссылок; не использовать его как действующую спецификацию. PR #1–#21 слиты, последний Windows релиз — rc.9. [Текущий статус](project_status.md).
+
 **Do not use earlier versions of this file as a source of address validity or write permission.**
 
 The original MLAD prototype had shifted CIO classes (for example, `1xxxx` was labelled External Input and `2xxxx` External Output). For the verified controller-specific tables, use **[Typed memory model — DX100, DX200, YRC1000](typed_memory_model.md)**.

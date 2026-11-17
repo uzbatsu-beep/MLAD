@@ -1,6 +1,8 @@
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 
-**Status (17.11.2026):** merged in `main`. Subsequent PR #8 added in-SVG operand editing to JSON drafts. This document explains only offline state indication.
+> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+
+**Status (18.11.2026):** PR #7/#8 merged; PR #16/#17 добавили native multi-rung и независимый масштаб. Документ описывает в первую очередь **OFFLINE** visual states, не live I/O.
 
 ## User-reported issues (Windows Bench v0.5.0-rc.1)
 

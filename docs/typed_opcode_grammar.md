@@ -1,6 +1,8 @@
 # MLAD — Typed Candidate forms for native CIOPRG.LST (PR #19)
 
-**Status:** partial read-only instruction grammar; **not** a verified controller compiler, executor or writer.
+> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+
+**Status (18.11.2026):** PR #19 merged; partial read-only instruction grammar; **not** a verified controller compiler, executor or writer.
 
 ## Primary sources and evidence status
 

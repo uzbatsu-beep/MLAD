@@ -1,37 +1,44 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Текущий статус (17.11.2026): инженерный прототип, OFFLINE / BENCH.**  
-Основная ветка содержит результаты слитых PR **#1–#14** (PR #6 — релизная инфраструктура Windows Bench), включая просмотр `CIOPRG.LST`, Semantic AST, визуальный редактор, TMR/CNT/GSTR/GOUT, цветовую офлайн-диагностику и редактирование операндов двойным щелчком.
+**Статус на 18.11.2026:** инженерный OFFLINE/BENCH-прототип; актуальная основная ветка — `main` (`39c5ead8d1b9ac63b49be607312dc8b3976549dd`), **PR #1–#21 merged**. [Актуальная матрица возможностей и ограничений](docs/project_status.md).
 
-> **Внимание:** MLAD **не является проверенным компилятором Yaskawa**. Он не создаёт редактируемый нативный `CIOPRG.LST`, не разрешает запись в робот и не показывает реальные состояния I/O. Команды Tauri для FTP-деплоя и HSES-мониторинга блокируются на стороне Rust. Действия с оборудованием выполняются только штатными средствами Yaskawa и по согласованной безопасной процедуре.
+**Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
-## Возможности на текущем `main`
+> **Безопасность:** MLAD не является сертифицированной средой Yaskawa или подтверждённым компилятором `CIOPRG.LST`. Оригинальные `CIOPRG.LST` и `IONAME.DAT` открываются **только для чтения**; native writer, FTP/HSES, загрузка в робот и реальная телеметрия выключены. Для работы с оборудованием применять официальные средства производителя и отдельную процедуру допуска.
 
-| Компонент | Фактическое состояние | Документ |
-|---|---|---|
-| Профили памяти DX100 / DX200 / YRC1000 | Типы адресов, диапазоны и консервативная проверка | [Модель памяти](docs/typed_memory_model.md) |
-| `CIOPRG.LST` | Побайтовый **read-only** инспектор с SHA-256 и диагностикой; полный vendor-формат не подтверждён | [Lossless parser](docs/cioprg_lossless_parser.md), [грамматика](docs/cioprg_lst_spec.md) |
-| Semantic AST | Анализ ограниченного набора булевых инструкций, ветвей и конфликтов | [Semantic AST](docs/semantic_ast.md) |
-| Ladder Graph Editor | Все цепи на одном рабочем поле, AND/OR, NO/NC, OUT, Undo/Redo, SVG | [Графический редактор](docs/graph_editor.md) |
-| Изменение адресов | Двойной щелчок или F2 → ввод → Enter/Esc; только в JSON-черновиках | [Inline-редактирование](docs/inline_address_editing.md) |
-| Офлайн-подсветка | TRUE — зелёный, FALSE — красный, UNKNOWN — серый; **не реальные сигналы робота** | [Состояния и компоновка](docs/ui_multi_rung_state.md) |
-| TMR / CNT / GSTR + GOUT | Типизированные функциональные блоки и пошаговые локальные модели; без аппаратного исполнения | [Advanced CIO](docs/advanced_blocks.md) |
-| Native export / FTP / HSES | **Заблокировано** до верификации формата, протокола, безопасности и испытаний | [Технические границы](docs/architecture.md), [HSES](docs/hse_protocol.md) |
+## Фактически доступно
 
-**Форматы:** `*.graph.json` — редактируемые булевы цепи; `*.advanced.json` — независимые проекты TMR/CNT/GSTR/GOUT; `project.json` — устаревший JSON-редактор; `CIOPRG.LST` — исходный файл робота, доступный в MLAD **только для просмотра**. Совмещать эти форматы или выдавать JSON за нативный CIOPRG запрещено.
+| Функция | Состояние |
+| --- | --- |
+| Профили DX100/DX200/YRC1000 | Типизированные форматы адресов и проверка диапазонов; контроллерную карту/firmware ещё требуется подтвердить |
+| Native Workspace | Главная рабочая область: компактная шапка, системный диалог открытия, дерево, постраничный исходник, поиск и диагностика |
+| CIOPRG.LST | Побайтовая неизменность, SHA-256, разделы после `END` как данные, безопасная классификация поддерживаемого/неизвестного |
+| Ladder | **Все распознанные** цепи текущего SemanticPreview, масштаб, ссылки на исходный текст; неизвестные фрагменты не дорисовываются |
+| TMR/CNT/GSTR/GOUT | Просмотр native-паттернов и отдельные **офлайн-черновики** `*.advanced.json` |
+| IONAME.DAT / комментарии | Read-only preview, локальные комментарии цепей/адресов, ручные ассоциации; оригиналы не меняются |
+| `MOV`, `ADD`, `SUB`, `SHL`, `SHR` | Типизированные операнды и исходные spans, статические **предположительные** M-зависимости |
+| OEM-справка | Документальные формулы EN/16-bit/Carry/Zero/Error и автономные reference-тесты; **не** исполнение исходника на контроллере |
+| JSON Graph Draft | SVG, AND/OR/NO/NC/OUT, Undo/Redo, двойной щелчок/F2 по адресам и офлайн TRUE/FALSE/UNKNOWN |
+| Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
 
-## Запуск для разработки
+**Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 
-Текущий стек: **Rust + Tauri v2 + React 18 + TypeScript + Vite 5**, Node.js **22** в GitHub Actions. На Windows используется WebView2; проверить наличие соответствующего Rust toolchain / MSVC и Tauri prerequisites.
+## Быстрый старт разработчика
+
+Текущий стек: Rust + Tauri v2 + React 18 + TypeScript/Vite; Node.js 22 в CI, Windows MSVC + WebView2 для Windows сборки. `package-lock.json` и `src-tauri/Cargo.lock` отслеживаются в Git.
 
 ```bash
 npm ci --no-audit --no-fund
 npm run tauri dev
 ```
 
-Frontend отдельно: `npm run dev`. Проверки:
+Полная локальная проверка (если установлены Rust/Tauri prerequisites):
 
 ```bash
+npm run test:security
+npm run test:native
+npm run test:diagnostics
+npm run test:oem-reference
 npm run test:graph
 npm run test:advanced
 npm run test:visual
@@ -41,67 +48,24 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-В рамках PR #12 `package-lock.json` версии 3 отслеживается Git, а постоянный CI устанавливает зависимости через `npm ci` на Node.js 22. При несовпадении `package.json` и lockfile установка завершится ошибкой: изменения зависимостей оформляются отдельным коммитом с обновлённым lockfile. `Cargo.lock` также хранится в Git. Это фиксирует версии npm-пакетов, но **не** обеспечивает побайтовую воспроизводимость Windows-бинарников или проверку оборудования. Обычный CI работает на Ubuntu; Windows Preview/релизные процессы проверяются отдельно.
+GitHub Actions — [MLAD validation](.github/workflows/validation.yml). Windows релиз проверяется отдельным [RC9 workflow](.github/workflows/windows-oem-reference-rc9.yml); прохождение CI **не** означает hardware acceptance, проверки пользователя в Windows или подтверждённой OEM-эквивалентности.
 
-## Пользовательский сценарий
+## Начать работу
 
-1. В **«Графический редактор»** выберите DX100/DX200/YRC1000, добавьте цепи и контакты. Все цепи отображаются совместно.
-2. Двойной щелчок по адресу контакта или `OUT` открывает ввод на схеме (**Enter** — сохранить, **Esc** — отменить). Выбор адреса в диапазоне **не** означает право на запись в аппаратный выход.
-3. В блоке **«Локальная имитация»** вручную установите `? / 0 / 1`. Цвет показывает **рассчитанное условие**; никакого HSES-соединения не происходит.
-4. Во вкладке **TMR · CNT · GSTR/GOUT** задайте параметры в `*.advanced.json`, выполните явные тестовые шаги и наблюдайте состояние блоков/байтов. Этот режим не эмулирует весь цикл робота.
-5. **«Просмотр CIOPRG.LST»** открывает исходный экспорт только для чтения. Сохраните отдельную исходную копию и зафиксируйте её SHA-256; непонятные секции сохраняются в байтовом представлении и не превращаются в предполагаемую схему.
+1. В основной вкладке «Программа робота» выберите семейство DX100/DX200/YRC1000, откройте **копию** `CIOPRG.LST` через кнопку «Обзор…» и проверьте SHA-256.
+2. Просмотрите постраничный исходник, поддерживаемые цепи Ladder, блоки и диагностику. Для `MOV/ADD/SUB/SHL/SHR` доступна справка OEM — **без расчёта состояний реальных I/O**.
+3. При необходимости отдельно откройте `IONAME.DAT`. Корректность соответствия имён адресам не предполагается; используйте только ручные локальные привязки.
+4. Для редактируемой логики используйте **отдельный JSON-черновик** Graph/Advanced, а не оригинальную программу робота.
 
-Для подготовки к стенду используйте [матрицу испытаний](docs/advanced_hardware_test_matrix.md) и [протокол получения реальных файлов](docs/controller_fixture_intake.md). До проверки оригинальных файлов полного редактирования `CIOPRG.LST` нет.
+## Roadmap, доказательства и ограничения
 
-## Сборки и статусы
+- [Текущий статус](docs/project_status.md), [дорожная карта](docs/roadmap.md), [архитектура](docs/architecture.md).
+- [Синтаксис native](docs/cioprg_lst_spec.md), [типизированные команды](docs/typed_opcode_grammar.md), [пять OEM команд](docs/oem_5_opcode_analysis.md), [матрица семантической верификации](docs/semantic_verification_matrix.md).
+- [Корпус оригинальных файлов](docs/controller_fixture_intake.md), [программа стендовых испытаний](docs/advanced_hardware_test_matrix.md).
+- [Каталог всех Markdown](docs/README.md), [процесс PR и выпусков](docs/development_workflow.md).
 
-- **[v0.5.0-rc.1-hardware](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.1-hardware)** — опубликованный **pre-release** (Windows x64, установщик с офлайн WebView2 и переносимый ZIP), собранный **до** изменений PR #7/#8. Это исторический артефакт, он не обновляется при слиянии PR в `main`.
-- После PR #7 и #8 были отдельные Windows Preview-артефакты GitHub Actions, **не GitHub Release**. Они имеют срок хранения и могут быть недоступны позднее.
-- Версия `0.5.0` в `package.json`/`tauri.conf.json` относится к базе приложения; строка `UI Preview PR #8` задавалась переменной сборки, а не меняла нативную версию Tauri.
-- Никогда не считайте отсутствие ошибок сборки доказательством совместимости с конкретным DX100/DX200/YRC1000 или firmware.
+## Лицензия
 
-См. [дисциплину сборок и качества](docs/development_workflow.md), [архитектуру](docs/architecture.md) и [дорожную карту v2 — проект для обсуждения, без утверждённых будущих этапов](docs/roadmap.md).
+**GNU GPL-3.0-only** — [LICENSE](LICENSE). Правообладатель собственных оригинальных материалов MLAD: **Фёдор Сергеевич Кочедыков** (физическое лицо), © 2026. Право собственности на чужие библиотеки, материалы Yaskawa и пользовательские данные не переходит к MLAD; third-party notices и chain-of-title ещё требуют отдельной проверки. Подробнее: [docs/licensing.md](docs/licensing.md).
 
-## Лицензия и авторские права
-
-Исходный код MLAD распространяется на условиях **GNU General Public License, версия 3 — только версия 3** (`GPL-3.0-only`). Полный текст — [LICENSE](LICENSE). GPLv3 требует соблюдения условий при распространении программы и модифицированных версий, в том числе передачи соответствующего исходного кода в предусмотренных лицензией случаях. **Это не гарантия совместимости или безопасной работы с контроллерами Yaskawa.**
-
-**Правообладатель собственных оригинальных материалов MLAD:** **Фёдор Сергеевич Кочедыков** (физическое лицо). © 2026 Фёдор Сергеевич Кочедыков. Вопросы прав на ранее включённые сторонние материалы, библиотеки, примеры и вклады других авторов проверяются отдельно до следующего бинарного релиза; это уведомление не переоформляет чужие права. Подробности и открытые проверки: [docs/licensing.md](docs/licensing.md).
-
-Лицензия MLAD не предоставляет прав на сторонние материалы: руководства и товарные знаки Yaskawa, реальные пользовательские `CIOPRG.LST`, конфигурации роботов и сторонние зависимости остаются под собственными правовыми режимами. MLAD — независимый проект, **не официальный продукт и не одобренная Yaskawa среда программирования**.
-
-## Карта документации
-
-Полный актуальный каталог: **[docs/README.md](docs/README.md)**; [результаты аудита 17.11.2026](docs/documentation_audit_2026-11-17.md).  
-Первоисточники: [source_registry.md](docs/source_registry.md), [инструкция формата CIOPRG](docs/cioprg_lst_spec.md).  
-Внесение изменений: **[CONTRIBUTING.md](CONTRIBUTING.md)**.
-
-**Цель проекта** — в перспективе предоставить удобную среду для работы с Yaskawa Concurrent I/O. Будущие компиляция, загрузка, безопасный мониторинг и аппаратная эквивалентность **не должны описываться как уже реализованные возможности**.
-
-## Native Workspace UI (PR #15, until merge)
-
-Proposed main-window integration of the original read-only CIOPRG.LST, with left section tree, center paged source/recognized diagrams and right diagnostics/search. Legacy project.json remains under a compatibility menu. See [Native Workspace preview notes](docs/releases/v0.5.0-rc.3-workspace.md). No native writer, HSES or deployment permission is added.
-
-## PR #16 — все распознанные Ladder-цепи и локальные комментарии
-
-Предлагаются вывод всех доступных SemanticPreview цепей, масштабирование расширенных блоков, просмотр IONAME.DAT и локальное редактирование комментариев двойным щелчком. Оригинальные файлы не изменяются. [Архитектура и ограничения](docs/ioname_annotations.md).
-
-## PR #17 — компактная панель Native Workspace (до merge)
-
-Два открытия файлов через нативные диалоги Windows, компактный заголовок и контекстный масштаб на строке вкладок, без изменения оригинальных CIO-файлов. [План проверки Windows rc.5](docs/releases/v0.5.0-rc.5-layout.md).
-
-## PR #18 — post-END structure and condensed diagnostics
-
-The read-only Native Workspace distinguishes observed `ALARM/MESSAGE` sections after `END` from the verified instruction subset. Diagnostic messages can be grouped by severity/code without losing per-line navigation. [Engineering limitations](docs/post_end_data.md). Original files remain immutable and the native writer / HSES / FTP are disabled.
-
-## PR #19 — типизированный синтаксис (read-only, без семантики)
-
-Мнемоники `MOV`, `ADD`, `SUB`, `SHL`, `SHR` анализируются как ограниченные **типизированные кандидаты** с явными ролями `S/S1/S2/n/D`, спанами оригинального текста, отдельным статусом в Workspace и запретом построения исполняемых Ladder-схем. Нативная запись CIOPRG.LST, FTP/HSES и System/User редактирование выключены. [Сведения об источниках и ограничениях](docs/typed_opcode_grammar.md).
-
-## PR #20 — статический анализ предполагаемых связей (без исполнения)
-
-Для типизированных `MOV/ADD/SUB/SHL/SHR` добавлен консервативный аудит позиций источников/назначений и совпадений **строго одинаковых M-регистров** в соседних командах. Связи показывают лишь порядок упоминаний в исходнике, не реальные потоки данных, циклы сканирования, флаги или управление роботом. Подтверждение истинной семантики остаётся отдельным обязательным этапом. [Матрица верификации и ограничения](docs/semantic_verification_matrix.md).
-
-## PR #21 — OEM-справочник MOV/ADD/SUB/SHL/SHR
-
-Разобраны условия EN, 16-битная беззнаковая арифметика, перенос/ноль/ошибка и граничные случаи. Отдельное Rust-ядро проверяет только ручные reference-векторы и НЕ исполняет программы робота. [Матрица и план OEM-испытаний](docs/oem_5_opcode_analysis.md).
+MLAD — независимый проект, **не разработан и не одобрен Yaskawa**.

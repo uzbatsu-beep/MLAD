@@ -1,6 +1,6 @@
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 
-**Status:** preview proposal in PR #16. Does **not** authorize modifying `IONAME.DAT`, `CIOPRG.LST`, firmware or controller.
+**Status на 18.11.2026:** функциональность PR #16 **слита в `main`**; read-only import `IONAME.DAT`, локальные комментарии и ручные ассоциации доступны в Native Workspace. **Нет** нативного writer и проверенной автоматической карты IONAME→#XXXXX. [Сверенный статус](project_status.md).
 
 ## Input evidence and unknowns
 
