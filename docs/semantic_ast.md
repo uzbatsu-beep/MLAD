@@ -1,6 +1,6 @@
-# PR #3 — Semantic AST & Ladder Logic Analyzer
+# Semantic AST & Ladder Logic Analyzer — PR #3, статус после PR #8
 
-**Scope:** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
+**Scope (17.11.2026):** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
 
 ## 1. Sources and evidence
 
@@ -96,7 +96,8 @@ Partial cross references do **not** prove there is no conflicting writer: GOUT/B
 - `RegisterCurrentValue` and `RegisterSetpoint` are descriptive for TMR/CNT; runtime effects are not modeled.
 - `PotentialGroupRead` and `PotentialGroupWrite` cover recognized GSTR/GOUT. The word “Potential” is intentional.
 - All sites retain source line and operand byte span. Every section label is explicitly a **claim** based on PART tokens, not a trust boundary.
-- Each rung also provides a bounded, human-readable expression preview; the indexed expression graph remains authoritative.\n- The dependency graph links valid rungs by matching output relays to input contacts. Strongly connected components are found by iterative DFS (no recursive call stack); the resulting feedback warning is informative and not a formal deadlock proof.
+- Each rung also provides a bounded, human-readable expression preview; the indexed expression graph remains authoritative.
+- The dependency graph links valid rungs by matching output relays to input contacts. Strongly connected components are found by iterative DFS (no recursive call stack); the resulting feedback warning is informative and not a formal deadlock proof.
 
 ## 6. Offline evaluation (not hardware simulation)
 
@@ -119,4 +120,12 @@ This evaluates **the condition alone**, not the robot's scan order, output owner
 
 The new `src-tauri/src/compiler/semantic/tests.rs` includes representative examples for series/parallel expressions, negated contacts, nested stacks, missing STR, unbalanced branches, double coils across PART boundaries, invalid writes, self/mutual feedback, unknown-opcode barriers, grouped output overlaps, cross-reference spans, three-valued evaluation, resource guards and immutable original bytes.
 
-CI must pass Rust tests and React/TypeScript build. **Do not merge without user approval.**
+PR #3 уже слит в `main`. При дальнейшем изменении анализатора обязательны Rust regression tests, frontend checks и отдельное согласование нового PR. Старый текст о разрешении на слияние PR #3 более не является актуальным.
+
+
+## 9. Эволюция после PR #3
+
+- **PR #5** добавил отдельный `advanced_source.rs`, который показывает ограниченные типовые TMR/CNT/GSTR/GOUT последовательности. **Булевый AST при этом не стал полноценным интерпретатором stateful инструкций.**
+- **PR #7** добавил офлайн-подсветку всех цепей по ручным `TRUE/FALSE/UNKNOWN` значениям; это не telemetry и не расчёт реального scan.
+- **PR #8** добавил редактирование адресов на **JSON-схемах**, но не в оригинальном `CIOPRG.LST`.
+- Продолжение требует [оригинальных файлов](controller_fixture_intake.md), независимого OEM редактора и более полной семантики. См. [архитектуру](architecture.md).
