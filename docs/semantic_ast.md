@@ -1,6 +1,8 @@
-# Semantic AST & Ladder Logic Analyzer — PR #3, статус после PR #8
+# Semantic AST & Ladder Logic Analyzer — PR #3, актуализация после PR #21
 
-**Scope (17.11.2026):** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
+> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+
+**Scope (18.11.2026):** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
 
 ## 1. Sources and evidence
 

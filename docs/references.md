@@ -1,5 +1,7 @@
 # References — архив предварительного списка источников
 
+> **Архивный указатель (сверка 18.11.2026):** этот файл сохраняется для ссылок; не использовать его как действующую спецификацию. PR #1–#21 слиты, последний Windows релиз — rc.9. [Текущий статус](project_status.md).
+
 The previously maintained table included a number of unverified assumptions, including incorrect read-only/write classes for several CIO relay banks. It is retained as a stable navigation path.
 
 **Authoritative project index:** [source_registry.md](source_registry.md)

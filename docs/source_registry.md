@@ -1,6 +1,8 @@
 # Source register — Yaskawa Concurrent I/O / Ladder Editor
 
-Updated 2026-11-17 (after merged PR #8). References are for **DX100, DX200, YRC1000** (not automatically YRC1000micro). Manufacturer instructions take precedence over MLAD prose and third-party mirrors.
+> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+
+Updated 2026-11-18 (after merged PR #21). References are for **DX100, DX200, YRC1000** (not automatically YRC1000micro). Manufacturer instructions take precedence over MLAD prose and third-party mirrors.
 
 | ID | Controller | Relevant material | Confidence / access |
 |---|---|---|---|

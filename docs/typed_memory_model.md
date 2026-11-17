@@ -1,7 +1,9 @@
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
+> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+
 **Implementation:** [`src-tauri/src/compiler/memory.rs`](../src-tauri/src/compiler/memory.rs).
-**Version:** 0.1 address-baseline, уточнение статуса 17.11.2026. Do not use this table to authorize HSES writes or deployments.
+**Version:** 0.1 address-baseline; проверена актуальная реализация main на 18.11.2026, но новый OEM firmware-level допуск не получен. Do not use this table to authorize HSES writes or deployments.
 **Evidence:** DX100 `RE-CKI-A453` §2 table 2-1; DX200 `RE-CKI-A465` §2 table 2-1; YRC1000 Concurrent I/O §2 table 2-1. See [source_registry.md](source_registry.md).
 
 ## 1. Addressing model
