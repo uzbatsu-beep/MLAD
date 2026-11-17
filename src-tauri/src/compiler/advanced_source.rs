@@ -79,8 +79,9 @@ pub fn inspect(doc: &LosslessDocument) -> AdvancedSourceReport {
             LineKind::Empty | LineKind::Comment => {},
             LineKind::Directive | LineKind::MHeaderRow {..} =>
                 typed_insts.push(None),
-            LineKind::UnsupportedInstruction {..} | LineKind::Opaque =>
-                typed_insts.push(None),
+            LineKind::UnsupportedInstruction {..} | LineKind::Opaque |
+            LineKind::PostEndSection {..} | LineKind::PostEndData |
+            LineKind::PostEndOpaque => typed_insts.push(None),
         }
     }
     let mut i=0;

@@ -74,6 +74,14 @@ pub enum LineKind {
     Instruction(AstInstruction),
     UnsupportedInstruction { mnemonic: String },
     Opaque,
+    /// Observed ALARM/MESSAGE marker in the data region after exact END.
+    /// Label is informational; it does NOT establish a verified OEM grammar.
+    PostEndSection { label: String },
+    /// Raw data line inside an observed post-END section. Not an executable opcode.
+    PostEndData,
+    /// Post-END line outside a recognized data section or an unknown directive.
+    /// Never guess it is executable, nor silently accept its layout.
+    PostEndOpaque,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -130,6 +138,10 @@ pub struct InspectionReport {
     pub diagnostics: Vec<ParseDiagnostic>,
     pub lines: Vec<LinePreview>,
     pub preview_truncated: bool,
+    pub end_line: Option<usize>,
+    pub post_end_line_count: usize,
+    pub post_end_sections: usize,
+    pub post_end_unverified_lines: usize,
     pub original_round_trip_only: bool,
     pub edited_export_allowed: bool,
     pub system_user_boundaries_verified: bool,
@@ -158,7 +170,20 @@ impl LosslessDocument {
         let recognized_instructions = self.lines.iter().filter(|l|
             matches!(l.kind, LineKind::Instruction(_))).count();
         let unsupported_lines = self.lines.iter().filter(|l|
-            matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque)).count();
+            matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque |
+                LineKind::PostEndOpaque)).count();
+        let end_line = self.lines.iter().find_map(|l| match &l.kind {
+            LineKind::Instruction(inst) if inst.mnemonic == "END" && inst.syntax_valid =>
+                Some(l.number),
+            _ => None,
+        });
+        let post_end_line_count = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::PostEndSection {..} | LineKind::PostEndData |
+                LineKind::PostEndOpaque)).count();
+        let post_end_sections = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::PostEndSection {..})).count();
+        let post_end_unverified_lines = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::PostEndOpaque)).count();
 
         let lines = self.line_preview_range(1, max_preview_lines);
 
@@ -174,6 +199,10 @@ impl LosslessDocument {
             diagnostics: self.diagnostics.iter().take(max_diagnostics).cloned().collect(),
             lines,
             preview_truncated: self.lines.len() > max_preview_lines,
+            end_line,
+            post_end_line_count,
+            post_end_sections,
+            post_end_unverified_lines,
             original_round_trip_only: true,
             edited_export_allowed: false,
             system_user_boundaries_verified: false,
@@ -352,6 +381,20 @@ fn parse_m_row(text: &[u8]) -> bool {
     })
 }
 
+/// The observed exported ALARM/MESSAGE markers consist of ASCII "//ALARMN"
+/// or "//MESSAGEN". Do not infer ownership, encoding, or OEM edit rights.
+fn observed_post_end_marker(line: &[u8]) -> Option<String> {
+    for prefix in [b"//ALARM".as_slice(), b"//MESSAGE".as_slice()] {
+        if let Some(suffix) = line.strip_prefix(prefix) {
+            if !suffix.is_empty() && suffix.len() <= 8 &&
+                suffix.iter().all(u8::is_ascii_digit) {
+                return Some(String::from_utf8_lossy(line).into_owned());
+            }
+        }
+    }
+    None
+}
+
 pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDocument {
     let source_sha256 = hex::encode(Sha256::digest(&raw));
     let encoding = if raw.starts_with(&[0xef, 0xbb, 0xbf]) {
@@ -365,6 +408,9 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
     let mut diagnostics = Vec::new();
     let mut m_headers = Vec::new();
     let mut idx = 0usize;
+    let mut after_end = false;
+    let mut in_observed_tail_section = false;
+    let mut unknown_tail_reported = false;
     while idx < lines.len() {
         let mut body = &raw[lines[idx].body_span.start..lines[idx].body_span.end];
         let mut source_offset = 0usize;
@@ -373,6 +419,28 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
             source_offset = 3;
         }
         let trimmed = ascii_trim(body);
+        if after_end {
+            // Once a syntactically valid END has been reached, no subsequent
+            // source line is interpreted as executable Ladder. Preserve
+            // everything verbatim, including unknown proprietary layouts.
+            if let Some(label) = observed_post_end_marker(trimmed) {
+                lines[idx].kind = LineKind::PostEndSection { label };
+                in_observed_tail_section = true;
+            } else if trimmed.starts_with(b"//") || trimmed.contains(&0) ||
+                (!in_observed_tail_section && !trimmed.is_empty()) {
+                lines[idx].kind = LineKind::PostEndOpaque;
+                // Avoid hundreds of repeated warnings for text data sections.
+                if !unknown_tail_reported {
+                    push_diag(&mut diagnostics, "PostEndUnknownStructure", Severity::Warning,
+                        &lines[idx], "Неподтверждённая структура после END: байты сохранены, не интерпретированы как инструкции");
+                    unknown_tail_reported = true;
+                }
+            } else {
+                lines[idx].kind = LineKind::PostEndData;
+            }
+            idx += 1;
+            continue;
+        }
         if trimmed.is_empty() {
             lines[idx].kind = LineKind::Empty;
             idx += 1;
@@ -421,6 +489,11 @@ pub fn parse_document(raw: Vec<u8>, controller: ControllerFamily) -> LosslessDoc
                 "Строка содержит NUL; исходные байты сохранены");
         } else {
             lines[idx].kind = parse_instruction(body, &lines[idx], source_offset, controller, &mut diagnostics);
+            if let LineKind::Instruction(inst) = &lines[idx].kind {
+                if inst.mnemonic == "END" && inst.syntax_valid {
+                    after_end = true;
+                }
+            }
         }
         idx += 1;
     }

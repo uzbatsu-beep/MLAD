@@ -630,6 +630,7 @@ fn detect_feedback_cycles(rungs: &[SemanticRung], diagnostics: &mut Vec<Semantic
 
 pub fn analyze(doc: &LosslessDocument) -> SemanticReport {
     let mut a = Analyzer::new();
+    let mut unverified_tail_reported = false;
     for line in &doc.lines {
         match &line.kind {
             LineKind::Instruction(inst) => a.process(inst, doc.controller),
@@ -643,6 +644,19 @@ pub fn analyze(doc: &LosslessDocument) -> SemanticReport {
                 if a.current.is_some() || !a.branch_stack.is_empty() {
                     a.barrier("DirectiveInExpression", line.number, line.body_span.start,
                         "Директива/заголовок внутри логического выражения");
+                }
+            }
+            // Observed post-END ALARM/MESSAGE payload is not executable Ladder.
+            LineKind::PostEndSection { .. } | LineKind::PostEndData => {}
+            LineKind::PostEndOpaque => {
+                // This is unverified material. Do not fabricate an instruction
+                // or one warning per payload line; retain an incomplete status.
+                if !unverified_tail_reported {
+                    a.diag("AfterEnd", DiagnosticLevel::Warning, line.number,
+                        line.body_span.start,
+                        "После END обнаружена неподтверждённая структура, это не Ladder-инструкция");
+                    a.unsupported_segments += 1;
+                    unverified_tail_reported = true;
                 }
             }
             LineKind::Empty | LineKind::Comment => {}
