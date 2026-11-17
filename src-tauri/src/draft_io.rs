@@ -203,6 +203,24 @@ mod tests {
         assert!(!dir.join("draft.graph.json.bak").exists());
         fs::remove_dir_all(dir).unwrap();
     }
+    #[cfg(windows)]
+    #[test]
+    fn opened_windows_draft_is_never_truncated_even_if_replace_is_blocked(){
+        let dir=folder();let path=dir.join("opened.graph.json");
+        fs::write(&path,b"prior complete JSON").unwrap();
+        let opened=File::open(&path).unwrap();
+        let outcome=write_atomic(&path,b"new complete JSON");
+        drop(opened);
+        let after=fs::read(&path).unwrap();
+        if outcome.is_ok() {
+            assert_eq!(after,b"new complete JSON");
+            assert_eq!(fs::read(dir.join("opened.graph.json.bak")).unwrap(),
+                b"prior complete JSON");
+        } else {
+            assert_eq!(after,b"prior complete JSON");
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
     #[test]
     fn neither_native_extension_is_accepted_by_json_writer(){
         let dir=folder();
