@@ -1,0 +1,37 @@
+/* Compact desktop file pickers and context toolbar; preserves 1280x800 layout. */
+.native-compact-header {display:grid;grid-template-columns:minmax(205px,248px) minmax(280px,1.1fr) minmax(280px,1fr) auto;gap:10px;align-items:start;padding:9px 12px;background:#1c2b39;border-bottom:1px solid #42566a;min-width:0;}
+.native-header-title {min-width:0;display:grid;gap:4px;padding-top:4px;}
+.native-header-title strong {font-size:16px;line-height:1.3;}
+.native-header-title small {font-size:11px;color:#dcb97d;line-height:1.35;}
+.native-header-file {min-width:0;display:grid;gap:5px;align-content:start;}
+.native-file-caption {display:flex;gap:8px;align-items:center;min-width:0;font-size:11px;}
+.native-file-caption b {color:#cfe2ee;flex-shrink:0;}
+.native-file-caption span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#91bdb0;}
+.native-file-inputs {display:flex;gap:5px;min-width:0;align-items:center;}
+.native-file-inputs input {min-width:0;flex:1 1 auto;width:0;padding:7px 8px;font-size:12px;text-overflow:ellipsis;}
+.native-file-inputs button {flex:0 0 auto;border:1px solid #526c80;background:#31485e;color:#eef4f8;border-radius:5px;padding:7px 9px;cursor:pointer;font-size:12px;}
+.native-file-inputs button.native-open-file {background:#386d57;border-color:#528a6b;}
+.native-file-inputs button:disabled {opacity:.5;cursor:not-allowed;}
+.native-file-controller {display:flex;gap:7px;align-items:center;font-size:11px;color:#aebfce;}
+.native-file-controller select {padding:3px 6px;font-size:11px;min-width:90px;}
+.native-file-status {color:#9bbaaa;font-size:11px;}
+.native-header-offline {white-space:nowrap;color:#a4d6b8;font-size:11px;padding:6px 0;text-align:right;}
+.native-context-toolbar {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 9px;border-bottom:1px solid #35485b;background:#132332;min-width:0;}
+.native-context-tabs,.native-context-actions {display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.native-context-actions {margin-left:auto;font-size:12px;white-space:nowrap;}
+.native-context-actions strong {font-size:12px;margin-right:4px;}
+.native-context-actions button {min-width:27px;}
+@media (max-width:1490px) {
+  .native-compact-header {grid-template-columns:minmax(185px,215px) minmax(240px,1.1fr) minmax(230px,1fr);gap:8px;}
+  .native-header-offline {display:none;}
+}
+@media (max-width:1060px) {
+  .native-compact-header {grid-template-columns:minmax(190px,1fr) minmax(280px,1fr);}
+  .native-header-title {grid-column:1/-1;}
+  .native-header-offline {display:none;}
+}
+@media (max-width:700px) {
+  .native-compact-header {grid-template-columns:minmax(0,1fr);}
+  .native-header-title {grid-column:auto;}
+  .native-context-actions {margin-left:0;}
+}

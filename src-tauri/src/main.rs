@@ -6,6 +6,7 @@ pub mod compiler;
 
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
+use tauri_plugin_dialog::DialogExt;
 // Структура данных инструкции для десериализации запросов от фронтенда
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LadderInstruction {
@@ -196,6 +197,86 @@ async fn cmd_inspect_ioname(file_path: String)
         return Err("IONAME.DAT превышает 4 МиБ".into());
     }
     Ok(compiler::ioname::inspect(&bytes))
+}
+
+/// Allow only two explicitly supported native *read-only* input types.
+fn validate_native_pick(kind: &str, path: &std::path::Path) -> Result<(), String> {
+    if !path.is_absolute() {
+        return Err("Диалог вернул не абсолютный путь".into());
+    }
+    if kind == "cioprg" {
+        if !path.extension().is_some_and(|e| e.to_string_lossy().eq_ignore_ascii_case("lst")) {
+            return Err("Выберите файл .LST".into());
+        }
+    } else if kind == "ioname" {
+        if !path.file_name().and_then(|n| n.to_str())
+            .is_some_and(|n| n.eq_ignore_ascii_case("IONAME.DAT")) {
+            return Err("Выберите IONAME.DAT".into());
+        }
+    } else {
+        return Err("Недопустимый тип входного файла".into());
+    }
+    Ok(())
+}
+
+/// Desktop native OPEN dialog. The command does not read or mutate files.
+/// Existing cmd_inspect_cioprg/cmd_inspect_ioname still enforce size/type bounds.
+/// Rust-only integration avoids granting WebView any file save dialog capability.
+#[tauri::command]
+async fn cmd_pick_native_file(
+    app: tauri::AppHandle,
+    kind: String,
+) -> Result<Option<String>, String> {
+    let (title, extension): (&str, &str) = match kind.as_str() {
+        "cioprg" => ("Yaskawa CIOPRG.LST (только чтение)", "lst"),
+        "ioname" => ("Yaskawa IONAME.DAT (только чтение)", "dat"),
+        _ => return Err("Недопустимый тип входного файла".into()),
+    };
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog().file().set_title(title).add_filter(title, &[extension])
+        .pick_file(move |picked| { let _ = tx.send(picked); });
+    let selected = rx.await.map_err(|_| "Не удалось получить результат диалога".to_string())?;
+    match selected {
+        None => Ok(None), // User cancelled, keep both previous file states.
+        Some(value) => {
+            let path = value.into_path().map_err(|_| "Выбранный путь не является локальным файлом".to_string())?;
+            validate_native_pick(&kind, &path)?;
+            let file = tokio::fs::symlink_metadata(&path).await
+                .map_err(|e| format!("Не удалось проверить выбранный файл: {e}"))?;
+            if file.file_type().is_symlink() || !file.is_file() {
+                return Err("Можно открыть только обычный файл, не ссылку".into());
+            }
+            let max_size = if kind == "cioprg" { 16 * 1024 * 1024 } else { 4 * 1024 * 1024 };
+            if file.len() > max_size {
+                return Err("Размер выбранного файла превышает допустимое значение".into());
+            }
+            path.to_str().map(|s| Some(s.to_owned()))
+                .ok_or_else(|| "Путь содержит неподдерживаемые символы".into())
+        }
+    }
+}
+
+#[cfg(test)]
+mod native_file_picker_guard_tests {
+    use super::*;
+    #[test]
+    fn dialog_input_type_cannot_be_extended_to_save_or_upload() {
+        use std::path::Path;
+        assert!(validate_native_pick("cioprg", Path::new("CIOPRG.LST")).is_err());
+        #[cfg(windows)]
+        {
+            assert!(validate_native_pick("cioprg", Path::new("C:\\robot\\CIOPRG.LST")).is_ok());
+            assert!(validate_native_pick("ioname", Path::new("C:\\robot\\IONAME.DAT")).is_ok());
+            assert!(validate_native_pick("ioname", Path::new("C:\\robot\\OTHER.DAT")).is_err());
+        }
+        #[cfg(not(windows))]
+        {
+            assert!(validate_native_pick("cioprg", Path::new("/tmp/CIOPRG.LST")).is_ok());
+            assert!(validate_native_pick("ioname", Path::new("/tmp/IONAME.DAT")).is_ok());
+            assert!(validate_native_pick("ioname", Path::new("/tmp/other.dat")).is_err());
+        }
+        assert!(validate_native_pick("save", Path::new("/tmp/CIOPRG.LST")).is_err());
+    }
 }
 
 /// Read-only inspection of a native exported CIOPRG.LST file.
@@ -433,9 +514,11 @@ fn main() {
     info!("Запуск бэкенда среды разработки Next-Gen Yaskawa Motoman Ladder IDE...");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             cmd_load_project,
             cmd_inspect_cioprg,
+            cmd_pick_native_file,
             cmd_read_cioprg_page,
             cmd_search_cioprg,
             cmd_inspect_ioname,

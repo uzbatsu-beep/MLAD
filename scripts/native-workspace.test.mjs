@@ -53,3 +53,40 @@ test("IONAME is imported read-only, mapping is manual, comments use local storag
   assert.match(p,/relay_mapping_verified:false/);
   assert.match(p,/native_write_allowed:false/);
 });
+
+test("file choosers are compact, native and read-only",()=>{
+  assert.match(native,/className="native-compact-header"/);
+  assert.match(native,/aria-label="Выбрать файл CIOPRG\.LST"/);
+  assert.match(native,/aria-label="Выбрать файл IONAME\.DAT"/);
+  assert.match(native,/invoke<string\|null>\("cmd_pick_native_file",\{kind\}\)/);
+  assert.match(native,/if\(!chosen\)return/);
+  assert.match(native,/await openSource\(chosen\)/);
+  assert.match(native,/await importIoname\(chosen\)/);
+  assert.doesNotMatch(native,/<form[^>]+onSubmit[^>]*>\s*<label[^>]+Путь к копии/);
+  const css=readFileSync("src/components/native-workspace.css","utf8");
+  assert.match(css,/@media \(max-width:1060px\)/);
+  assert.match(css,/\.native-compact-header\s*\{/);
+  const backend=readFileSync("src-tauri/src/main.rs","utf8");
+  assert.match(backend,/async fn cmd_pick_native_file/);
+  assert.match(backend,/\.plugin\(tauri_plugin_dialog::init\(\)\)/);
+  assert.match(backend,/file\(\)\.set_title\(title\)\.add_filter\(title, &\[extension\]\)/);
+  assert.doesNotMatch(backend,/blocking_save_file\(|blocking_pick_file\(/);
+});
+test("contextual scale controls share the tab toolbar and remain independent",()=>{
+  const nav=native.slice(native.indexOf('<nav className="native-context-toolbar"'),
+    native.indexOf('</nav>',native.indexOf('<nav className="native-context-toolbar"')));
+  assert.match(nav,/native-context-tabs/);
+  assert.match(nav,/tab==="diagram"/);
+  assert.match(nav,/tab==="blocks"/);
+  assert.match(nav,/setZoom\(/);
+  assert.match(nav,/setBlockZoom\(/);
+  assert.match(nav,/Все цепи/);
+  assert.match(nav,/Все блоки/);
+  const body=native.slice(native.indexOf('</nav>',native.indexOf('<nav className="native-context-toolbar"'))+6);
+  const ladder=body.slice(body.indexOf('{tab==="diagram"&&<div'),
+    body.indexOf('{tab==="blocks"&&<div'));
+  assert.doesNotMatch(ladder,/setZoom\(/);
+  const blocks=body.slice(body.indexOf('{tab==="blocks"&&<div'),
+    body.indexOf('{tab==="ioname"&&<div'));
+  assert.doesNotMatch(blocks,/setBlockZoom\(/);
+});
