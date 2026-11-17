@@ -634,6 +634,10 @@ pub fn analyze(doc: &LosslessDocument) -> SemanticReport {
     for line in &doc.lines {
         match &line.kind {
             LineKind::Instruction(inst) => a.process(inst, doc.controller),
+            LineKind::TypedCandidate { .. } => {
+                a.barrier("TypedOpcodeSemanticsPending", line.number, line.body_span.start,
+                    "Типизированная форма распознана, но исполнение и флаги не подтверждены; цепь не реконструируется");
+            }
             LineKind::UnsupportedInstruction { .. } | LineKind::Opaque => {
                 a.barrier("UnverifiedSource", line.number, line.body_span.start,
                     "Неподдерживаемый исходный текст: логические зависимости могут быть неполными");

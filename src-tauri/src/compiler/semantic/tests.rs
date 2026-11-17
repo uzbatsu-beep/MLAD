@@ -257,3 +257,29 @@ fn unknown_tail_has_one_after_end_marker_and_no_invented_rungs() {
     assert_eq!(r.unsupported_segments,1);
     assert!(!r.subset_analysis_complete);
 }
+
+#[test]
+fn typed_instruction_between_start_and_coil_is_a_barrier_not_a_fake_rung() {
+    let doc=parse_document(
+      b"STR #70010\nMOV M010,M011\nOUT #70020\nSTR #70011\nOUT #70021\nEND\n".to_vec(),
+      ControllerFamily::YRC1000);
+    let r=analyze(&doc);
+    assert_eq!(r.rungs.len(),1);
+    assert_eq!(r.rungs[0].output,70021);
+    assert!(codes(&r).contains(&"TypedOpcodeSemanticsPending"));
+    assert!(r.unsupported_segments>=1);
+    assert!(!r.subset_analysis_complete);
+    assert_eq!(doc.inspection_report(100,100).typed_candidate_count,1);
+}
+#[test]
+fn standalone_verified_shape_never_means_executable_semantics_verified() {
+    let doc=parse_document(
+      b"ADD M010,1,M011\nSHL M011,2,M012\nEND\n".to_vec(),
+      ControllerFamily::YRC1000);
+    let r=analyze(&doc);
+    assert_eq!(r.rungs.len(),0);
+    assert_eq!(r.unsupported_segments,2);
+    assert!(!r.subset_analysis_complete);
+    assert!(!r.edited_export_allowed);
+    assert_eq!(doc.copy_original(),doc.original_bytes());
+}

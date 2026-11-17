@@ -319,3 +319,66 @@ fn mixed_endings_and_opaque_bytes_survive_post_end() {
     assert_eq!(doc.inspection_report(50,50).post_end_line_count,5);
     assert_eq!(doc.original_bytes(),raw);
 }
+
+#[test]
+fn typed_candidate_formats_hold_exact_tokens_and_byte_spans() {
+    let source=b"//META\r\nPART 2\r\n MOV M001,W#70010\r\nADD 1,M010,M020\r\nSUB M020,25,M021\nSHL W#70010,16,W#70020\rSHR M010,0,M011\nEND";
+    let doc=parse(source);
+    assert_round_trip(source);
+    let r=doc.inspection_report(100,100);
+    assert_eq!(r.recognized_instructions,2); // PART, END
+    assert_eq!(r.typed_candidate_count,5);
+    assert_eq!(r.typed_valid_forms,5);
+    assert_eq!(r.typed_invalid_forms,0);
+    assert_eq!(r.unsupported_lines,0);
+    for l in &doc.lines {
+        if let LineKind::TypedCandidate {instruction,semantics_verified,controller_form_verified}= &l.kind {
+            assert!(!semantics_verified);
+            assert!(*controller_form_verified);
+            assert!(instruction.syntax_valid);
+            for op in &instruction.operands {
+                let raw=&doc.original_bytes()[op.span.start..op.span.end];
+                assert_eq!(raw,op.spelling.as_bytes());
+            }
+        }
+    }
+    let mov=match &doc.lines[2].kind {LineKind::TypedCandidate{instruction,..}=>instruction,_=>panic!("MOV not typed")};
+    assert_eq!(mov.mnemonic,"MOV");
+    assert_eq!(mov.operands[0].kind,OperandKind::MRegister);
+    assert_eq!(mov.operands[1].kind,OperandKind::RelayWord);
+    assert_eq!(doc.copy_original(),source);
+}
+#[test]
+fn malformed_extended_operands_fail_shape_only_not_lossless_preservation() {
+    let source=b"MOV 99,M640\nADD M010,2,M999\nSUB #70010,3,M010\nSHL M010,M005,M011\nSHL M010,17,M011\nMOV W#70011,#70020\nMOV M010,M011,EXTRA\nEND\n";
+    let doc=parse(source);
+    assert_round_trip(source);
+    let p=doc.inspection_report(100,100);
+    assert_eq!(p.typed_candidate_count,7);
+    assert_eq!(p.typed_valid_forms,0);
+    assert_eq!(p.typed_invalid_forms,7);
+    assert!(doc.diagnostics.iter().any(|d|d.code=="TypedOperandCount"));
+    assert!(doc.diagnostics.iter().any(|d|d.code=="TypedOperandForm"));
+    assert_eq!(doc.copy_original(),source);
+}
+#[test]
+fn typed_forms_are_not_confused_with_output_or_inform_movements() {
+    let b=b"BMOV M010,5,M011\nMOVJ P000\nMOVL P001\nCMP M010,M011\nMOV M010,M011\nEND\n//MESSAGE1\nADD 1,2,M020\n";
+    let doc=parse(b);
+    assert_round_trip(b);
+    assert!(matches!(doc.lines[0].kind,LineKind::UnsupportedInstruction{..}));
+    assert!(matches!(doc.lines[1].kind,LineKind::UnsupportedInstruction{..}));
+    assert!(matches!(doc.lines[2].kind,LineKind::UnsupportedInstruction{..}));
+    assert!(matches!(doc.lines[3].kind,LineKind::UnsupportedInstruction{..}));
+    assert!(matches!(doc.lines[4].kind,LineKind::TypedCandidate{..}));
+    assert!(matches!(doc.lines[7].kind,LineKind::PostEndData));
+    let report=doc.inspection_report(100,100);
+    assert_eq!(report.typed_candidate_count,1);
+    assert_eq!(report.post_end_sections,1);
+}
+#[test]
+fn dx100_typed_form_is_never_labelled_confirmed() {
+    let doc=parse_document(b"MOV M010,M011\nEND\n".to_vec(),ControllerFamily::DX100);
+    assert!(matches!(doc.lines[0].kind,
+        LineKind::TypedCandidate{controller_form_verified:false,semantics_verified:false,..}));
+}
