@@ -458,7 +458,7 @@ mod cioprg_page_safety_tests {
     #[tokio::test]
     async fn original_remains_byte_identical_across_pages_and_rejects_stale_digest() {
         let path = std::env::temp_dir().join(format!("mlad-page-{}.LST", uuid::Uuid::new_v4()));
-        let content = (1..=710).map(|n| format!("* test-{n}\\r\\n"))
+        let content = (1..=710).map(|n| format!("* test-{n}\r\n"))
             .collect::<String>();
         std::fs::write(&path, content.as_bytes()).unwrap();
         let file_path = path.to_string_lossy().into_owned();
