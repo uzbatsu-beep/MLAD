@@ -6,6 +6,7 @@
 //! controller programs. See docs/cioprg_lossless_parser.md.
 
 use serde::Serialize;
+use std::collections::BTreeMap;
 use sha2::{Digest, Sha256};
 use super::memory::{
     parse_group, parse_register, parse_relay, ControllerFamily, RelayGroupWidth,
@@ -72,6 +73,13 @@ pub enum LineKind {
     Directive,
     MHeaderRow { row: usize, valid: bool },
     Instruction(AstInstruction),
+    /// Documented operand *shape*, with unverified execution/flag semantics.
+    /// This is NOT executable by the existing boolean analyzer.
+    TypedCandidate {
+        instruction: AstInstruction,
+        semantics_verified: bool,
+        controller_form_verified: bool,
+    },
     UnsupportedInstruction { mnemonic: String },
     Opaque,
     /// Observed ALARM/MESSAGE marker in the data region after exact END.
@@ -133,6 +141,10 @@ pub struct InspectionReport {
     pub source_sha256: String,
     pub line_count: usize,
     pub recognized_instructions: usize,
+    pub typed_candidate_count: usize,
+    pub typed_valid_forms: usize,
+    pub typed_invalid_forms: usize,
+    pub typed_mnemonic_counts: BTreeMap<String,usize>,
     pub unsupported_lines: usize,
     pub m_headers: Vec<MHeaderInfo>,
     pub diagnostics: Vec<ParseDiagnostic>,
@@ -169,6 +181,18 @@ impl LosslessDocument {
     pub fn inspection_report(&self, max_preview_lines: usize, max_diagnostics: usize) -> InspectionReport {
         let recognized_instructions = self.lines.iter().filter(|l|
             matches!(l.kind, LineKind::Instruction(_))).count();
+        let typed_candidate_count = self.lines.iter().filter(|l|
+            matches!(l.kind, LineKind::TypedCandidate{..})).count();
+        let typed_valid_forms = self.lines.iter().filter(|l|
+            matches!(&l.kind, LineKind::TypedCandidate { instruction, .. }
+                if instruction.syntax_valid)).count();
+        let typed_invalid_forms = typed_candidate_count - typed_valid_forms;
+        let mut typed_mnemonic_counts: BTreeMap<String,usize> = BTreeMap::new();
+        for line in &self.lines {
+            if let LineKind::TypedCandidate { instruction, .. } = &line.kind {
+                *typed_mnemonic_counts.entry(instruction.mnemonic.clone()).or_default() += 1;
+            }
+        }
         let unsupported_lines = self.lines.iter().filter(|l|
             matches!(l.kind, LineKind::UnsupportedInstruction { .. } | LineKind::Opaque |
                 LineKind::PostEndOpaque)).count();
@@ -194,6 +218,10 @@ impl LosslessDocument {
             source_sha256: self.source_sha256.clone(),
             line_count: self.lines.len(),
             recognized_instructions,
+            typed_candidate_count,
+            typed_valid_forms,
+            typed_invalid_forms,
+            typed_mnemonic_counts,
             unsupported_lines,
             m_headers: self.m_headers.clone(),
             diagnostics: self.diagnostics.iter().take(max_diagnostics).cloned().collect(),
@@ -264,6 +292,125 @@ fn ascii_trim(mut bytes: &[u8]) -> &[u8] {
     bytes
 }
 
+/// Operand roles documented for the YRC1000 Concurrent I/O instruction set,
+/// with the same lexical forms present in DX200 RE-CKI-A465. This is NOT a
+/// controller-ready validator, program runner, write authorization or a claim
+/// that a DX100 firmware supports identical rules.
+#[derive(Clone, Copy)]
+enum TypedOperandRole {
+    WordSource,     // immediate, Mxxx, byte/word group
+    WordDest,       // M000..M599 or byte/word group
+    ArithmeticSrc,  // immediate or Mxxx
+    ArithmeticDest, // M000..M599
+    ShiftCount,     // decimal 0..16 (not an M register)
+}
+fn typed_roles(mnemonic:&str)->Option<&'static [TypedOperandRole]> {
+    use TypedOperandRole::*;
+    match mnemonic {
+        "MOV" => Some(&[WordSource,WordDest]),
+        "ADD" | "SUB" => Some(&[ArithmeticSrc,ArithmeticSrc,ArithmeticDest]),
+        "SHL" | "SHR" => Some(&[WordSource,ShiftCount,WordDest]),
+        _ => None,
+    }
+}
+fn typed_token_kind(token:&str, controller:ControllerFamily)->OperandKind {
+    if parse_register(token).is_ok() { return OperandKind::MRegister; }
+    if parse_group(controller,token,RelayGroupWidth::Word16).is_ok() {
+        return OperandKind::RelayWord;
+    }
+    if parse_group(controller,token,RelayGroupWidth::Byte8).is_ok() {
+        return OperandKind::RelayByte;
+    }
+    if !token.is_empty() && token.bytes().all(|b| b.is_ascii_digit()) &&
+        token.parse::<u16>().is_ok() {
+        return OperandKind::DecimalLiteral;
+    }
+    OperandKind::Unrecognized
+}
+fn typed_slot_valid(
+    role:TypedOperandRole,
+    token:&str,
+    kind:OperandKind,
+)->bool {
+    use TypedOperandRole::*;
+    match role {
+        WordSource => matches!(kind,OperandKind::DecimalLiteral|OperandKind::MRegister|
+            OperandKind::RelayByte|OperandKind::RelayWord),
+        WordDest => matches!(kind,OperandKind::RelayByte|OperandKind::RelayWord) ||
+            (kind==OperandKind::MRegister && parse_register(token).is_ok_and(|m|m.number<=599)),
+        ArithmeticSrc => matches!(kind,OperandKind::DecimalLiteral|OperandKind::MRegister),
+        ArithmeticDest => kind==OperandKind::MRegister &&
+            parse_register(token).is_ok_and(|m|m.number<=599),
+        ShiftCount => kind==OperandKind::DecimalLiteral &&
+            token.parse::<u16>().is_ok_and(|n|n<=16),
+    }
+}
+/// Returns a typed display-only candidate for the five positively listed
+/// instruction forms. It never joins the executable boolean AST, even when
+/// all operand shapes match the documented examples.
+fn parse_typed_candidate(
+    source:&[u8], line:&SourceLine, source_offset:usize,
+    mnemonic:&str, mnemonic_end:usize, controller:ControllerFamily,
+    diagnostics:&mut Vec<ParseDiagnostic>,
+)->Option<LineKind> {
+    let roles=typed_roles(mnemonic)?;
+    let mut start=mnemonic_end;
+    while start<source.len() && is_space(source[start]) {start+=1;}
+    let mut columns:Vec<(usize,usize)>=Vec::new();
+    let mut actual_count=0usize;
+    if start<source.len() {
+        let mut cell=start;
+        for offset in start..=source.len() {
+            if offset==source.len() || source[offset]==b',' {
+                actual_count+=1;
+                if columns.len()<8 {
+                    let mut a=cell; let mut b=offset;
+                    while a<b && is_space(source[a]) {a+=1;}
+                    while b>a && is_space(source[b-1]) {b-=1;}
+                    columns.push((a,b));
+                }
+                cell=offset+1;
+            }
+        }
+    }
+    let mut valid=actual_count==roles.len();
+    if !valid {
+        push_diag(diagnostics,"TypedOperandCount",Severity::Error,line,
+            format!("{mnemonic}: ожидается {} операнда(-ов), получено {actual_count}; модель только для просмотра",roles.len()));
+    }
+    let mut operands=Vec::with_capacity(columns.len());
+    for (index,(a,b)) in columns.into_iter().enumerate() {
+        // Large malformed tokens are displayed only in bounded preview form,
+        // while full source and accurate byte spans stay unchanged.
+        let display_end=b.min(a.saturating_add(128));
+        let spelling=String::from_utf8_lossy(&source[a..display_end]).into_owned();
+        let kind=if b-a>128 {OperandKind::Unrecognized} else {
+            typed_token_kind(&spelling,controller)
+        };
+        let accepted=roles.get(index).is_some_and(|role|
+            typed_slot_valid(*role,&spelling,kind));
+        if !accepted {
+            valid=false;
+            push_diag(diagnostics,"TypedOperandForm",Severity::Warning,line,
+                format!("{mnemonic}: позиция {} — неподтверждённый тип/диапазон операнда",index+1));
+        }
+        operands.push(AstOperand {
+            spelling, kind,
+            span:ByteSpan{start:line.body_span.start+source_offset+a,
+                end:line.body_span.start+source_offset+b},
+        });
+    }
+    let instruction=AstInstruction {
+        mnemonic:mnemonic.to_string(),operands,line:line.number,
+        span:line.body_span,syntax_valid:valid,
+    };
+    Some(LineKind::TypedCandidate {
+        instruction,
+        semantics_verified:false,
+        controller_form_verified:!matches!(controller,ControllerFamily::DX100),
+    })
+}
+
 /// A text subset recognizer only. No semantic/branch evaluation.
 fn parse_instruction(
     source: &[u8],
@@ -287,6 +434,9 @@ fn parse_instruction(
             return LineKind::Opaque;
         }
     };
+    if let Some(candidate)=parse_typed_candidate(
+        source,line,source_offset,mnemonic,mnemonic_end,controller,diagnostics
+    ) { return candidate; }
     let schema: &[OperandKind] = match mnemonic {
         "STR" | "STR-NOT" | "AND" | "AND-NOT" |
         "OR" | "OR-NOT" | "OUT" => &[OperandKind::RelayBit],

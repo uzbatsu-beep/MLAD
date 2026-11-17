@@ -93,3 +93,7 @@ Proposed main-window integration of the original read-only CIOPRG.LST, with left
 ## PR #18 — post-END structure and condensed diagnostics
 
 The read-only Native Workspace distinguishes observed `ALARM/MESSAGE` sections after `END` from the verified instruction subset. Diagnostic messages can be grouped by severity/code without losing per-line navigation. [Engineering limitations](docs/post_end_data.md). Original files remain immutable and the native writer / HSES / FTP are disabled.
+
+## PR #19 — типизированный синтаксис (read-only, без семантики)
+
+Мнемоники `MOV`, `ADD`, `SUB`, `SHL`, `SHR` анализируются как ограниченные **типизированные кандидаты** с явными ролями `S/S1/S2/n/D`, спанами оригинального текста, отдельным статусом в Workspace и запретом построения исполняемых Ladder-схем. Нативная запись CIOPRG.LST, FTP/HSES и System/User редактирование выключены. [Сведения об источниках и ограничениях](docs/typed_opcode_grammar.md).

@@ -156,3 +156,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 ## Read-only post-END data classification (PR #18 proposal)
 
 The lossless parser now distinguishes syntactically valid \`END\` from subsequent **observed** \`//ALARMN\` and \`//MESSAGEN\` data markers. Subsequent text is preserved as non-executable, display-only \`PostEndSection\`, \`PostEndData\` or \`PostEndOpaque\` rather than inventing extra Ladder instructions. See [post-END classification and test limitations](post_end_data.md). This is a structural observation and **not** confirmation of a universal OEM grammar.
+
+## PR #19 — типизированные кандидаты MOV/ADD/SUB/SHL/SHR
+
+Добавлен слой `TypedCandidate` отдельно от исполняемого `Instruction` и `UnsupportedInstruction`. Проверяются только лексические роли операндов и ограничения из документированных таблиц DX200/YRC1000 (не транслируются в полную семантику). Флаги, запись регистров, сканирование, реле и типы значения остаются неподтверждёнными. Для DX100 подтверждения форм данного этапа нет. [Таблица форм/источников/ограничений](typed_opcode_grammar.md).

@@ -16,6 +16,22 @@ type Diagnostic = {
   byte_offset: number;
   message: string;
 };
+type TypedCandidatePreview={
+  instruction:{
+    mnemonic:string;syntax_valid:boolean;line:number;
+    operands:{spelling:string;kind:string;span:{start:number;end:number}}[];
+  };
+  semantics_verified:boolean;
+  controller_form_verified:boolean;
+};
+function getTypedCandidate(kind:unknown):TypedCandidatePreview|null {
+  if(!kind||typeof kind!=="object"||!("TypedCandidate" in kind))return null;
+  const value=(kind as {TypedCandidate:unknown}).TypedCandidate;
+  if(!value||typeof value!=="object"||!("instruction" in value))return null;
+  const t=value as TypedCandidatePreview;
+  return t.instruction&&typeof t.instruction.mnemonic==="string"&&
+    Array.isArray(t.instruction.operands)?t:null;
+}
 type PreviewLine = {
   line: number;
   ending: string;
@@ -125,6 +141,10 @@ type Report = {
   source_sha256: string;
   line_count: number;
   recognized_instructions: number;
+  typed_candidate_count: number;
+  typed_valid_forms: number;
+  typed_invalid_forms: number;
+  typed_mnemonic_counts: Record<string,number>;
   unsupported_lines: number;
   end_line: number|null;
   post_end_line_count: number;
@@ -242,6 +262,10 @@ export function NativeWorkspace() {
       catch(error){return {rung:sourceRung,expr:null,error:String(error)};}
     });
   },[report]);
+  const selectedTyped=useMemo(()=>{
+    if(selectedLine===null)return null;
+    return getTypedCandidate(pageLines.find(l=>l.line===selectedLine)?.kind);
+  },[selectedLine,pageLines]);
   const filteredIoname=useMemo(()=>{
     if(!ioname)return [];
     const query=ionameQuery.trim().toLowerCase();
@@ -376,6 +400,10 @@ export function NativeWorkspace() {
       controller:report.controller,source_sha256:report.source_sha256,
       byte_length:report.byte_length,line_count:report.line_count,encoding:report.encoding,
       recognized_instructions:report.recognized_instructions,unsupported_lines:report.unsupported_lines,
+      typed_candidate_count:report.typed_candidate_count,
+      typed_valid_forms:report.typed_valid_forms,
+      typed_invalid_forms:report.typed_invalid_forms,
+      typed_mnemonic_counts:report.typed_mnemonic_counts,
       end_line:report.end_line,post_end_line_count:report.post_end_line_count,
       post_end_sections:report.post_end_sections,post_end_unverified_lines:report.post_end_unverified_lines,
       sections:report.sections,parser_diagnostics:report.diagnostics,
@@ -482,7 +510,13 @@ export function NativeWorkspace() {
       <div style={{display:"flex",gap:15,flexWrap:"wrap",padding:"7px 14px",fontSize:12,
         background:"#192735",borderBottom:"1px solid #35485b"}}>
         <span>{report.controller} · <b>{report.line_count}</b> строк · {report.byte_length} байт</span>
-        <span style={{color:"#a6d5b5"}}>{report.recognized_instructions} распознано</span>
+        <span style={{color:"#a6d5b5"}}>{report.recognized_instructions} булево/блоки</span>
+        <span style={{color:"#a9c8e6"}} title="Форма операндов определена; исполнение и флаги не подтверждены">
+          {report.typed_candidate_count} типизировано · {report.typed_valid_forms} формы соответствуют
+        </span>
+        {report.typed_invalid_forms>0&&<span style={{color:"#eead85"}}>
+          {report.typed_invalid_forms} неподтверждённых форм
+        </span>}
         <span style={{color:"#edc38b"}}>{report.unsupported_lines} opaque/unknown</span>
         {report.end_line!==null&&<span title="Текстовая классификация, не подтверждение OEM-грамматики">
           END L{report.end_line} · после END {report.post_end_line_count} строк · {report.post_end_sections} разделов
@@ -568,8 +602,10 @@ export function NativeWorkspace() {
                   color:"#dce5ef",background:selectedLine===l.line?"#2b4d5b":"transparent"}}>
                 <span style={{width:51,flexShrink:0,textAlign:"right",color:"#849eaf"}}>{l.line}</span>
                 <span style={{width:142,flexShrink:0,color:
-                  lineCategory(l.kind)==="UnsupportedInstruction"?"#e4b97e":"#85abb9"}}>
-                  {lineCategory(l.kind)==="PostEndSection"?"Раздел данных":lineCategory(l.kind)==="PostEndData"?
+                  lineCategory(l.kind)==="UnsupportedInstruction"?"#e4b97e":
+                  lineCategory(l.kind)==="TypedCandidate"?"#b8ccec":"#85abb9"}}>
+                  {lineCategory(l.kind)==="TypedCandidate"?"Типизировано*":
+                    lineCategory(l.kind)==="PostEndSection"?"Раздел данных":lineCategory(l.kind)==="PostEndData"?
                     "Данные после END":lineCategory(l.kind)==="PostEndOpaque"?
                     "Неизвестно после END":lineCategory(l.kind)}</span>
                 <span>{l.display_text||" "}</span>
@@ -705,6 +741,46 @@ export function NativeWorkspace() {
         </section>
         <aside style={{...sideStyle,borderRight:0,borderLeft:"1px solid #405263"}}
           aria-label="Диагностика и поиск">
+          <section aria-label="Типизированные инструкции" style={{
+            marginBottom:12,padding:9,border:"1px solid #46617d",borderRadius:5,
+            background:"#1b2a3a",fontSize:12,
+          }}>
+            <strong>Типизированные формы ({report.typed_candidate_count})</strong>
+            <p style={{fontSize:11,color:"#e1bd83",lineHeight:1.4}}>
+              MOV / ADD / SUB / SHL / SHR · Только синтаксис. Семантика, флаги,
+              System/User и разрешение записи не подтверждены.
+            </p>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:11}}>
+              {Object.entries(report.typed_mnemonic_counts).map(([code,count])=>
+                <span key={code} title="Только инвентаризация форм"
+                  style={{border:"1px solid #405a72",padding:"3px 6px",borderRadius:4}}>
+                  {code}: {count}
+                </span>)}
+            </div>
+            {selectedTyped&&<div style={{marginTop:10,paddingTop:8,borderTop:"1px solid #385269"}}>
+              <strong>{selectedTyped.instruction.mnemonic} · L{selectedTyped.instruction.line}</strong>
+              <div style={{fontSize:11,color:selectedTyped.instruction.syntax_valid?"#b7d8c5":"#f1b38e"}}>
+                {selectedTyped.instruction.syntax_valid?
+                  "Типы/количество операндов соответствуют проверяемой форме":
+                  "Форма не соответствует проверяемому подмножеству"}
+              </div>
+              {!selectedTyped.controller_form_verified&&<div style={{fontSize:11,color:"#f1b38e"}}>
+                Для DX100 эта форма отдельно не подтверждена.
+              </div>}
+              {selectedTyped.instruction.operands.map((operand,index)=>
+                <div key={index} style={{display:"flex",gap:6,fontFamily:"Consolas,monospace",
+                  marginTop:5,fontSize:11,overflowWrap:"anywhere"}}>
+                  <b>{index+1}.</b><span>{operand.spelling}</span>
+                  <span style={{color:"#9cb7d0"}}>{operand.kind}</span>
+                </div>)}
+              <div style={{fontSize:11,color:"#e0b985",marginTop:7}}>
+                Не участвует в реконструкции Ladder. Изменение файла запрещено.
+              </div>
+            </div>}
+            {!selectedTyped&&<p style={{fontSize:11,color:"#aec6d2"}}>
+              Выберите типизированную строку в исходном тексте, чтобы увидеть операнды.
+            </p>}
+          </section>
           <section aria-label="Редактор локальных комментариев" style={{
             marginBottom:14,padding:9,border:"1px solid #527369",borderRadius:5,
             background:"#1e3536",
