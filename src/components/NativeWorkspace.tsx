@@ -790,7 +790,7 @@ export function NativeWorkspace() {
           {(report.diagnostics.length>=500||report.semantic.diagnostics_truncated)&&
             <p style={{fontSize:11,color:"#e7bc83"}}>
               Backend ограничил число сообщений: часть диагностик может отсутствовать.
-            </p>
+            </p>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <div>Выбрана строка: {selectedLine??"—"}</div>
           <div style={{marginTop:8,fontSize:11}}>
