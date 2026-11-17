@@ -39,6 +39,8 @@ jobs:
         run: git diff --exit-code -- package.json package-lock.json
       - name: Offline controller safety invariants
         run: npm run test:security
+      - name: Native integrated workspace regressions
+        run: npm run test:native
       - name: Markdown internal links and formatting
         run: npm run docs:check
       - name: Graph layout and editor model tests

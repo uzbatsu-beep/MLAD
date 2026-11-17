@@ -1,7 +1,7 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
 **Текущий статус (17.11.2026): инженерный прототип, OFFLINE / BENCH.**  
-Основная ветка содержит результаты слитых PR **#1–#11** (PR #6 — релизная инфраструктура Windows Bench), включая просмотр `CIOPRG.LST`, Semantic AST, визуальный редактор, TMR/CNT/GSTR/GOUT, цветовую офлайн-диагностику и редактирование операндов двойным щелчком.
+Основная ветка содержит результаты слитых PR **#1–#14** (PR #6 — релизная инфраструктура Windows Bench), включая просмотр `CIOPRG.LST`, Semantic AST, визуальный редактор, TMR/CNT/GSTR/GOUT, цветовую офлайн-диагностику и редактирование операндов двойным щелчком.
 
 > **Внимание:** MLAD **не является проверенным компилятором Yaskawa**. Он не создаёт редактируемый нативный `CIOPRG.LST`, не разрешает запись в робот и не показывает реальные состояния I/O. Команды Tauri для FTP-деплоя и HSES-мониторинга блокируются на стороне Rust. Действия с оборудованием выполняются только штатными средствами Yaskawa и по согласованной безопасной процедуре.
 
@@ -77,3 +77,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 Внесение изменений: **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 **Цель проекта** — в перспективе предоставить удобную среду для работы с Yaskawa Concurrent I/O. Будущие компиляция, загрузка, безопасный мониторинг и аппаратная эквивалентность **не должны описываться как уже реализованные возможности**.
+
+## Native Workspace UI (PR #15, until merge)
+
+Proposed main-window integration of the original read-only CIOPRG.LST, with left section tree, center paged source/recognized diagrams and right diagnostics/search. Legacy project.json remains under a compatibility menu. See [Native Workspace preview notes](docs/releases/v0.5.0-rc.3-workspace.md). No native writer, HSES or deployment permission is added.
