@@ -1,7 +1,7 @@
 # MLAD — дорожная карта v2: Native CIO Workspace → Engineering IDE → Verified Controller Integration
 
-**Актуализация:** 17.11.2026; основание `main` `73ce809d9c28ad72c0c54b4a5b6597f8525a7f90` (PR #1–#12 merged, CI success).  
-**Статус:** согласована последовательность безопасность → Native Offline Workspace → parser/analysis → offline IDE. PR #13 до слияния остаётся предложением. Native writer, сетевые подключения и аппаратная загрузка не разрешены.
+**Актуализация:** 18.11.2026; `main` `39c5ead8d1b9ac63b49be607312dc8b3976549dd`, PR **#1–#21 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), Windows [rc.9 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).  
+**Статус:** базовый Native Workspace и read-only parser работают; пять команд типизированы и снабжены автономными OEM-reference векторами, но scan/dataflow, System/User, стенд и native writer **не подтверждены/заблокированы**. [Текущий статус](project_status.md).
 
 ## 1. Продуктовая цель и ограничения
 
@@ -17,41 +17,41 @@
 
 ## 2. Зафиксированный baseline
 
-| PR | В основной ветке | Ограничение |
+| PR | Реализовано и слито в `main` | Не следует считать доказанным |
 |---|---|---|
-| #1 | Модель памяти DX100/DX200/YRC1000 | Без подтверждения конкретной firmware и I/O mapping |
-| #2 | Побайтовый lossless анализ `CIOPRG.LST` и SHA-256 | Нет полного разбора или изменяемого native файла |
-| #3 | Semantic AST, булевые условия и диагностика | Stateful/unknown инструкции создают барьер анализа |
-| #4 | `*.graph.json`, SVG AND/OR/NO/NC/OUT, Undo/Redo | JSON — не Yaskawa native |
-| #5 | `*.advanced.json`, TMR/CNT/GSTR/GOUT, офлайн-шаги | Реальный scan-cycle не подтверждён |
-| #6 | Windows Bench RC и pipeline | Pre-release — не аппаратная сертификация |
-| #7 | Все графические цепи/блоки на поле, tri-state OFFLINE | Цвета — не live I/O |
-| #8 | Двойной щелчок/F2 по адресам JSON-схем | Оригинал LST остаётся read-only |
-| #9 | Аудит документации, описание архитектуры/рисков, Markdown CI | Не устраняет выявленные проблемы кода |
+| #1–#5 | Профили памяти, lossless, Boolean AST, JSON Graph Draft и TMR/CNT/GSTR/GOUT | Нет native writer и OEM-измерений |
+| #6–#9 | Windows preview, multi-rung, inline JSON, аудит документации | CI ≠ hardware validation |
+| #10–#12 | Roadmap v2, GPL-3.0-only, npm lockfile/`npm ci` | Юридический и security аудит открыты |
+| #13–#14 | Удалён неподтверждённый HSES/FTP runtime, source paging/search | Безопасность filesystem ещё требует аудита |
+| #15–#17 | Native Workspace, IONAME overlay, системные Open dialogs, компактный UI | OEM IONAME mapping и writer не подтверждены |
+| #18 | Post-END ALARM/MESSAGE как данные, группировка diagnostics | Не универсальная OEM-грамматика |
+| #19 | TypedCandidate MOV/ADD/SUB/SHL/SHR | Не исполняемые операции |
+| #20 | Статические гипотезы M-ссылок | Не реальный поток данных/scan |
+| #21 | Справочник EN/Carry/Zero/Error и изолированные reference векторы | Нет стендового подтверждения |
 
-**Текущее наблюдение с реального YRC1000:** пользователь открыл экспорт `CIOPRG.LST` в Inspector. На предоставленных скриншотах показано **1396 строк, 13189 байт, 215 unknown/opaque, 64 булевы цепи**, предупреждения по MOV/ADD и визуальные блоки CNT/GSTR/GOUT. Это **диагностическое наблюдение по одному файлу**, а не одобренный открытый golden fixture. Количество/применимость инструкций для других controller/firmware не обобщать. До работы с байтами нужен разрешённый оригинальный файл и provenance, см. [controller_fixture_intake.md](controller_fixture_intake.md).
+**Историческое наблюдение по ранней Windows-сборке (17.11.2026):** пользователь открыл экспорт `CIOPRG.LST` в Inspector. На предоставленных скриншотах показано **1396 строк, 13189 байт, 215 unknown/opaque, 64 булевы цепи**, предупреждения по MOV/ADD и визуальные блоки CNT/GSTR/GOUT. Это **диагностическое наблюдение по одному файлу**, а не одобренный открытый golden fixture. Количество/применимость инструкций для других controller/firmware не обобщать. До работы с байтами нужен разрешённый оригинальный файл и provenance, см. [controller_fixture_intake.md](controller_fixture_intake.md).
 
 ## 3. Этапы разработки и зависимости
 
-Обозначения: **P0** — блокирующий фундамент; **P1** — ключевая функция офлайн IDE; **P2** — углубление проверок/чтения; **P3** — потенциальные операции записи только после отдельных допусков. Статус `DONE` применим только к уже слитым PR #1–#9.
+Обозначения: **P0** — блокирующий фундамент; **P1** — ключевая функция офлайн IDE; **P2** — углубление проверок/чтения; **P3** — потенциальные операции записи только после отдельных допусков. В статусах ниже учитываются слитые PR #1–#21; `DONE` означает выполненный программный этап, **не** аппаратную верификацию.
 
 | ID | Этап | Приоритет | Зависит от | Проверяемый результат | Статус |
 |---|---|---|---|---|---|
-| M0 | Baseline PR #1–#12 | DONE | — | Выполнены текущие CI, code/docs синхронизированы | Завершён |
-| M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | Требуется |
-| M2 | Безопасность и воспроизводимость | P0 | M0 | Изоляция HSES/FTP, filesystem hardening, CI safety gates; lockfile уже в main | Частично: PR #12 завершён, #13 предложен |
-| M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | Предлагается первым UI-этапом |
-| M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | Требуется |
-| M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | Требуется |
-| M6 | Semantic / Dataflow Analysis v2 | P1 | M5, M1 | READ/WRITE refs, конфликтные записи, таймеры/счётчики, неполные ветви, trace source→graph | Требуется |
-| M7 | Unified Offline Engineering Project | P1 | M3, M6 | Сессия `native snapshot + sidecar + separate editable drafts`; поиск, заметки, сравнение изменений | Требуется |
-| M8 | Редактор и статическая проверка инженерного проекта | P1 | M7, M6 | Общие компоненты Ladder/advanced, история изменений, правила адресации, диагностика до сохранения | Требуется |
-| M9 | Воспроизводимая offline-модель | P2 | M6, M1, OEM evidence | Тест-кейсы логики и ограниченные stateful сценарии с явно описанным scan/time контрактом | Требуется |
-| M10 | OEM bench validation и сравнительная матрица | P1–P2 | M1, M5/M6, разрешённый стенд | Сопоставление MLAD↔OEM Ladder Editor по каждому controller/firmware, измеренные результаты | Не выполнялось |
-| M11 | Read-only HSES диагностика | P2, независимо от writer | M2, OEM HSES specification, M10 для I/O mapping | Проверяемое read-only чтение, timestamps/quality/staleness, безопасный UNKNOWN | Не разрешено |
-| M12 | Native CIOPRG writer + verified round-trip | P3 | M1, M5–M10, System/User boundaries | Доказанная точность native формата и независимая OEM проверка; отдельное решение о доступе | Заблокировано |
-| M13 | Контролируемый deployment и recovery | P3 | M12, risk assessment, OEM approvals | Отдельно разрешённая процедура загрузки, backup, rollback, право записи, трассировка | Заблокировано |
-| MX | UX/Quality/Release engineering (сквозной поток) | P0–P2 | В каждом этапе | Versioned releases, CI, Windows smoke, логирование, performance, подписывание, docs | Постоянно |
+| M0 | Baseline PR #1–#21 | DONE | — | Выполнены текущие CI, code/docs синхронизированы | DONE: PR #1–#21 в main; основной CI SUCCESS |
+| M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
+| M2 | Безопасность и воспроизводимость | P0 | M0 | Изоляция HSES/FTP, filesystem hardening, CI safety gates; lockfile уже в main | PARTIAL: сеть удалена, npm/Cargo lock; CSP/TOCTOU/JSON остаются |
+| M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
+| M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | PARTIAL: paging/search/diagnostics; расширенные cross-ref/UX открыты |
+| M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | PARTIAL: пять typed opcodes; иные команды unknown |
+| M6 | Semantic / Dataflow Analysis v2 | P1 | M5, M1 | READ/WRITE refs, конфликтные записи, таймеры/счётчики, неполные ветви, trace source→graph | PARTIAL: Boolean AST + static M-links + reference vectors; scan/dataflow unknown |
+| M7 | Unified Offline Engineering Project | P1 | M3, M6 | Сессия `native snapshot + sidecar + separate editable drafts`; поиск, заметки, сравнение изменений | OPEN: native snapshot и local annotations есть, portable sidecar не создан |
+| M8 | Редактор и статическая проверка инженерного проекта | P1 | M7, M6 | Общие компоненты Ladder/advanced, история изменений, правила адресации, диагностика до сохранения | OPEN: отдельные JSON drafts есть; единого native engineering project нет |
+| M9 | Воспроизводимая offline-модель | P2 | M6, M1, OEM evidence | Тест-кейсы логики и ограниченные stateful сценарии с явно описанным scan/time контрактом | OPEN: offline reference vectors ≠ OEM scan simulation |
+| M10 | OEM bench validation и сравнительная матрица | P1–P2 | M1, M5/M6, разрешённый стенд | Сопоставление MLAD↔OEM Ladder Editor по каждому controller/firmware, измеренные результаты | NOT DONE: доступа к стенду нет |
+| M11 | Read-only HSES диагностика | P2, независимо от writer | M2, OEM HSES specification, M10 для I/O mapping | Проверяемое read-only чтение, timestamps/quality/staleness, безопасный UNKNOWN | BLOCKED: HSES read-only не разрешён |
+| M12 | Native CIOPRG writer + verified round-trip | P3 | M1, M5–M10, System/User boundaries | Доказанная точность native формата и независимая OEM проверка; отдельное решение о доступе | BLOCKED: native CIO writer не разрешён |
+| M13 | Контролируемый deployment и recovery | P3 | M12, risk assessment, OEM approvals | Отдельно разрешённая процедура загрузки, backup, rollback, право записи, трассировка | BLOCKED: deployment не разрешён |
+| MX | UX/Quality/Release engineering (сквозной поток) | P0–P2 | В каждом этапе | Versioned releases, CI, Windows smoke, логирование, performance, подписывание, docs | ONGOING: CI / docs / Windows rc.9 |
 
 **Новые источники (закрытая обработка, 17.11.2026):** локально изучены ещё пять пользовательских `.LST`-выгрузок без публикации файлов, хешей, адресов и конфигурации. Отмечены варианты заголовков, `//$M` и отдельные разделы после `END`; точные контроллеры/firmware и результаты OEM проверки не предоставлены. Для parser v2 подготовить синтетические тесты различающихся заголовков и недопустимости интерпретации ALARM/MESSAGE как Ladder.
 
@@ -158,22 +158,30 @@
 
 **Настоящий документ — карта решений, а не согласие на запуск M11–M13.**
 
-### PR #19 — Typing extension / offline native (in progress)
+### PR #19 — Typed Syntax (merged 17.11.2026)
 
 - Предложено: `MOV`, `ADD`, `SUB`, `SHL`, `SHR` как типизированные, но **не исполняемые** формы; сохранение неизменных raw bytes/source spans и отчёт по opcode в Native Workspace.
 - Не входит: семантическая эмуляция, flags, влияние на выходные цепи, изменение System/User, OEM writer, FTP/HSES.
 - Валидация: синтетические Rust fixtures + документация + Windows rc7 preview. Проверка на настоящих файлах — только в локальном приватном корпусе, без публикации.
 
-### PR #20 — Evidence-oriented static dependency audit (in progress)
+### PR #20 — Static evidence (merged 17.11.2026)
 
 - Read-only, bounded inventory of syntactically typed source/destination operand positions; exact M-register match may propose *source-order-only* predecessor links.
 - Any unsupported/malformed, known boolean/advanced, PART, END or post-END boundary breaks tentative continuity.
 - No runtime values, arithmetic flags, scan-cycle semantics, control-flow simulation, hardware I/O or controller upload.
-- OEM semantic verification is gated by an explicit evidence matrix and controller-specific bench results. Draft PR, no merge before owner approval.
+- OEM semantic verification остаётся отдельным gate: PR #20 слит, документальные формулы не заменяют измерений.
 
-### PR #21 — OEM-manuаl reference for all five operations (in progress)
+### PR #21 — OEM reference for five opcodes (merged 17.11.2026)
 
 - Проанализированы MOV/ADD/SUB/SHL/SHR параллельно, по разделам YRC1000 R12 и DX100 Rev.0; DX200 всё ещё требует отдельного source verification.
 - Отдельная ручная 16-bit reference-модель Rust с тестами пределов 0/16 и 255/256 и явно неопределёнными флагами.
 - Справка по OEM в Native Workspace; никакой интеграции reference-ядра с реальным CIO, HSES/FTP, writer или scan engine.
-- Готовится Windows rc.9 preview; merge — только по согласованию.
+- Windows rc.9 опубликован, PR #21 слит; испытания на контроллере не проводились.
+
+## 8. Актуальный маршрут после PR #21 (18.11.2026)
+
+**Пока недоступны роботы:** документально сверить ревизии DX200, расширить negative/parser tests, разработать переносимый проверяемый sidecar для локальных комментариев, усилить cross-ref/diff и отдельно провести security review CSP/filesystem/JSON, third-party notices/SBOM. **Не** включать native writer или сеть.
+
+**При появлении стенда:** пройти [матрицу испытаний](advanced_hardware_test_matrix.md), включая MOV byte=256, SHL/SHR n=0/16, EN/scan и флаги #51400/#51401/#51402 по каждому поколению. Только воспроизводимые OEM измерения повышают уровень confidence реальной семантики.
+
+**Организация:** каждый будущий этап в отдельном Draft PR, с тестами и согласованием владельца до слияния. Разделы с вариантами приоритетов выше сохранены как история обсуждения, а не текущая задача по первому запуску UI.
