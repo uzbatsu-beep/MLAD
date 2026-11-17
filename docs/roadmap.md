@@ -11,10 +11,11 @@
 | #3 | Semantic AST и диагностика булевых ветвей | Stateful opcodes образуют барьер |
 | #4 | JSON Graph Editor, SVG AND/OR/OUT, Undo/Redo | Отдельный `*.graph.json` |
 | #5 | TMR/CNT/GSTR+GOUT, `*.advanced.json`, локальные test-state модели | Не real scan-cycle |
+| #6 | Подготовка [Windows Bench v0.5.0-rc.1](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.1-hardware) | Release pipeline/pre-release; не подтверждает аппаратную совместимость |
 | #7 | Все цепи и блоки на поле, три состояния OFFLINE | Не HSES telemetry |
 | #8 | Двойной щелчок по адресам в JSON-схемах | Native source remains read-only |
 
-Номер #6 не используется как утверждение об отдельном слитом PR: фактические вехи сверять по [GitHub Pull Requests](https://github.com/uzbatsu-beep/MLAD/pulls?q=is%3Apr+is%3Amerged).
+**PR #6 действительно был слит** с названием `Release/0.5.0 rc1 hardware`; он относится к выпуску Windows Bench, а не к новой семантике Ladder. Все вехи сверять по [GitHub Pull Requests](https://github.com/uzbatsu-beep/MLAD/pulls?q=is%3Apr+is%3Amerged).
 
 ## Рекомендуемые следующие инженерные этапы (приоритет)
 
