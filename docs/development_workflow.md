@@ -21,11 +21,14 @@ npm run test:graph
 npm run test:advanced
 npm run test:visual
 npm run test:inline
+npm run docs:check
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
 Для локального GUI: `npm run tauri dev`. Проверять ручным сценарием сохранение/загрузку JSON, размеры окна и двойной щелчок по SVG, состояние UNKNOWN, запрет HSES/FTP и неизменность исходного LST.
+
+Документационная проверка `npm run docs:check` отдельно проверяет относительные ссылки и исторические escaped newline-подстановки; **она не проверяет фактическую доступность внешних ссылок или их достоверность**.
 
 `MLAD validation` запускается на PR в `main` и после push в `main`, выполняет Rust-тесты (Ubuntu), frontend тесты, проверку типов и Vite build. Прогон Windows/MSVC выполняется **отдельным** workflow, а не каждым PR. Полный список тестов зависит от конкретного workflow — проверять YAML и commit SHA.
 
