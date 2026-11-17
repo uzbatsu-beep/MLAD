@@ -22,6 +22,8 @@ type Props={
   /** Comment-only annotation of a native source operand (not native editing). */
   onEditComment?:(address:string)=>void;
   commentForAddress?:(address:string)=>string;
+  /** Display-only zoom; no changes to block data. */
+  zoom?:number;
 };
 function stateMarker(state:LogicState,x:number,y:number,name:string){
   const color=STATE_COLORS[state];
@@ -41,7 +43,7 @@ function stateMarker(state:LogicState,x:number,y:number,name:string){
  */
 export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UNKNOWN",
   resetState="UNKNOWN",currentValue=null,groupByte=null,onEditField,
-  onEditComment,commentForAddress}:Props) {
+  onEditComment,commentForAddress,zoom=1}:Props) {
   const [editing,setEditing]=useState<null|"current"|"output"|"source"|"destination"|
     "preset"|"enable"|"count"|"reset">(null);
   const canEdit=!!onEditField;
@@ -83,10 +85,12 @@ export function AdvancedBlockDiagram({block,outputState="UNKNOWN",inputState="UN
   return <div style={{overflowX:"auto",overflowY:"hidden",
     border:"1px solid #526476",background:"#17232e",borderRadius:8,
     minHeight:0,width:"100%"}}>
-    <svg viewBox={`0 0 740 ${h}`} width="740" height={h}
+    <svg viewBox={`0 0 740 ${h}`} width={740*zoom} height={h*zoom}
       preserveAspectRatio="xMinYMid meet" role="img"
       aria-label={`Офлайн-схема ${title}, выход ${outputState}`}
-      style={{display:"block",width:"100%",maxWidth:900,minWidth:610,height:"auto"}}>
+      style={{display:"block",width:zoom===1?"100%":740*zoom,
+        maxWidth:zoom===1?900:undefined,minWidth:zoom===1?610:0,
+        height:"auto"}}>
       <line x1={22} y1={18} x2={22} y2={h-18} stroke="#70899b" strokeWidth={3}/>
       <line x1={718} y1={18} x2={718} y2={h-18} stroke="#70899b" strokeWidth={3}/>
       <rect x={292} y={isCnt?48:29} width={180} height={isCnt?165:isGrp?132:122}
