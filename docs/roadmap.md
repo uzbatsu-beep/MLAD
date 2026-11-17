@@ -170,3 +170,10 @@
 - Any unsupported/malformed, known boolean/advanced, PART, END or post-END boundary breaks tentative continuity.
 - No runtime values, arithmetic flags, scan-cycle semantics, control-flow simulation, hardware I/O or controller upload.
 - OEM semantic verification is gated by an explicit evidence matrix and controller-specific bench results. Draft PR, no merge before owner approval.
+
+### PR #21 — OEM-manuаl reference for all five operations (in progress)
+
+- Проанализированы MOV/ADD/SUB/SHL/SHR параллельно, по разделам YRC1000 R12 и DX100 Rev.0; DX200 всё ещё требует отдельного source verification.
+- Отдельная ручная 16-bit reference-модель Rust с тестами пределов 0/16 и 255/256 и явно неопределёнными флагами.
+- Справка по OEM в Native Workspace; никакой интеграции reference-ядра с реальным CIO, HSES/FTP, writer или scan engine.
+- Готовится Windows rc.9 preview; merge — только по согласованию.
