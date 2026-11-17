@@ -15,7 +15,8 @@
     "docs:check": "node scripts/check-docs.mjs",
     "test:security": "node --test scripts/offline-boundary.test.mjs",
     "test:native": "node --test scripts/native-workspace.test.mjs",
-    "test:diagnostics": "node --experimental-strip-types --test src/ladder/diagnosticsModel.test.ts"
+    "test:diagnostics": "node --experimental-strip-types --test src/ladder/diagnosticsModel.test.ts",
+    "test:oem-reference": "node --experimental-strip-types --test src/ladder/oemReference.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
