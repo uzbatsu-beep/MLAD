@@ -133,6 +133,33 @@ type Report = {
   original_round_trip_only: boolean;
 };
 
+type IonameEntry = {section:string;ordinal:number;line:number;slot:number;label:string};
+type IonameReport = {
+  source_sha256:string; byte_length:number; encoding:string; header_valid:boolean;
+  entries:IonameEntry[]; entries_truncated:boolean; warnings:string[];
+  original_only:boolean;native_write_allowed:boolean;relay_mapping_verified:boolean;
+};
+type Annotations = {
+  rungs:Record<string,string>;addresses:Record<string,string>;ioname:Record<string,string>;
+};
+type EditKey = "rungs"|"addresses"|"ioname";
+type EditTarget = {type:EditKey;key:string;caption:string};
+const blankAnnotations=():Annotations=>({rungs:{},addresses:{},ioname:{}});
+function loadLocalAnnotations(hash:string):Annotations {
+  try {
+    const data=window.localStorage.getItem("mlad-annotations:"+hash);
+    if (!data || data.length>400_000) return blankAnnotations();
+    const source:unknown=JSON.parse(data);
+    if(!source || typeof source!=="object")return blankAnnotations();
+    const parts=source as Partial<Annotations>;
+    const safe=(v:unknown):Record<string,string> => {
+      if(!v || typeof v!=="object" || Array.isArray(v))return {};
+      return Object.fromEntries(Object.entries(v).filter(([key,value])=>
+        key.length<160 && typeof value==="string" && value.length<=200));
+    };
+    return {rungs:safe(parts.rungs),addresses:safe(parts.addresses),ioname:safe(parts.ioname)};
+  } catch{return blankAnnotations();}
+}
 type ReadPage = {
   source_sha256: string;
   start_line: number;
@@ -175,7 +202,7 @@ export function NativeWorkspace() {
   const [report,setReport]=useState<Report|null>(null);
   const [busy,setBusy]=useState(false);
   const [issue,setIssue]=useState("");
-  const [tab,setTab]=useState<"source"|"diagram"|"blocks">("source");
+  const [tab,setTab]=useState<"source"|"diagram"|"blocks"|"ioname">("source");
   const [pageStart,setPageStart]=useState(1);
   const [pageLines,setPageLines]=useState<PreviewLine[]>([]);
   const [pageBusy,setPageBusy]=useState(false);
@@ -183,6 +210,16 @@ export function NativeWorkspace() {
   const [goto,setGoto]=useState("");
   const [rung,setRung]=useState(1);
   const [zoom,setZoom]=useState(1);
+  const [blockZoom,setBlockZoom]=useState(1);
+  const [ionamePath,setIonamePath]=useState("");
+  const [ioname,setIoname]=useState<IonameReport|null>(null);
+  const [ionameQuery,setIonameQuery]=useState("");
+  const [ionameBusy,setIonameBusy]=useState(false);
+  const [annotations,setAnnotations]=useState<Annotations>(blankAnnotations);
+  const [editing,setEditing]=useState<EditTarget|null>(null);
+  const [commentText,setCommentText]=useState("");
+  const [linkEntry,setLinkEntry]=useState<IonameEntry|null>(null);
+  const [linkAddress,setLinkAddress]=useState("");
   const [search,setSearch]=useState("");
   const [hits,setHits]=useState<SearchHit[]>([]);
   const [searchTruncated,setSearchTruncated]=useState(false);
@@ -190,12 +227,23 @@ export function NativeWorkspace() {
   const [filter,setFilter]=useState<"all"|"Error"|"Warning">("all");
   const [json,setJson]=useState("");
 
-  const activeRung=report?.semantic.rungs.find(x=>x.number===rung)??report?.semantic.rungs[0];
-  const graph=useMemo(()=>{
-    if(!report||!activeRung)return null;
-    try{return {expression:semanticToExpression(report.semantic.nodes,activeRung.expression_root)};}
-    catch(error){return {error:String(error)};}
-  },[report,activeRung]);
+  const visibleRungs=useMemo(()=>{
+    if(!report)return [];
+    return report.semantic.rungs.map(sourceRung=>{
+      try{return {rung:sourceRung,expr:semanticToExpression(report.semantic.nodes,sourceRung.expression_root),error:""};}
+      catch(error){return {rung:sourceRung,expr:null,error:String(error)};}
+    });
+  },[report]);
+  const filteredIoname=useMemo(()=>{
+    if(!ioname)return [];
+    const query=ionameQuery.trim().toLowerCase();
+    return ioname.entries.filter(entry=>{
+      const key=ioname.source_sha256+":"+entry.line+":"+entry.slot;
+      const label=annotations.ioname[key]??entry.label;
+      return !query||label.toLowerCase().includes(query)||
+        entry.section.toLowerCase().includes(query)||String(entry.ordinal).includes(query);
+    }).slice(0,300);
+  },[ioname,ionameQuery,annotations.ioname]);
   const diags=useMemo(()=>{
     if(!report)return [];
     return [
@@ -205,13 +253,15 @@ export function NativeWorkspace() {
   },[report,filter]);
 
   async function openSource(){
-    setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");
+    setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:path.trim(),controller});
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
       setPageStart(1);setSelectedLine(null);
       setRung(value.semantic.rungs[0]?.number??1);setTab("source");
+      setAnnotations(loadLocalAnnotations(value.source_sha256));
+      setIoname(null);setLinkEntry(null);
     }catch(error){setIssue(String(error));}finally{setBusy(false);}
   }
   async function showLine(line:number){
@@ -245,6 +295,54 @@ export function NativeWorkspace() {
     }catch(error){setIssue(String(error));setHits([]);}
     finally{setSearchBusy(false);}
   }
+  function persistAnnotations(next:Annotations) {
+    if(!report)return;
+    setAnnotations(next);
+    try {
+      window.localStorage.setItem("mlad-annotations:"+report.source_sha256,JSON.stringify(next));
+    } catch(error) {
+      setIssue("Локальное сохранение комментариев недоступно: "+String(error));
+    }
+  }
+  const rungKey=(outputLine:number,output:number)=>"L"+outputLine+":OUT"+output;
+  const ionameKey=(entry:IonameEntry)=>ioname!.source_sha256+":"+entry.line+":"+entry.slot;
+
+  function beginEdit(type:EditKey,key:string,caption:string,current:string) {
+    setEditing({type,key,caption});
+    setCommentText(current);
+  }
+  function cancelEdit(){setEditing(null);setCommentText("");}
+  function saveEdit(){
+    if(!report || !editing)return;
+    if(commentText.length>200){setIssue("Максимальная длина комментария — 200 символов");return;}
+    const next={...annotations,[editing.type]:{
+      ...annotations[editing.type],[editing.key]:commentText.trim(),
+    }};
+    persistAnnotations(next);
+    cancelEdit();
+  }
+  async function importIoname(){
+    if(!ionamePath.trim()||ionameBusy)return;
+    setIonameBusy(true);setIssue("");setIoname(null);setLinkEntry(null);
+    try{
+      const value=await invoke<IonameReport>("cmd_inspect_ioname",{filePath:ionamePath.trim()});
+      setIoname(value);setTab("ioname");
+      if(!value.header_valid)setIssue("IONAME.DAT: заголовок/секции не подтверждены; показаны только безопасно распознанные позиции.");
+    }catch(error){setIssue(String(error));}finally{setIonameBusy(false);}
+  }
+  function bindIonameLabel(){
+    if(!linkEntry||!ioname||!report)return;
+    const addr=linkAddress.trim().toUpperCase();
+    // Explicit manual binding only. Never infer #XXXXX from IN/OUT row order.
+    if(!/^#[0-9]{5}$/.test(addr)&&!/^M[0-9]{3}$/.test(addr)){
+      setIssue("Для ручной привязки укажите #XXXXX или Mxxx. Никакой автоматической адресации нет.");return;
+    }
+    const key=ionameKey(linkEntry);
+    const label=annotations.ioname[key]??linkEntry.label;
+    persistAnnotations({...annotations,addresses:{...annotations.addresses,[addr]:label}});
+    setLinkEntry(null);setLinkAddress("");
+  }
+
   function reportAsJson(){
     if(!report)return;
     setJson(JSON.stringify({
@@ -256,6 +354,12 @@ export function NativeWorkspace() {
       semantic_diagnostics:report.semantic.diagnostics,
       semantic_diagnostics_truncated:report.semantic.diagnostics_truncated,
       semantic_rung_count:report.semantic.rung_count,
+      annotation_count:{
+        rungs:Object.keys(annotations.rungs).length,
+        addresses:Object.keys(annotations.addresses).length,
+      },
+      ioname_source_sha256:ioname?.source_sha256??null,
+      annotation_policy:"Local storage only, originals untouched",
       original_round_trip_only:report.original_round_trip_only,
       edited_export_allowed:report.edited_export_allowed,
       system_user_boundaries_verified:report.system_user_boundaries_verified,
@@ -308,6 +412,23 @@ export function NativeWorkspace() {
         {busy?"Чтение...":"Открыть исходник"}
       </button>
     </form>
+    <form onSubmit={e=>{e.preventDefault();void importIoname();}} style={{
+      display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
+      padding:"7px 14px",borderBottom:"1px solid #35485b",background:"#182837",
+    }}>
+      <label style={{display:"flex",flex:"1 1 310px",alignItems:"center",gap:8,fontSize:12}}>
+        IONAME.DAT:
+        <input aria-label="Путь к IONAME.DAT" placeholder="C:\backup\IONAME.DAT"
+          value={ionamePath} onChange={e=>setIonamePath(e.target.value)}
+          style={{...field,minWidth:0,flex:1}}/>
+      </label>
+      <button type="submit" style={btn} disabled={!ionamePath.trim()||ionameBusy}>
+        {ionameBusy?"Чтение имён…":"Загрузить имена I/O"}
+      </button>
+      {ioname&&<span style={{fontSize:11,color:"#b8d6c8"}}>
+        Импорт: {ioname.entries.length} позиций · родной файл не изменён
+      </span>}
+    </form>
     {issue&&<div role="alert" style={{background:"#56363c",color:"#ffd5d6",padding:"8px 14px"}}>
       {issue}
     </div>}
@@ -355,6 +476,7 @@ export function NativeWorkspace() {
             {tabButton("source","Исходный текст")}
             {tabButton("diagram","Ladder ("+report.semantic.rung_count+")")}
             {tabButton("blocks","TMR / CNT / GSTR ("+report.advanced.blocks.length+")")}
+            {tabButton("ioname","Имена I/O"+(ioname?" ("+ioname.entries.length+")":""))}
           </nav>
           {tab==="source"&&<>
             <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
@@ -391,29 +513,65 @@ export function NativeWorkspace() {
             </div>
           </>}
           {tab==="diagram"&&<div style={{overflow:"auto",flex:1,padding:15}}>
-            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-              <label>Цепь <select style={field} value={activeRung?.number??""}
-                onChange={e=>setRung(Number(e.target.value))}>
-                {report.semantic.rungs.map(r=><option key={r.number} value={r.number}>
-                  R{r.number} · OUT {relayText(r.output)}
-                </option>)}
-              </select></label>
-              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.max(.5,z-.15))}>−</button>
-              <span>{Math.round(zoom*100)}%</span>
-              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.min(1.8,z+.15))}>+</button>
-              {activeRung&&<button type="button" style={btn}
-                onClick={()=>void showLine(activeRung.first_line)}>Исходник L{activeRung.first_line} ↗</button>}
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",
+              position:"sticky",top:-15,zIndex:2,background:"#101820",padding:"9px 0"}}>
+              <strong>Все распознанные цепи ({visibleRungs.length})</strong>
+              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
+              <span style={{fontSize:12}}>Масштаб {Math.round(zoom*100)}%</span>
+              <button type="button" style={btn} onClick={()=>setZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
+              <button type="button" style={btn} onClick={()=>setZoom(1)}>100%</button>
             </div>
             <p style={{color:"#e4bd80",fontSize:12}}>
-              Частичная реконструкция подтверждённого булевого подмножества. Unknown не преобразуются в цепь.
+              Все цепи, доступные в ограниченном Semantic AST. Неизвестные команды не преобразуются в предполагаемую схему.
+              Двойной щелчок по заголовку цепи или адресам изменяет только локальный комментарий.
             </p>
-            {activeRung&&graph&&"expression" in graph&&graph.expression?
-              <LadderCircuit readOnly zoom={zoom} expression={graph.expression}
-                output={relayText(activeRung.output)}/>:
-              <div style={{color:"#d9bb83"}}>Нет проверенной схемы для выбранного участка.</div>}
-            {report.semantic.nodes_truncated&&<p style={{color:"#e4bd80"}}>AST обрезан по лимиту.</p>}
+            {visibleRungs.map(({rung:current,expr,error})=>{
+              const key=rungKey(current.output_line,current.output);
+              const comment=annotations.rungs[key]??"";
+              return <article key={current.number} style={{
+                ...panel,marginBottom:12,background:"#142230",padding:12,
+                borderColor:rung===current.number?"#578275":"#3e5367",
+              }}>
+                <div style={{display:"flex",gap:9,alignItems:"center",justifyContent:"space-between",
+                  flexWrap:"wrap",marginBottom:8}}>
+                  <button type="button" onDoubleClick={()=>beginEdit("rungs",key,
+                      "Комментарий цепи R"+current.number,comment)}
+                    title="Двойной щелчок — изменить комментарий цепи" style={{
+                      ...btn,background:"#244052",textAlign:"left",
+                    }} onClick={()=>setRung(current.number)}>
+                    R{current.number} · OUT {relayText(current.output)}
+                    {comment?" · "+comment:" · двойной щелчок: комментарий"}
+                  </button>
+                  <span style={{fontSize:11,color:"#afc6d7"}}>
+                    L{current.first_line}–L{current.output_line}
+                  </span>
+                  <button type="button" style={btn}
+                    onClick={()=>void showLine(current.first_line)}>К исходной строке ↗</button>
+                </div>
+                {expr?<LadderCircuit readOnly zoom={zoom} expression={expr}
+                  output={relayText(current.output)}
+                  onEditComment={address=>beginEdit("addresses",address,"Комментарий адреса "+address,
+                    annotations.addresses[address]??"")}
+                  commentForAddress={address=>annotations.addresses[address]??""}/>:
+                  <div role="alert" style={{color:"#e0bd8b"}}>Граф недоступен: {error||"неполное AST"}</div>}
+              </article>;
+            })}
+            {!visibleRungs.length&&<div>Поддерживаемых графических цепей не обнаружено.</div>}
+            {report.semantic.rungs_truncated&&<p style={{color:"#e5b986"}}>
+              Внимание: источник содержит больше распознанных цепей, чем возвращает текущий лимит preview.
+              Остальные доступны в исходном тексте, но не на схеме.
+            </p>}
+            {report.semantic.nodes_truncated&&<p style={{color:"#e5b986"}}>Узлы AST ограничены; некоторые схемы могут отсутствовать.</p>}
           </div>}
           {tab==="blocks"&&<div style={{flex:1,overflow:"auto",padding:15}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",
+              position:"sticky",top:-15,zIndex:2,background:"#101820",padding:"8px 0"}}>
+              <strong>Все блоки ({report.advanced.blocks.length})</strong>
+              <button type="button" style={btn} onClick={()=>setBlockZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
+              <span style={{fontSize:12}}>Масштаб {Math.round(blockZoom*100)}%</span>
+              <button type="button" style={btn} onClick={()=>setBlockZoom(z=>Math.min(1.8,+(z+.15).toFixed(2)))}>+</button>
+              <button type="button" style={btn} onClick={()=>setBlockZoom(1)}>100%</button>
+            </div>
             <p style={{color:"#e4bd80",fontSize:12}}>
               Визуализируются только подтверждённые простые топологии. Остальные доступны в исходнике.
             </p>
@@ -425,16 +583,103 @@ export function NativeWorkspace() {
                   <strong>{b.kind} · L{b.line}–{b.end_line} · {b.operands.join(", ")}</strong>
                   <button type="button" style={btn} onClick={()=>void showLine(b.line)}>К исходнику ↗</button>
                 </div>
-                {overlay?<AdvancedBlockDiagram block={overlay}/>:
+                {overlay?<AdvancedBlockDiagram block={overlay} zoom={blockZoom}
+                  onEditComment={address=>beginEdit("addresses",address,
+                    "Комментарий адреса "+address,annotations.addresses[address]??"")}
+                  commentForAddress={address=>annotations.addresses[address]??""}/>:
                   <div style={{color:"#e4bd80"}}>Граф не построен: топология не подтверждена.</div>}
               </div>;
             })}
             {!report.advanced.blocks.length&&<p>Поддерживаемые блоки не найдены.</p>}
             {report.advanced.blocks_truncated&&<p>Предпросмотр блоков ограничен.</p>}
           </div>}
+          {tab==="ioname"&&<div style={{flex:1,overflow:"auto",padding:15}}>
+            <h3 style={{margin:"0 0 8px"}}>IONAME.DAT · просмотр и локальные комментарии</h3>
+            <p style={{fontSize:12,color:"#e4bd80"}}>
+              IONAME хранит имена I/O по секциям и порядковым позициям. Соответствие
+              //IN или //OUT конкретному адресу #XXXXX здесь не подтверждено.
+              Двойной щелчок меняет только локальную заметку MLAD, не файл робота.
+            </p>
+            {!ioname?<p>Укажите путь к копии IONAME.DAT в верхней панели и нажмите «Загрузить имена I/O».</p>:
+            <>
+              <div style={{fontSize:12,marginBottom:10}}>
+                {ioname.header_valid?"Заголовок /IONAME подтверждён":"Структура не подтверждена"} ·
+                {ioname.byte_length} байт · SHA-256 {ioname.source_sha256.slice(0,16)}… ·
+                {ioname.encoding} · Автоматическая карта I/O: <b>НЕ ВЕРИФИЦИРОВАНА</b>
+              </div>
+              {!!ioname.warnings.length&&<div style={{color:"#e9be88",fontSize:12,marginBottom:10}}>
+                {ioname.warnings.slice(0,10).map((w,i)=><div key={i}>{w}</div>)}
+              </div>}
+              <input aria-label="Фильтр IONAME" value={ionameQuery} onChange={e=>setIonameQuery(e.target.value)}
+                placeholder="Поиск по секции, позиции или имени"
+                style={{...field,width:"100%",boxSizing:"border-box",marginBottom:8}}/>
+              <div style={{fontSize:12,color:"#b4c9d9",marginBottom:7}}>
+                Показано {filteredIoname.length} записей (макс. 300 на экране).
+                {ioname.entries_truncated&&" Объём файла превышает лимит безопасного предпросмотра."}
+              </div>
+              {filteredIoname.map(entry=>{
+                const key=ionameKey(entry);
+                const label=annotations.ioname[key]??entry.label;
+                return <div key={key} style={{display:"flex",gap:8,alignItems:"center",
+                  borderBottom:"1px solid #304557",padding:"6px 4px",fontSize:12}}>
+                  <code style={{flex:"0 0 120px",color:"#91b8cd"}}>
+                    {entry.section} · поз. {entry.ordinal}
+                  </code>
+                  <button type="button" style={{...btn,flex:1,textAlign:"left",
+                      color:"#cfe6da",minWidth:100}}
+                    onDoubleClick={()=>beginEdit("ioname",key,
+                      "Локальное имя "+entry.section+" / "+entry.ordinal,label)}
+                    title="Двойной щелчок — редактировать локальное имя">
+                    {label||"— без имени —"}
+                  </button>
+                  <button type="button" style={btn}
+                    title="Назначить значение из этой позиции выбранному CIO адресу вручную"
+                    onClick={()=>{setLinkEntry(entry);setLinkAddress("");}}>Связать с адресом</button>
+                </div>;
+              })}
+              {linkEntry&&<div style={{...panel,marginTop:10}}>
+                <strong>Ручная привязка позиции {linkEntry.section} {linkEntry.ordinal}</strong>
+                <p style={{fontSize:12,color:"#e4bd80"}}>
+                  Укажите точный адрес из CIOPRG.LST вручную; порядок в IONAME
+                  НЕ подтверждает соответствие Relay-адресам.
+                </p>
+                <input aria-label="Адрес CIO для ручной привязки" value={linkAddress}
+                  onChange={e=>setLinkAddress(e.target.value)} placeholder="#20010 или M021"
+                  style={field}/>
+                <button type="button" style={{...btn,marginLeft:8}} onClick={bindIonameLabel}>Привязать локально</button>
+                <button type="button" style={{...btn,marginLeft:8}} onClick={()=>setLinkEntry(null)}>Отмена</button>
+              </div>}
+            </>}
+          </div>}
         </section>
         <aside style={{...sideStyle,borderRight:0,borderLeft:"1px solid #405263"}}
           aria-label="Диагностика и поиск">
+          <section aria-label="Редактор локальных комментариев" style={{
+            marginBottom:14,padding:9,border:"1px solid #527369",borderRadius:5,
+            background:"#1e3536",
+          }}>
+            <strong>Комментарии · только локально</strong>
+            <p style={{fontSize:11,color:"#d3c298",lineHeight:1.4}}>
+              Двойной щелчок по заголовку цепи, адресу на схеме или имени IONAME.
+              CIOPRG.LST и IONAME.DAT не изменяются.
+            </p>
+            {editing?<div>
+              <label style={{display:"grid",gap:5,fontSize:12}}>
+                {editing.caption}
+                <input autoFocus aria-label="Введите комментарий" value={commentText}
+                  maxLength={200} onChange={e=>setCommentText(e.target.value)}
+                  onKeyDown={e=>{
+                    if(e.key==="Enter"){e.preventDefault();saveEdit();}
+                    if(e.key==="Escape"){e.preventDefault();cancelEdit();}
+                  }} style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <div style={{display:"flex",gap:7,marginTop:9}}>
+                <button type="button" style={btn} onClick={saveEdit}>Сохранить</button>
+                <button type="button" style={btn} onClick={cancelEdit}>Отмена</button>
+              </div>
+              <small>Enter — сохранить · Esc — отменить</small>
+            </div>:<small style={{color:"#aec9c5"}}>Выберите элемент двойным щелчком.</small>}
+          </section>
           <strong>Поиск по всему файлу</strong>
           <div style={{display:"flex",gap:6,marginTop:8}}>
             <input aria-label="Строка поиска" value={search} onChange={e=>setSearch(e.target.value)}
@@ -476,6 +721,10 @@ export function NativeWorkspace() {
             <p style={{fontSize:11,color:"#e7bc83"}}>Количество диагностик ограничено.</p>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <div>Выбрана строка: {selectedLine??"—"}</div>
+          <div style={{marginTop:8,fontSize:11}}>
+            Локальных комментариев: цепей {Object.values(annotations.rungs).filter(Boolean).length} ·
+            адресов {Object.values(annotations.addresses).filter(Boolean).length}
+          </div>
           <button type="button" onClick={reportAsJson} style={{...btn,marginTop:9,width:"100%"}}>
             JSON-отчёт диагностики
           </button>
