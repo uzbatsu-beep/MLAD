@@ -57,9 +57,10 @@ impl StagedFile {
         let mut handle=OpenOptions::new().write(true).create_new(true)
             .open(&scratch).map_err(|e|format!("Не удалось создать временный JSON: {e}"))?;
         let staged=Self(scratch);
-        handle.write_all(content).and_then(|_|handle.sync_all())
-            .map_err(|e|format!("Не удалось записать временный JSON: {e}"))?;
+        let outcome=handle.write_all(content).and_then(|_|handle.sync_all());
+        // Close the Windows handle before a failed write triggers temp cleanup.
         drop(handle);
+        outcome.map_err(|e|format!("Не удалось записать временный JSON: {e}"))?;
         Ok(staged)
     }
 
