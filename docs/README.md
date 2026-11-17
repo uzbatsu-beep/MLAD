@@ -34,6 +34,11 @@
 - [inline_address_editing.md](inline_address_editing.md) — изменение адресов на схеме двойным щелчком или F2.
 - [releases/v0.5.0-rc.1-hardware.md](releases/v0.5.0-rc.1-hardware.md) — **исторические** примечания к конкретному pre-release.
 
+## Лицензирование
+
+- [LICENSE](../LICENSE) — полный текст GNU GPL-3.0-only.
+- [licensing.md](licensing.md) — область действия, авторство, вклад сторонних лиц и проверки перед выпуском бинарных релизов.
+
 ## Переадресация старых путей
 
 - [ladder_spec.md](ladder_spec.md), [memory_map.md](memory_map.md), [references.md](references.md) — только исторические заметки, ссылающиеся на действующие контракты. Не использовать как независимые спецификации.
