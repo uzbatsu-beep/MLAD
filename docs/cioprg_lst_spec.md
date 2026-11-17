@@ -1,8 +1,8 @@
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-**Status:** engineering baseline v0.1, **NOT** a complete verified file grammar or certified controller compiler.
+**Status (17.11.2026):** документируемая **частичная** спецификация; реализованы read-only lossless/semantic/advanced source inspection. **NOT** a complete verified file grammar, native writer or certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
-**Safety:** display/import of untrusted files is permitted; binary-compatible regeneration and controller deployment must remain **disabled** until real-controller fixtures, instruction semantics and vendor round-trip verification are available.
+**Safety:** inspect/view of user-supplied `.LST` is available in a bounded read-only workflow; modified regeneration and controller deployment remain **disabled** until real-controller fixtures, protected boundaries, instruction semantics and vendor round-trip verification are established.
 
 ## 1. Evidence levels
 
@@ -16,7 +16,7 @@ Official source registry and exact documents: [source registry](source_registry.
 
 **CONFIRMED:** Concurrent I/O executes separately from robot INFORM motion jobs. Its export is named **`CIOPRG.LST`**, saved from `EX.MEMORY → SAVE → I/O DATA → C.IO PRGM`. The file represents a program containing **System Ladder** (controller/application-specific, only Yaskawa-authorized modification) and **User Ladder** (editable with proper permission). Never copy a whole system ladder between robots merely because their models match. [Yaskawa Concurrent I/O Overview](https://knowledge.motoman.com/hc/en-us/articles/1500012236161-Concurrent-I-O-Overview)
 
-**BLOCKED:** The legacy MLAD exporter creates `/JOB`, `//POS`, `//INST` and `IOCPT STRSTART` and names an FTP target `CIOLAD.LST`. These are **not verified as CIOPRG.LST file structure**. Do not identify this output as controller-ready.
+**HISTORICAL / BLOCKED:** In early code, a legacy exporter attempted `/JOB`, `//POS`, `//INST` and `IOCPT STRSTART` and used an FTP name `CIOLAD.LST`. Those templates are **not native CIOPRG.LST**. The current Tauri `cmd_deploy_to_robot` always refuses requests; `CIOPRG.LST` edited export is not exposed. No such historical template may be labelled controller-ready.
 
 **UNKNOWN:** complete text-level system/user section separators, exact mandatory header order, encoding variations, comments, checksums, application metadata, END placement and per-generation headers. All must be established from real exports plus vendor operator/compiler evidence. In particular, do **not** assume that `/JOB` is valid here.
 
@@ -128,11 +128,27 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 **Data needed for a *fully verified* file grammar**: anonymized controller-exported `CIOPRG.LST` for each of DX100, DX200 and YRC1000, with original controller model, firmware, application type and Ladder Editor syntax-check outcome. Do not invent examples of complete headers or assert controller-ready compilation until these fixtures exist.
 
-## 7. Status of PR #2 read-only lossless parser\n\nA byte-preserving read-only parser with a typed syntax overlay and SHA-256 provenance is implemented in `src-tauri/src/compiler/lossless.rs`. See [lossless parser contract](cioprg_lossless_parser.md). **It is not a validated full-file compiler.** Original System/User boundaries, all instruction families, semantic branching, edited file export and deployment remain unverified/disabled.\n\n## 8. Known technical debt in current MLAD code (not fixed by this specification)
+## 7. Реализованное подмножество после PR #8
 
-- `src-tauri/src/compiler/parser.rs` silently skips unknown instructions and only parses limited mnemonics; it does not faithfully parse `#`-prefixed operands or entire CIO files.
-- `src-tauri/src/main.rs` creates a `/JOB`-style pseudo-listing, writes it even with validation errors and ignores some I/O errors.
-- `src-tauri/src/network/mod.rs` implements neither verified HSES nor a validated CIOPRG transfer workflow.
-- The current memory model is exposed as a separate Rust module, and the validator consumes it, but the **UI still does not collect a controller profile**. Implicit YRC1000 validation is legacy-only and not deployment clearance.
+| Компонент | Текущий уровень | Статус |
+|---|---|---|
+| `src-tauri/src/compiler/lossless.rs` | Байт-в-байт сохранение, исходный SHA-256, spans и типизированный лексический overlay | **Работает в режиме просмотра**; неизвестный синтаксис сохраняется без редактирования |
+| `src-tauri/src/compiler/semantic.rs` | Булевые ветви STR/AND/OR, NOT, AND-STR/OR-STR, OUT; диагностика и граф | Частичный AST; stateful инструкции являются барьерами |
+| `src-tauri/src/compiler/advanced_source.rs` | Распознавание только простых образцовых TMR/CNT и пар GSTR/GOUT | Read-only инвентаризация, **не** реконструкция всей логики |
+| `src-tauri/src/compiler/graph_draft.rs` | `*.graph.json` и проверка адресов по контроллеру | Отдельный JSON; не native-файл |
+| `src-tauri/src/compiler/advanced.rs` | `*.advanced.json`, timer/counter/group модели и диагностика | Локальные модели, не hardware scan |
+| `src/components/SvgOperandInput.tsx` | Double-click/F2 ввод операнда на **JSON** схемах | Не относится к Inspector `CIOPRG.LST` |
+| `src-tauri/src/main.rs` | Просмотр `.LST`, редактирование JSON; команды HSES/FTP возвращают отказ | **Контроллер не изменяется** |
 
-References and review history: [source registry](source_registry.md), [typed memory](typed_memory_model.md).
+Просмотр оригинального `CIOPRG.LST` **не** означает возможность загрузить его содержимое в изменяемую графическую модель: это разные сущности с разной полнотой представления.
+
+## 8. Непроверенное и технический долг
+
+- До сих пор нет подтверждённого **полного** нативного файла, всех разделителей и System/User ownership для каждого firmware/application. `PART` является только меткой анализа, не доказательством возможности правки System Ladder.
+- `src-tauri/src/compiler/parser.rs` — **legacy parser** для старой JSON-модели. Он не должен заменять `lossless.rs` и не должен использоваться для нового native импорта.
+- `src-tauri/src/network/mod.rs` сохраняет неподтверждённые исторические заготовки HSES/FTP. Их вызов через интерфейс сейчас заблокирован Tauri-командами, но модуль требует будущего изолирования на уровне исходного кода. См. [HSES](hse_protocol.md).
+- По выбору DX100/DX200/YRC1000 **в новых вкладках UI профиль уже доступен**, однако это не привязка к конкретной firmware/опциям/топологии роботизированной ячейки. Старый JSON-интерфейс и его совместимый валидатор не предназначены для аппаратной проверки.
+- Комбинированная семантика stateful инструкций, порядок scan, M-регистры, полная валидация файлов и OEM acceptance остаются непроверенными на реальных контроллерах.
+- Закрытие пробелов — [приёмка оригиналов](controller_fixture_intake.md) и [roadmap](roadmap.md), а не расширение неподтверждённых шаблонов.
+
+**Нативный экспорт, редактирование защищённых областей и подключение контроллера к работе по-прежнему запрещены.**
