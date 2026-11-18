@@ -1,6 +1,6 @@
 # MLAD — реестр утверждённых инженерных решений
 
-**Версия реестра:** 18.11.2026. Этот документ фиксирует согласованные ограничения и разделяет их с ещё не принятыми предложениями. Основание: [roadmap v2](roadmap.md), [текущий статус](project_status.md), [план PR](implementation_plan.md). Решение о merge конкретного PR всегда принимается отдельно.
+**Версия реестра:** 18.11.2026. Этот документ фиксирует согласованные ограничения и разделяет их с ещё не принятыми предложениями. Основание: [дорожная карта v3](roadmap.md) и [архив v2](roadmap_v2_archive.md), [текущий статус](project_status.md), [план PR](implementation_plan.md). Решение о merge конкретного PR всегда принимается отдельно.
 
 ## 1. Стабильные решения D1–D9
 
@@ -35,11 +35,13 @@
 | Format `*.mlad.json` sidecar, schema version, миграции | Схема+prototype+negative tests, связь по SHA | Предложение в [плане](implementation_plan.md), не реализовано |
 | Проверка/коррекция native grammar DX100/DX200/YRC1000 | Права на fixture, firmware и OEM manual | Исследование M1/M5, без разрешения на native writer |
 | Формальное правило cross-references и static dataflow | Source spans, ambiguities, evidence levels | Не проверенный scan model |
-| Windows file trust: handles/ACL/races | Threat model, reproducible Windows tests | M2 PARTIAL; PR #24–#26 снизили часть рисков |
-| Release `0.6.x` | Windows UserSmoke, legal/source/assets, approval | Кандидат, не объявлен |
+| Windows file trust: handles/ACL/races | Threat model, reproducible Windows tests | M2 PARTIAL; PR #24–#29 снизили часть рисков, но last-check→rename/ACL/recovery открыты |
+| Release `0.6.x` | Windows UserSmoke, legal/source/assets, approval | Кандидат, не объявлен; условно PR #37 |
 | Read-only HSES | Separate owner approval, OEM read spec, isolated rig | BLOCKED |
 | Native writer и deployment | OEM verified fidelity, safety review, отдельное согласие | BLOCKED |
 
+**Новый план PR #31–#37 — предложение**, он не создаёт D10 и не утверждает автоматически sidecar schema, набор новых opcodes или дату release. Прежде чем менять архитектуру или ограничения, требуется отдельный ADR/согласование.
+
 Любая смена D1–D9 оформляется через отдельный ADR/PR с мотивировкой, рисками и тестами. Новое решение не действует, пока владелец не утвердил его.
 
-[Матрица проверок](verification_gates.md) · [Процесс PR](development_workflow.md) · [Модель угроз](guarded_io_review.md)
+[Матрица проверок](verification_gates.md) · [Процесс PR](development_workflow.md) · [Текущая модель угроз](filesystem_security_pr29.md)
