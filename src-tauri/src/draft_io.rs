@@ -9,6 +9,7 @@
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
+use sha2::{Digest, Sha256};
 
 pub const MAX_JSON_BYTES: usize = 2 * 1024 * 1024;
 
@@ -63,6 +64,9 @@ fn validate_file(path: &Path, allow_missing: bool) -> Result<bool, String> {
             if metadata.len() > MAX_JSON_BYTES as u64 {
                 return Err("JSON превышает предел 2 МиБ".into());
             }
+            // Multi-link JSON aliases make ownership/backup semantics ambiguous.
+            // Reject both final target and *.bak even if they appear regular.
+            crate::guarded_read::verify_single_link(path)?;
             Ok(true)
         }
         Err(err) if err.kind()==std::io::ErrorKind::NotFound && allow_missing => Ok(false),
@@ -73,11 +77,23 @@ fn validate_file(path: &Path, allow_missing: bool) -> Result<bool, String> {
 /// A bounded reader also rejects direct symlinks. It does not claim a
 /// no-follow open on every filesystem or prohibit symlink ancestors.
 pub fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
-    validate_file(path,false)?;
-    crate::guarded_read::read_regular(path,MAX_JSON_BYTES)
+    read_bounded_snapshot(path).map(|(bytes,_)|bytes)
 }
 
-struct StagedFile(PathBuf);
+fn read_bounded_snapshot(path:&Path)
+    ->Result<(Vec<u8>,crate::guarded_read::FileIdentity),String>{
+    validate_file(path,false)?;
+    crate::guarded_read::read_regular_with_identity(path,MAX_JSON_BYTES)
+}
+
+/// A private staged file is identified by its opened OS handle and SHA-256.
+/// This detects replacement/modification *before* rename, not an adversarial
+/// swap in the narrow final verify->rename interval.
+struct StagedFile {
+    path: PathBuf,
+    identity: crate::guarded_read::FileIdentity,
+    digest: String,
+}
 
 impl StagedFile {
     fn create_near(destination:&Path, content:&[u8])->Result<Self,String> {
@@ -89,7 +105,19 @@ impl StagedFile {
         ));
         let mut handle=OpenOptions::new().write(true).create_new(true)
             .open(&scratch).map_err(|e|format!("Не удалось создать временный JSON: {e}"))?;
-        let staged=Self(scratch);
+        let identity=match crate::guarded_read::identity_of_handle(&handle){
+            Ok(identity)=>identity,
+            Err(error)=>{
+                drop(handle);
+                let _=fs::remove_file(&scratch);
+                return Err(error);
+            }
+        };
+        let staged=Self {
+            path:scratch,
+            identity,
+            digest:hex::encode(Sha256::digest(content)),
+        };
         let outcome=handle.write_all(content).and_then(|_|handle.sync_all());
         // Close the Windows handle before a failed write triggers temp cleanup.
         drop(handle);
@@ -99,17 +127,22 @@ impl StagedFile {
 
     fn replace(mut self, destination:&Path)->Result<(),String> {
         verify_parent_directory(destination)?;
-        fs::rename(&self.0,destination)
+        let (bytes,identity)=crate::guarded_read::read_regular_with_identity(&self.path,MAX_JSON_BYTES)?;
+        if identity!=self.identity || hex::encode(Sha256::digest(&bytes))!=self.digest {
+            return Err("Временный JSON был заменён или изменён перед сохранением".into());
+        }
+        verify_parent_directory(destination)?;
+        fs::rename(&self.path,destination)
             .map_err(|e|format!("Не удалось заменить JSON файлом из той же папки: {e}"))?;
-        self.0=PathBuf::new();
+        self.path=PathBuf::new();
         Ok(())
     }
 }
 
 impl Drop for StagedFile {
     fn drop(&mut self) {
-        if !self.0.as_os_str().is_empty() {
-            let _=fs::remove_file(&self.0);
+        if !self.path.as_os_str().is_empty() {
+            let _=fs::remove_file(&self.path);
         }
     }
 }
@@ -136,26 +169,26 @@ fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->R
     }
     let existed=validate_file(path,true)?;
     let staged=StagedFile::create_near(path,content)?;
-    let original=if existed {Some(read_bounded(path)?)} else {None};
+    let original=if existed {Some(read_bounded_snapshot(path)?)} else {None};
     if let Some(ref original)=original {
         let basename=path.file_name().and_then(|s|s.to_str())
             .ok_or("Не удалось определить имя JSON")?;
         let backup=path.with_file_name(format!("{basename}.bak"));
         validate_file(&backup,true)?;
-        let previous=StagedFile::create_near(&backup,&original)?;
+        let previous=StagedFile::create_near(&backup,&original.0)?;
         // Don't replace a newly appeared symlink; parent-dir swaps remain
         // an explicitly documented limitation of std::fs path-based APIs.
         validate_file(&backup,true)?;
-        if read_bounded(path)? != *original {
-            return Err("JSON изменён при подготовке резервной копии".into());
+        if read_bounded_snapshot(path)? != *original {
+            return Err("JSON подменён или изменён при подготовке резервной копии".into());
         }
         previous.replace(&backup)?;
     }
     before_commit();
     match original {
         Some(expected)=>{
-            if read_bounded(path)? != expected {
-                return Err("Конфликт сохранения: JSON изменён другим процессом".into());
+            if read_bounded_snapshot(path)? != expected {
+                return Err("Конфликт сохранения: JSON изменён другим процессом или подменён".into());
             }
         }
         None=>{
@@ -387,6 +420,57 @@ mod tests {
         assert!(!real.join("protected.graph.json.bak").exists());
         // Remove only the reparse directory, never recursively follow it.
         fs::remove_dir(&alias).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn same_content_target_replacement_is_a_save_conflict(){
+        let root=folder();
+        let path=root.join("same.graph.json");
+        let replacement=root.join("replacement.json");
+        fs::write(&path,b"identical bytes").unwrap();
+        fs::write(&replacement,b"identical bytes").unwrap();
+        let result=write_atomic_inner(&path,b"new JSON",||{
+            // An attacker swaps in a different inode/File ID with equal content.
+            fs::rename(&replacement,&path).unwrap();
+        });
+        assert!(result.is_err(),"same bytes must not conceal another file identity");
+        assert_eq!(fs::read(&path).unwrap(),b"identical bytes");
+        assert_eq!(fs::read(root.join("same.graph.json.bak")).unwrap(),b"identical bytes");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn hardlink_alias_to_native_source_or_json_backup_is_rejected(){
+        let root=folder();
+        let native=root.join("CIOPRG.LST");
+        fs::write(&native,b"immutable synthetic original").unwrap();
+        let alias=root.join("alias.graph.json");
+        fs::hard_link(&native,&alias).unwrap();
+        assert!(write_atomic(&alias,b"not allowed").is_err());
+        assert!(read_bounded(&alias).is_err());
+        assert_eq!(fs::read(&native).unwrap(),b"immutable synthetic original");
+        assert!(!root.join("alias.graph.json.bak").exists());
+        let draft=root.join("client.advanced.json");
+        fs::write(&draft,b"previous JSON").unwrap();
+        let backup=root.join("client.advanced.json.bak");
+        fs::hard_link(&native,&backup).unwrap();
+        assert!(write_atomic(&draft,b"new JSON").is_err());
+        assert_eq!(fs::read(&draft).unwrap(),b"previous JSON");
+        assert_eq!(fs::read(&native).unwrap(),b"immutable synthetic original");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn staged_file_modified_after_flush_cannot_be_committed(){
+        let root=folder();
+        let path=root.join("fresh.graph.json");
+        let staged=StagedFile::create_near(&path,b"expected JSON").unwrap();
+        let scratch=staged.path.clone();
+        fs::write(&scratch,b"tampered").unwrap();
+        assert!(staged.replace(&path).is_err());
+        assert!(!path.exists());
+        assert!(!scratch.exists(),"failed stage must be removed by Drop");
         fs::remove_dir_all(root).unwrap();
     }
 
