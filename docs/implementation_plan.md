@@ -14,8 +14,8 @@ MLAD — автономная инженерная IDE для просмотра
 
 | Предложение | Вехи | Приоритет | Конкретный результат | Критерий приёмки / запрет |
 | --- | --- | --- | --- | --- |
-| **PR #27** — синхронизация документации | M0/MX | P0 | Настоящий план, [матрица проверок](verification_gates.md), [реестр решений](engineering_decisions.md); устранение устаревших Draft/CI статусов | `docs:check` и полная CI; docs-only, никаких runtime изменений |
-| **PR #28** — Windows acceptance / security regression | M2/MX | P0 | Скриптуемые негативные проверки Tauri CSP/IPC и JSON на Windows; документированный ручной чек-лист | Windows MSVC+Tauri build, ручные Windows тесты отмечены PASS/FAIL/NOT RUN; исходные файлы неизменны |
+| **PR #27 (merged)** — синхронизация документации | M0/MX | P0 | Настоящий план, [матрица проверок](verification_gates.md), [реестр решений](engineering_decisions.md); устранение устаревших Draft/CI статусов | `docs:check` и полная CI; docs-only, никаких runtime изменений |
+| **PR #28 (Draft)** — Windows acceptance / security regression | M2/MX | P0 | Скриптуемые негативные проверки Tauri CSP/IPC и JSON на Windows; документированный ручной чек-лист | Windows MSVC+Tauri build, ручные Windows тесты отмечены PASS/FAIL/NOT RUN; исходные файлы неизменны |
 | **PR #29** — модель угроз и filesystem hardening | M2 | P0 | Отдельный threat review для directory handles, Windows reparse, hardlinks, ACL, гонок final check→rename, backup/target; исправления в пределах проверенного контракта | Тесты на отказ при подмене, потере доступа, конфликте; нельзя заявлять устранение всех TOCTOU без доказательств |
 | **PR #30** — синтетический parser regression corpus | M1/M5 | P0 | Версионированные синтетические кейсы вариантов заголовков, `//$M`/`PART`/`END`, tail ALARM/MESSAGE, границы размера/кодировки и malformed блоков; приватный реестр настоящих файлов вне Git | Byte-preservation и корректные spans, fail-closed unknown, ни одного реального OEM файла в Git/CI |
 | **PR #31** — Native Workspace navigation & diagnostics | M4 | P1 | Source↔rung↔advanced block, навигация по адресам/мнёмоникам, фильтры severity/support/confidence, компактный список блоков и раскрытие, закладки | Все строки доступны; точные offsets/spans; выбор не синтезирует неподтверждённую диаграмму; UI performance regression |
@@ -59,3 +59,7 @@ MLAD — автономная инженерная IDE для просмотра
 ## 6. Контроль прогресса
 
 Обновлять [project_status.md](project_status.md) **после фактического merge**, фиксируя SHA и CI. Отдельно показывать `implemented`, `synthetically tested`, `Windows CI`, `user smoke`, `OEM bench`, `authorized`. Исторические release notes оставлять неизменными. При расхождении документации с кодом — сначала проверять актуальные тесты и исходники, затем исправлять документы в новом PR.
+
+## 7. Текущая работа PR #28
+
+После [merge PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27) baseline `main` — `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, [main validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). В отдельном **Draft PR #28** добавляется [Windows workflow](../.github/workflows/windows-security-acceptance.yml), NTFS exclusive-lock/junction Rust regressions, [synthetic harness](../scripts/windows-acceptance.ps1) и [ручная матрица проверки](windows_acceptance_pr28.md). Результат WindowsCI фиксируется только после успешного workflow на реальном SHA PR; `UserSmoke`, `OEMBench` и публикация релиза остаются `NOT RUN`/`BLOCKED`, без автоматического перехода в DONE.
