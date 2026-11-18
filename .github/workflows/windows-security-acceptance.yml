@@ -86,6 +86,11 @@ jobs:
             "windows_exclusive_lock_refuses_write_without_truncation_or_temp_leak",
             "windows_junction_parent_never_writes_into_target_directory",
             "windows_junction_parent_rejects_native_read_and_preserves_bytes",
+            "same_content_target_replacement_is_a_save_conflict",
+            "hardlink_alias_to_native_source_or_json_backup_is_rejected",
+            "staged_file_modified_after_flush_cannot_be_committed",
+            "different_regular_handles_have_different_file_identity",
+            "windows_ads_unc_and_device_paths_are_rejected_before_filesystem_io",
             "windows_regular_file_has_identifiers_and_no_reparse_flag"
           )) {
             if (-not $all.Contains($name)) { throw "Missing Windows-specific test: $name" }

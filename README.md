@@ -1,6 +1,6 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Сверка 18.11.2026:** `main` `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, **PR #1–#27 merged**, [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). PR #28 — отдельный Draft с Windows acceptance/security regression, **не включён в `main`**. Последний опубликованный Windows pre-release — `rc.9` (без PR #24–#28). [Статус](docs/project_status.md).
+**Сверка 18.11.2026:** проверенный `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). PR #29 — отдельный **Draft** (не в `main`). Последний опубликованный Windows pre-release — rc.9, **не** включает PR #24–#29. [Матрица](docs/project_status.md).
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -22,6 +22,8 @@
 | Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
 
 **Сохранение JSON:** PR #24 слит в `main`; используются staged file/rename и `.bak`, отдельные Windows MSVC tests прошли, но ручной Windows smoke пока не проводился. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
+
+**Новый PR #29 (Draft):** сравнение File ID/inode наряду с JSON-байтами, отказ для hardlink target/backup, проверка идентичности и SHA-256 staged JSON перед rename; сохраняются окна TOCTOU, ACL/permissions и отсутствие атомарной транзакции backup+target. [Подробный аудит](docs/filesystem_security_pr29.md).
 
 **Усиление защиты (PR #25 и #26 merged):** CSP ограничивает внешние загрузки/JS eval, а файловые проверки выявляют часть symlink/reparse-подмен и конфликтов изменения JSON. [CSP](docs/csp_path_hardening.md) · [guarded reads и остаточные гонки](docs/guarded_io_review.md). [Windows MSVC/Tauri CI для PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), **ручной Windows smoke не подтверждён**; полная защита от TOCTOU не заявляется.
 

@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026; `main` `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, PR #1–#27 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310); PR #28 в отдельном Draft. Windows rc.9 — исторический релиз до PR #24–#28. [Статус](project_status.md).
+**Актуализация:** 18.11.2026; `main` `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) SUCCESS. PR #29 — отдельный Draft; опубликованный Windows rc.9 — до PR #24–#29. [Статус](project_status.md).
 
 ## 1. Git и изменение функций
 
@@ -95,3 +95,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## 11. PR #28 — повторяемые Windows regression tests и UserSmoke
 
 [Новый workflow](../.github/workflows/windows-security-acceptance.yml) выполняет автоматические Node/Rust Windows тесты, Tauri `--no-bundle` production сборку и выдаёт **временный unsigned non-release** artifact с SHA-256 и evidence. [PowerShell harness](../scripts/windows-acceptance.ps1) готовит/проверяет только синтетические `CIOPRG.LST`/`IONAME.DAT`. Отдельный [Windows manual acceptance protocol](windows_acceptance_pr28.md) фиксирует WIN-01…WIN-12; запуск GitHub Actions не заменяет ручной тест WebView2. Новые Windows negative tests не расширяют разрешения Tauri и не включают native write/HSES/FTP. [Verification gates](verification_gates.md).
+
+## 12. PR #29 — filesystem security: новые regression gates
+
+Rust JSON reader/writer использует байты **и** identity открытого дескриптора при записи, а также отдельный hardlink check и checksum staged file. Перечень ограничений и конфликтных сценариев: [filesystem_security_pr29.md](filesystem_security_pr29.md). В Windows regression workflow требуется перечисление/исполнение новых тестов на реальной Windows NTFS, затем unsigned non-release Tauri EXE. `PR #29 Draft` до одобрения владельца нельзя считать частью `main` или выпуском новой версии. Directory-handle/TOCTOU/ACL/backup transaction остаются отдельными security-review темами.
