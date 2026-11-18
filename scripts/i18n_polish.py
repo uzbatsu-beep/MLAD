@@ -27,6 +27,11 @@ RU_FIXES={
     "родное рабочее пространство":"рабочая область Native Workspace",
 }
 EN_FIXES={
+    "PR #1#29":"PR #1–#29",
+    "Controller card/firmware":"Controller mapping/firmware",
+    "**Date of introduction: **":"**Effective date:**",
+    "**Region:**":"**Scope:**",
+    "No mode allows downloading programs to the robot":"No mode permits uploading or deploying programs to a robot controller",
     "Bypass immutability":"Byte-for-byte immutability",
     "BYPASS immutability":"Byte-for-byte immutability",
     "HSES/FTPLive":"HSES/FTP, live",
