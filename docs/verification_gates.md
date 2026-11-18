@@ -91,3 +91,7 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 | Право слияния | Отдельное согласование владельца |
 
 Дополнение: [development_workflow.md](development_workflow.md), [implementation_plan.md](implementation_plan.md), [source_registry.md](source_registry.md).
+
+## 7. Правила репозитория и полномочия
+
+**Наблюдение 18.11.2026:** `main` возвращается GitHub как `protected=false`. Даже успешный workflow не препятствует ручному обходу процесса без branch protection. Отдельно от этого docs PR рекомендуется настроить GitHub Ruleset/Branch Protection с обязательными проверками `frontend-build` и `rust-tests`, запретом прямых push и процедурой review, доступной для текущего типа аккаунта. Техническое правило **не заменяет** явного решения владельца о merge. Документационный PR #27 не меняет настройки репозитория.
