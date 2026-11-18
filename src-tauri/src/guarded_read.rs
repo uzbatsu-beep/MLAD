@@ -3,9 +3,20 @@
 //! Compares verified path identity with a handle opened once, and rechecks
 //! after reading. This closes common check/open file swaps, but is NOT a
 //! directory-handle API or a proof against adversarial parent-path TOCTOU.
-use std::fs::{self, Metadata, OpenOptions};
+use std::fs::{self, File, Metadata, OpenOptions};
 use std::io::Read;
 use std::path::Path;
+
+/// Identity from the handle that actually supplied the bytes, not from a pathname.
+/// This detects same-content replacement before JSON commit; it is NOT a
+/// directory-relative atomic rename contract.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum FileIdentity {
+    #[cfg(unix)]
+    Unix { device: u64, inode: u64 },
+    #[cfg(windows)]
+    Windows { volume: u32, index: u64 },
+}
 
 pub fn is_indirection(meta:&Metadata)->bool {
     if meta.file_type().is_symlink(){return true;}
@@ -44,7 +55,7 @@ fn win_open_no_reparse(path:&Path)->Result<std::fs::File,String> {
     Ok(file)
 }
 #[cfg(windows)]
-fn win_file_id(file:&std::fs::File)->Result<(u32,u64),String>{
+fn win_file_info(file:&File)->Result<((u32,u64),u32),String>{
     use std::ffi::c_void;
     use std::mem::MaybeUninit;
     use std::os::windows::io::AsRawHandle;
@@ -81,8 +92,56 @@ fn win_file_id(file:&std::fs::File)->Result<(u32,u64),String>{
             std::io::Error::last_os_error()));
     }
     let info=unsafe{result.assume_init()};
-    Ok((info.volume,(u64::from(info.index_high)<<32)|u64::from(info.index_low)))
+    Ok(((info.volume,(u64::from(info.index_high)<<32)|u64::from(info.index_low)),info.links))
 }
+
+#[cfg(windows)]
+fn win_file_id(file:&File)->Result<(u32,u64),String> { Ok(win_file_info(file)?.0) }
+
+/// Reject linked JSON targets and backups to prevent ambiguous path ownership.
+/// Ordinary native CIOPRG/IONAME reads are not subjected to a JSON write policy.
+pub(crate) fn verify_single_link(path:&Path)->Result<(),String> {
+    #[cfg(windows)] {
+        let file=win_open_no_reparse(path)?;
+        let (_,links)=win_file_info(&file)?;
+        if links != 1 {
+            return Err("JSON с несколькими жёсткими ссылками (hard link) запрещён".into());
+        }
+        Ok(())
+    }
+    #[cfg(unix)] {
+        use std::os::unix::fs::MetadataExt;
+        let meta=fs::symlink_metadata(path)
+            .map_err(|e|format!("Не удалось проверить число ссылок JSON: {e}"))?;
+        if is_indirection(&meta)||!meta.is_file()||meta.nlink() != 1 {
+            return Err("JSON с несколькими жёсткими ссылками или symlink запрещён".into());
+        }
+        Ok(())
+    }
+    #[cfg(not(any(windows,unix)))]
+    {
+        let _=path;
+        Err("Невозможно подтвердить число жёстких ссылок на этой ОС".into())
+    }
+}
+
+pub(crate) fn identity_of_handle(file:&File)->Result<FileIdentity,String> {
+    #[cfg(windows)] {
+        let (volume,index)=win_file_id(file)?;
+        Ok(FileIdentity::Windows{volume,index})
+    }
+    #[cfg(unix)] {
+        use std::os::unix::fs::MetadataExt;
+        let meta=file.metadata().map_err(|e|format!("Ошибка metadata handle: {e}"))?;
+        Ok(FileIdentity::Unix{device:meta.dev(),inode:meta.ino()})
+    }
+    #[cfg(not(any(windows,unix)))]
+    {
+        let _=file;
+        Err("File Identity недоступен для этой ОС".into())
+    }
+}
+
 #[cfg(not(any(windows,unix)))]
 fn same_identity(_a:&Metadata,_b:&Metadata)->bool {false}
 
@@ -93,7 +152,19 @@ pub fn read_regular(path:&Path,max:usize)->Result<Vec<u8>,String>{
     read_regular_inner(path,max,||{})
 }
 
+/// Read the bytes and the identity of the same verified OS handle.
+/// Used for JSON compare-before-replace and staged-file integrity checks.
+pub(crate) fn read_regular_with_identity(path:&Path,max:usize)
+    ->Result<(Vec<u8>,FileIdentity),String>{
+    read_regular_with_identity_inner(path,max,||{})
+}
+
 fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Vec<u8>,String>{
+    read_regular_with_identity_inner(path,max,before_open).map(|(bytes,_)|bytes)
+}
+
+fn read_regular_with_identity_inner(path:&Path,max:usize,before_open:impl FnOnce())
+    ->Result<(Vec<u8>,FileIdentity),String>{
     crate::draft_io::verify_parent_directory(path)?;
     let before=fs::symlink_metadata(path)
         .map_err(|e|format!("Ошибка проверки файла: {e}"))?;
@@ -145,7 +216,8 @@ fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Ve
             return Err("Windows File ID изменился после чтения".into());
         }
     }
-    Ok(bytes)
+    let identity=identity_of_handle(&handle)?;
+    Ok((bytes,identity))
 }
 
 #[cfg(test)]
@@ -194,6 +266,20 @@ mod tests {
         assert_eq!(fs::read(&real).unwrap(),b"robot bytes synthetic");
         fs::remove_dir_all(root).unwrap();
     }
+    #[test]
+    fn different_regular_handles_have_different_file_identity(){
+        let root=dir();
+        let a=root.join("first.graph.json");
+        let b=root.join("second.graph.json");
+        fs::write(&a,b"equal bytes").unwrap();
+        fs::write(&b,b"equal bytes").unwrap();
+        let (first,aid)=read_regular_with_identity(&a,256).unwrap();
+        let (second,bid)=read_regular_with_identity(&b,256).unwrap();
+        assert_eq!(first,second);
+        assert_ne!(aid,bid,"identity must distinguish same-byte different files");
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[cfg(windows)]
     #[test]
     fn windows_junction_parent_rejects_native_read_and_preserves_bytes(){
