@@ -1,6 +1,6 @@
 # MLAD — дорожная карта v2: Native CIO Workspace → Engineering IDE → Verified Controller Integration
 
-**Актуализация:** 18.11.2026; `main` `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, PR **#1–#27 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). PR #28 — Draft (Windows security regression/acceptance). Опубликованная Windows [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) не содержит PR #24–#28. [План следующих PR](implementation_plan.md).
+**Актуализация:** 18.11.2026; `main` `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). PR #29 — Draft. Windows [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен до PR #24–#29. [Backlog](implementation_plan.md).
 **Статус:** базовый Native Workspace и read-only parser работают; пять команд типизированы и снабжены автономными OEM-reference векторами, но scan/dataflow, System/User, стенд и native writer **не подтверждены/заблокированы**. [Текущий статус](project_status.md).
 
 ## 1. Продуктовая цель и ограничения
@@ -37,7 +37,7 @@
 
 | ID | Этап | Приоритет | Зависит от | Проверяемый результат | Статус |
 |---|---|---|---|---|---|
-| M0 | Baseline PR #1–#27 | DONE | — | В main объединены #1–#27, основной CI успешен | DONE: main `bdb443eb`; PR #28 — отдельный Draft |
+| M0 | Baseline PR #1–#28 | DONE | — | В main объединены #1–#28, основной и Windows CI успешны | DONE: main `3c184cd3`; PR #29 — отдельный Draft |
 | M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
 | M2 | Безопасность и воспроизводимость | P0 | M0 | HSES/FTP runtime удалён; lockfiles; #24 staged JSON, #25 CSP/path checks, #26 file identity/conflict guard | PARTIAL: Windows CI успешен; user smoke, TOCTOU/directory handles, ACL/backup transaction открыты |
 | M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
@@ -220,3 +220,7 @@
 ## 10. Текущий PR #28: Windows Acceptance & Security Regression
 
 PR #28 разрабатывает воспроизводимые тесты NTFS exclusive lock, Windows junction/reparse, CSP/IPC contract, сборку unsigned Windows EXE с SHA-256 evidence и отдельную [ручную матрицу Windows UserSmoke](windows_acceptance_pr28.md). [Границы CI и release](verification_gates.md). **М2 остаётся PARTIAL**: успешный Windows runner не означает проверку пользовательского WebView2, OEM bench, power-loss durability или устранение всех filesystem races. Merge/release — только с отдельного согласия владельца.
+
+## 11. PR #29 — filesystem boundary (Draft)
+
+[Новый review](filesystem_security_pr29.md) описывает усиление обнаружения **same-content file swap**, hardlink-target/backup и staged-file corruption. Это частичный прогресс M2, не закрытие абсолютных TOCTOU/ACL/power-loss рисков. Windows WebView2 UserSmoke и OEMBench отдельно `NOT RUN`; контроллерные функции по-прежнему заблокированы.
