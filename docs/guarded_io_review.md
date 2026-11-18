@@ -1,6 +1,6 @@
 # MLAD PR #26 — Guarded Reads & JSON Conflict Prevention
 
-**Дата:** 18.11.2026. **Статус:** Draft PR #26; Windows binary rc.9 не изменён. M2 остаётся PARTIAL.
+**Дата:** 18.11.2026. **Статус:** [PR #26 merged](https://github.com/uzbatsu-beep/MLAD/pull/26) в `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [Windows MSVC/Tauri CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Опубликованный rc.9 не изменён; M2 остаётся PARTIAL.
 
 ## Мотивировка
 
@@ -40,12 +40,14 @@ PR #25 проверял symlink компонентов пути до файло�
 | --- | --- |
 | Linux Rust | `cargo test --manifest-path src-tauri/Cargo.toml --locked` |
 | Frontend/security | `npm run test:security`, `npm run docs:check`, `npm run build` |
-| Windows | MSVC Rust + Tauri build, без публикации релиза |
+| Windows | [MSVC Rust + Tauri build — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), без публикации релиза |
 | Negative | Подмена до open, direct symlink, directory symlink, конкурентная замена JSON/создание target |
 | Hardware | Не требуется и не выполняется; HSES/FTP/writer выключены |
 | User acceptance | Требуется ручная проверка; НЕ заменяется GitHub CI |
 
 [Статус всего MLAD](project_status.md) · [Ранее закрытые ограничения PR #25](csp_path_hardening.md).
 
+
+**Результаты CI не означают ручной Windows smoke или full TOCTOU closure.** Следующий план: [implementation_plan.md](implementation_plan.md), [verification_gates.md](verification_gates.md).
 
 **Windows API sources:** [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle), [BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information), [FILE_FLAG_OPEN_REPARSE_POINT](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew). FFI-код требует независимого security review (ABI, reparse и NTFS/ReFS различия), а не только прохождения компиляции.
