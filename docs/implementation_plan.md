@@ -1,69 +1,104 @@
-# MLAD — план дальнейшей разработки после PR #26
+# MLAD — исполнимый план разработки после PR #29
 
-**Контрольная точка:** 18.11.2026, `main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28`. PR #1–#26 merged; [основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Последняя **опубликованная** Windows-сборка — [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference). Изменения PR #24–#26 присутствуют в `main`, но не в rc.9.
+**Базовая точка:** 18.11.2026, `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 merged. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний [Windows Release — rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен **до** PR #24–#29. Ручной `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. После следующего merge обновлять конкретный baseline в [project_status.md](project_status.md).
 
-**Назначение:** исполнимый backlog для [roadmap M0–M13](roadmap.md). Номера PR ниже — **проектная последовательность**, а не созданные задачи/обязательство выпуска. Каждый этап — отдельная ветка, Draft PR, обязательные тесты, review и **никакого слияния без отдельного согласия владельца**.
+**Статус плана:** PR #30 — только документационная синхронизация; PR #31–#37 — **предложенные номера**, а не созданные PR/согласованные сроки. Каждый этап требует собственного Draft PR, CI и **явного решения владельца о merge**. Согласованные D1–D9 сохраняются без изменений. [Roadmap v3](roadmap.md) · [Реестр решений](engineering_decisions.md) · [Архив плана v2](implementation_plan_v2_archive.md).
 
-## 1. Текущая граница продукта
+## 1. Приоритеты нового цикла
 
-MLAD — автономная инженерная IDE для просмотра Yaskawa Concurrent I/O и **отдельных редактируемых JSON-черновиков**. Основной Native Workspace уже работает как read-only поверхность. Разбор `CIOPRG.LST` сохраняет оригинальные байты и различает supported/partially supported/opaque. Справочные 16-bit вычисления MOV/ADD/SUB/SHL/SHR не являются моделью исполнения скана.
-
-**Строгие запреты:** изменение `CIOPRG.LST`/`IONAME.DAT`, их native export, сетевой runtime FTP/HSES, изменение контроллера, misleading LIVE-индикация, автоматическое приравнивание `PART 1/2` к System/User authorization. Применение реальных программ — только в закрытом корпусе при наличии права доступа; публичные тесты синтетические или явно разрешённые.
-
-## 2. Очерёдность выполнения
-
-| Предложение | Вехи | Приоритет | Конкретный результат | Критерий приёмки / запрет |
-| --- | --- | --- | --- | --- |
-| **PR #27 (merged)** — синхронизация документации | M0/MX | P0 | Настоящий план, [матрица проверок](verification_gates.md), [реестр решений](engineering_decisions.md); устранение устаревших Draft/CI статусов | `docs:check` и полная CI; docs-only, никаких runtime изменений |
-| **PR #28 (merged)** — Windows acceptance / security regression | M2/MX | P0 | Скриптуемые негативные проверки Tauri CSP/IPC и JSON на Windows; документированный ручной чек-лист | Windows MSVC+Tauri build, ручные Windows тесты отмечены PASS/FAIL/NOT RUN; исходные файлы неизменны |
-| **PR #29 (Draft)** — модель угроз и filesystem hardening | M2 | P0 | Отдельный threat review для directory handles, Windows reparse, hardlinks, ACL, гонок final check→rename, backup/target; исправления в пределах проверенного контракта | Тесты на отказ при подмене, потере доступа, конфликте; нельзя заявлять устранение всех TOCTOU без доказательств |
-| **PR #30** — синтетический parser regression corpus | M1/M5 | P0 | Версионированные синтетические кейсы вариантов заголовков, `//$M`/`PART`/`END`, tail ALARM/MESSAGE, границы размера/кодировки и malformed блоков; приватный реестр настоящих файлов вне Git | Byte-preservation и корректные spans, fail-closed unknown, ни одного реального OEM файла в Git/CI |
-| **PR #31** — Native Workspace navigation & diagnostics | M4 | P1 | Source↔rung↔advanced block, навигация по адресам/мнёмоникам, фильтры severity/support/confidence, компактный список блоков и раскрытие, закладки | Все строки доступны; точные offsets/spans; выбор не синтезирует неподтверждённую диаграмму; UI performance regression |
-| **PR #32** — portable sidecar проекта (спецификация и read-only привязка) | M7 | P1 | Версионированный `*.mlad.json` с source SHA, профилем, bookmarks/annotations и ссылками на отдельные JSON drafts; схема миграции/отказа | Несовпадение source hash — явная ошибка/предупреждение; неизвестные поля не повреждаются молча; native LST не сериализуется |
-| **PR #33** — parser/typed syntax по evidence | M5/M6 | P1 | TypedCandidate только для форм из synthetic+подтверждённых OEM данных; категории результата `recognized / partial / opaque`; граф зависимостей с provenance | Отдельные положительные/отрицательные vector tests для DX100/DX200/YRC1000; нет исполнения неподтверждённых команд |
-| **PR #34** — Unified Offline Engineering Project | M7/M8 | P1 | Основное окно объединяет native snapshot, sidecar, диагностические переходы и **отдельные** editable Graph/Advanced JSON | Явное отличие source vs draft; отмена/повтор, безопасное сохранение, конфликтные JSON изменения обработаны |
-| **PR #35** — кандидат `0.6.x` offline-preview | M3–M8/MX | P1 | Согласованный release candidate с changelog, hash/source/legal notices, Windows checks, пользовательским smoke-отчётом | Публикация **только по решению владельца**; CI ≠ OEM bench; не объявлять industrial-ready |
-
-**Зависимости:** PR #28/#29 — security foundation; #30 — база для #33; #31 зависит от текущего Native Workspace, может идти параллельно #30; #32 — до #34; #33 и #32 — до #34; #35 — после принятых функциональных PR и ручной проверки Windows. Если проверка выявит дефект — выпуск откладывается, создаётся отдельный bugfix PR; номера не являются жёстким календарём.
-
-## 3. Что требуется от инженерного результата каждого этапа
-
-1. **Контракт:** что допустимо делать с source, draft и сторонними файлами; каковы отказ и recovery; поддерживаемое семейство/версия контроллера.
-2. **Provenance:** `Documented`, `SyntheticTested`, `ManualDerived`, `OEMBenchVerified`, `Authorized` — раздельные поля, ни одна метка не выводится из другой автоматически.
-3. **Сохранность:** `original_bytes_before == original_bytes_after`; SHA-256 до/после открытия/повторного открытия. Для opaque — точный span исходника и источник ошибки.
-4. **Тесты:** unit/regression/negative, frontend build, Rust `--locked`, docs check, отдельный Windows Tauri runner при затрагивании IPC/filesystem.
-5. **Ограничения:** непроверенные форматы, покрытие контроллеров, Windows smoke, real OEM bench — явно `NOT RUN`, а не `PASS`.
-6. **Поставка:** source tag, checksums, GPL source and notices; публичная публикация тестов без клиентской программы/конфигурации.
-
-Подробный checklist: [verification_gates.md](verification_gates.md), [development_workflow.md](development_workflow.md). Текущее фактическое состояние — [project_status.md](project_status.md).
-
-## 4. Отдельная исследовательская линия (параллельно)
-
-**M1: реальные CIOPRG/IONAME (закрытая обработка).** Для каждого разрешённого файла записывать семейство DX100/DX200/YRC1000, firmware, способ экспорта, SHA-256, encoding/newlines, source section map, подтверждение OEM tool, статус распространения. Приватный корпус не является содержимым публичных GitHub Issues/PR/Actions. Публично допускаются только самостоятельные синтетические минимальные кейсы. Следовать [controller_fixture_intake.md](controller_fixture_intake.md).
-
-**M6: семантика.** EN/scan order, flags, byte/word, TMR/CNT/GSTR/GOUT и защищённые разделы разбирать по OEM-ревизиям и разрешённым стендовым наблюдениям. Без этих данных статический анализ остаётся предположительным, а `reference_semantics` — отдельной справкой.
-
-**M10: испытания на стенде.** Только отдельная разрешённая программа для неопасного изолированного оборудования и штатных OEM средств. Результаты для DX100, DX200 и YRC1000 не переносить автоматически между поколениями. [Матрица bench](advanced_hardware_test_matrix.md).
-
-## 5. Заблокированные направления
-
-| Веха | Состояние | Что необходимо, прежде чем даже обсуждать разрешение |
+| Порядок | Цель | Почему сейчас |
 | --- | --- | --- |
-| M9 — scan simulation | НЕ ВЫПОЛНЕНО | Подтверждённый scan/time contract и OEM edge cases, отдельный design review |
-| M11 — read-only HSES | ЗАБЛОКИРОВАНО | Отдельное решение владельца, верифицированный OEM-протокол, read-only risk assessment, изолированный стенд |
-| M12 — native writer | ЗАБЛОКИРОВАНО | Полная доказанная грамматика, подтверждённые System/User boundaries и OEM round-trip, самостоятельное письменное разрешение |
-| M13 — robot deployment | ЗАБЛОКИРОВАНО | M12, отдельные права, safety/recovery plan, OEM approval и явное решение владельца |
+| 0 | Точность документации после #29 | Устаревшие статусы и SHA в MD затрудняют планирование |
+| 1 | Синтетический parser fixture corpus | Зафиксировать observed edge cases, partial/opaque и неизменность байтов |
+| 2 | Native Workspace: поиск и cross-navigation | Пользовательские проблемы с обзором большого CIOPRG и неизвестных конструкций |
+| 3 | Versioned portable sidecar | Привязка заметок/закладок к SHA без изменения native файла |
+| 4 | Evidence-driven typed syntax + static analysis | Разделить синтаксис, проверку ссылок и непроверенное исполнение |
+| 5 | Unified Offline Engineering Project | Единый инженерный сценарий без native writer |
+| 6 | Условный Windows 0.6.x preview | Только после успешных CI, ручной приёмки и правового контроля |
 
-Ни документирование этих требований, ни успешные CI/Windows tests **не предоставляют** разрешения на HSES, native writer или deployment.
+**Параллельные задачи:** приватный OEM fixture intake, независимый UserSmoke WIN-01–WIN-12, Windows ACL/crash/TOCTOU review, GitHub branch protection/ruleset и third-party license review. Модернизация интерфейса не должна автоматически включать HSES/FTP и native writer.
 
-## 6. Контроль прогресса
+## 2. Proposed PR backlog и зависимости
 
-Обновлять [project_status.md](project_status.md) **после фактического merge**, фиксируя SHA и CI. Отдельно показывать `implemented`, `synthetically tested`, `Windows CI`, `user smoke`, `OEM bench`, `authorized`. Исторические release notes оставлять неизменными. При расхождении документации с кодом — сначала проверять актуальные тесты и исходники, затем исправлять документы в новом PR.
+| PR | Результат | Зависимости | Gate |
+| --- | --- | --- | --- |
+| **#30 — Docs Baseline / Roadmap v3** | Актуальные MD, единственная каноническая дорожная карта, исторические архивы и risk matrix | merged #29 | `docs:check` + стандартный CI; docs-only |
+| **#31 — Synthetic CIOPRG Parser Corpus** | Синтетические варианты заголовка, `//$M`, `PART/END`, ALARM/MESSAGE, BOM/newlines, malformed/opaque, oversized | #30 | source spans/SHA-256 byte identity, Rust negative tests |
+| **#32 — Native Workspace Navigation & Diagnostics** | Source↔rung↔block/diagnostic, search/filter/keyboard, large-file usability | #31 частично; возможно параллельно | Все физические строки доступны, unknown явно виден |
+| **#33 — Portable `*.mlad.json` Sidecar v1** | Versioned schema, source hash/profile, bookmarks/annotations, ссылки на drafts, migrations/conflict | #30, filesystem safety #29 | Roundtrip/relocation/stale-hash/invalid JSON fail-closed |
+| **#34 — Typed Opcode Grammar Extension** | Дополнить только OEM-evidence-validated native forms, exact spans и typed/opaque states | #31, подтверждённые источники | Partial ≠ executed; negative syntax tests |
+| **#35 — Source-linked Static Analysis v2** | READ/WRITE index, cross-references, duplicate/conflict diagnostics и confidence | #31/#32/#34 | Ни ложных runtime/scan утверждений, ни потерянных unsupported |
+| **#36 — Unified Offline Engineering Project** | Native Snapshot + Sidecar + независимые Graph/Advanced JSON drafts в общем workflow | #32/#33/#35 | Source неизменен, user data восстанавливается, safe save/undo |
+| **#37 — Windows OFFLINE Preview 0.6.x RC** | Новая версия с source/portable/NSIS/SHA и release notes | только принятые функции + Windows UserSmoke + legal gate | Сборка на tag SHA и **отдельное согласование release** |
 
-## 7. Текущая работа PR #28
+Номера #31–#37 условные, GitHub их не резервировал. Bugfix/security PR могут быть вставлены между этапами по реальным дефектам и явному согласованию.
 
-После [merge PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27) baseline `main` — `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, [main validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). В отдельном **Draft PR #28** добавляется [Windows workflow](../.github/workflows/windows-security-acceptance.yml), NTFS exclusive-lock/junction Rust regressions, [synthetic harness](../scripts/windows-acceptance.ps1) и [ручная матрица проверки](windows_acceptance_pr28.md). Результат WindowsCI фиксируется только после успешного workflow на реальном SHA PR; `UserSmoke`, `OEMBench` и публикация релиза остаются `NOT RUN`/`BLOCKED`, без автоматического перехода в DONE.
+## 3. PR #31 — Synthetic Native Parser Fixtures (P0)
 
-## 8. PR #29 — File ID и staged-file guards (только Draft)
+**Вход:** [source registry](source_registry.md), [CIOPRG baseline](cioprg_lst_spec.md), [lossless contract](cioprg_lossless_parser.md), [post-END](post_end_data.md) и [fixture intake](controller_fixture_intake.md). Приватные источники не коммитить; для публичных тестов заново составлять synthetic минимальные примеры без копирования уникальных клиентских фрагментов.
 
-Фактический baseline после [merge PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) — `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`; [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) CI успешны. В PR #29 предложено усиление JSON filesystem identity/hardlink/staged-file integrity; документ [модели угроз и остаточных рисков](filesystem_security_pr29.md) отдельно фиксирует недоказанные directory-handle, ACL, TOCTOU и crash durability. Это не разрешение native writer/HSES/FTP. Ручной Windows UserSmoke остаётся `NOT RUN` до пользовательского протокола.
+**Выход:** версионированный набор фикстур с манифестом `synthetic origin / controller family assumption / encoding / newlines / expected raw spans / supported status`. Сценарии: обычные и нестандартные заголовки, `//$M`, порядок/повторы `PART`, `END`, `ALARM/MESSAGE` после END, неопределённые mnemonics, malformed operand/адрес, BOM, CRLF/LF, большие файлы.
+
+**Acceptance:** оригинальные байты и SHA-256 не меняются после parse/page/search; source span/physical line неизменны; unsupported не превращается в ложный rung, `PART 1/2` не трактуется как подтверждённая System/User policy; тесты Linux и нужные Windows регрессии.
+
+## 4. PR #32 — Native Workspace UX (P0)
+
+**Выход:** связка `source ↔ rung ↔ advanced block ↔ diagnostics` с точной physical line/offset, фильтры по opcode и address, раскрытие групп ошибок, компактные TMR/CNT/GSTR/GOUT списки, cross-link-to-source, keyboard focus и zoom. Инспектор не ограничивать только первыми 600 строками; использовать bounded pages.
+
+**Acceptance:** синтетический файл порядка 1400+ строк полностью доступен по навигации; нет скрытых unknown; отфильтрованные элементы не исчезают из модели; не допускаются UI edits исходного `CIOPRG.LST`; данные после `END` не визуализируются как Ladder. Производительность измерить и приложить среду теста, без выдуманных метрик.
+
+## 5. PR #33 — Portable Sidecar (P1)
+
+**Контракт:** `*.mlad.json` — отдельный пользовательский manifest, **не** изменённый нативный код. Предложенная структура: `schema_version`, `source_sha256`, `controller_family`, optional source provenance (без секретов), bookmarks/notes/manual IONAME associations и ссылки на самостоятельные `*.graph.json`/`*.advanced.json`. Решение по schema — отдельный дизайн внутри PR с утверждением владельца; эта таблица не считается уже согласованной схемой.
+
+**Acceptance:** UTF-8/кириллица roundtrip; несовпадение source SHA → явный `detached/stale`, не silent rebind; unknown version/invalid JSON/broken references → диагностируемый отказ; migration и backup recovery, обычные локальные Windows пути и filesystem guards #29; `CIOPRG.LST`/`IONAME.DAT` ни разу не записываются.
+
+## 6. PR #34 — Typed Grammar (P1)
+
+От каждого opcode требуется trace: OEM manual revision/section, семейство контроллера, точная форма операндов, синтетический positive/negative fixture, raw/typed span, `unknown` для неподдерживаемого. Исследовать по частоте ошибок реального Native Workspace, но приватные выгрузки не разглашать.
+
+**Acceptance:** корректные typed candidates для **подтверждённых** форм, точный source mapping, неизвестная команда остаётся opaque; нет повышения `ManualDerived` до `OEMBenchVerified`, нет исполнения PLC scan и native export.
+
+## 7. PR #35 — Static Cross-references (P1)
+
+READ/WRITE index для `#XXXXX` и `Mxxx`, ссылки на source, анализ неоднозначных/повторных назначений, ветвей и TMR/CNT/GSTR/GOUT *с пределами доказательности*. Результат включает source span, severity, support/confidence и отдельные статусы `Unresolved`.
+
+**Acceptance:** гарантированная неизменность исходных данных, тесты негативных и ambiguous cases, отсутствие ложного dataflow/coil для unsupported opcodes; scan semantics остаётся `NotExecuted`.
+
+## 8. PR #36 — Unified Offline Project (P1)
+
+Единая UI-сессия `Native Snapshot (read-only) + sidecar (user data) + editable Graph/Advanced JSON`. Переходы между адресами, цепями, блоками, исходником и заметками. Копирование verified native subset в JSON draft — только **явным** действием, не автоматический native→controller compiler.
+
+**Acceptance:** открыть → найти → отметить → сохранить sidecar → создать/изменить draft → повторно открыть; все native SHA прежние, повреждённый/старый sidecar не маскируется, конфликты записи сообщаются, кнопок загрузки в робот нет.
+
+## 9. PR #37 — Windows Preview 0.6.x (условный)
+
+**Минимальные gates:** необходимые feature PR слиты с CI на tag SHA; [Windows manual acceptance WIN-01…WIN-12](windows_acceptance_pr28.md) выполнена и приложена; [filesystem threat model](filesystem_security_pr29.md) пересмотрена; source zip, portable zip/NSIS, GPL-3.0-only, third-party notices/SBOM review, SHA256SUMS, unsigned binary status; release note перечисляет unsupported grammar и `OEMBench NOT RUN`. Даты и release-name согласовать отдельно.
+
+Официальное OEM bench не требуется для честно названного **OFFLINE** preview, но реальная совместимость/эквивалентность с контроллером **не** заявляется. Публиковать только после отдельного решения владельца.
+
+## 10. Security/governance поток (открыт)
+
+PR #29 сделал проверку File ID/inode + bytes при JSON сохранении, hardlink rejection, SHA-256 staged и запрет Windows ADS/UNC/device paths. Не решил целиком:
+
+- `check→rename` / parent directory handle TOCTOU и adversarial multi-writer races;
+- ACL/owner при staged replacement и read-only permissions;
+- atomic transaction для пары `target + backup` и crash/power-loss durability;
+- независимую приёмку Windows WebView2.
+
+Эти задачи оставлять **OPEN**, а для новых sidecar/edit flows проводить доработки через отдельные P0 bugfix/security PR по необходимости. См. [filesystem_security_pr29.md](filesystem_security_pr29.md). `main` при проверке GitHub имел `protected=false`; включение required checks / Ruleset — отдельное действие владельца, docs PR не меняет настройки.
+
+## 11. Параллельный private OEM evidence intake
+
+Проверять каждый разрешённый пример `CIOPRG.LST` по controller model/firmware, method of export, encoding, original hash, OEM Ladder Editor/version и источнику прав. Никаких настоящих файлов, паролей, адресов предприятий, production IP или fingerprint hashes в публичных PR/CI. В open-source fixtures использовать только оригинальные синтетические формы. Не переносить выводы между DX100, DX200 и YRC1000 автоматически.
+
+## 12. Definition of Done (все будущие PR)
+
+1. Перед началом: прочитать актуальные `main` SHA, открытые PR и [D1–D9](engineering_decisions.md); описать изменённый контракт.
+2. В коммитах: синтетические позитивные и негативные тесты, проверка byte fidelity, документация, обоснование unknown/opcode.
+3. CI: `npm ci --no-audit --no-fund`, `npm run test:security`, `npm run test:native`, другие модельные тесты, `npm run docs:check`, `npm run build`, `cargo test --manifest-path src-tauri/Cargo.toml --locked`; Windows MSVC/Tauri при IPC/filesystem изменениях.
+4. Статус `WindowsCI` отдельно от `UserSmoke` и `OEMBench`; если тест не проведён — `NOT RUN`, если направление запрещено — `BLOCKED`.
+5. Проверить запреты HSES/FTP/live I/O/native writer/deployment, GDPR/производственные секреты, правовой статус исходников.
+6. Не сливать PR и не публиковать release без **отдельного согласования** владельца; после merge создать новый актуальный baseline и не переписывать исторические релизные файлы.
+
+[Единые verification gates](verification_gates.md) · [Workflow](development_workflow.md) · [История прежнего PR #27–#35 плана](implementation_plan_v2_archive.md).
