@@ -88,6 +88,24 @@ test("native file reads and every JSON persistence entry check parent paths", ()
 });
 
 
+test("PR29 JSON persistence rejects hardlinks and same-content file swaps", () => {
+  const storage=readFileSync("src-tauri/src/draft_io.rs","utf8");
+  const guarded=readFileSync("src-tauri/src/guarded_read.rs","utf8");
+  assert.match(guarded,/pub\(crate\) fn read_regular_with_identity/);
+  assert.match(guarded,/pub\(crate\) fn verify_single_link/);
+  assert.match(guarded,/GetFileInformationByHandle/);
+  assert.match(guarded,/meta\.nlink\(\) != 1/);
+  assert.match(guarded,/links != 1/);
+  assert.match(storage,/read_bounded_snapshot\(path\)/);
+  assert.match(storage,/crate::guarded_read::verify_single_link\(path\)/);
+  assert.match(storage,/identity!=self\.identity/);
+  assert.match(storage,/Sha256::digest/);
+  assert.match(storage,/fn same_content_target_replacement_is_a_save_conflict/);
+  assert.match(storage,/fn hardlink_alias_to_native_source_or_json_backup_is_rejected/);
+  assert.match(storage,/fn staged_file_modified_after_flush_cannot_be_committed/);
+  assert.match(rust,/guarded_read::is_indirection\(&meta\)/);
+});
+
 test("PR26 native and JSON reads use one handle with filesystem identity checks",()=>{
   const safe=readFileSync("src-tauri/src/guarded_read.rs","utf8");
   const drafts=readFileSync("src-tauri/src/draft_io.rs","utf8");
