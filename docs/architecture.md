@@ -1,6 +1,6 @@
 # Архитектура MLAD и границы доверия
 
-**Статус от 18.11.2026:** соответствует `main` `2092db1825880d251c87efcb7c331d78cb5e4d28` после merged PR #26. [Статус](project_status.md), [roadmap](roadmap.md), [план ближайших PR](implementation_plan.md). Native исходники только для чтения; network/deploy отключены.
+**Фактический baseline 18.11.2026:** `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` после [merge PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) успешны. [Project status](project_status.md), [Roadmap v3](roadmap.md), [Backlog](implementation_plan.md). Native source строго read-only; FTP/HSES/deploy отключены.
 
 ## 1. Слои и поток данных
 
@@ -48,7 +48,7 @@ React / TypeScript / Tauri WebView
 | Локальные TMR/CNT/GSTR test steps | Детерминированные **ручные** шаги | Не реальный scan/IO |
 | HSES / FTP | Deny-only Tauri IPC | **OFFLINE / запрещено** |
 
-Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 merged** реализует production CSP и проверки предков путей; CSP **в опубликованном rc.9 ещё отсутствует**, а filesystem races/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего аудита.
+Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 merged** реализует production CSP и проверки предков путей; CSP **в опубликованном rc.9 ещё отсутствует**, а PR #29 добавил File ID/byte snapshots, hardlink rejection и Windows ADS/UNC/device path deny. Остаются race windows/TOCTOU, ACL/power-loss и Windows user smoke. [Обзор](filesystem_security_pr29.md).
 
 ## 3. Три уровня интерпретации
 
@@ -67,7 +67,7 @@ Backend не предоставляет рабочей команды сохра
 
 ## 5. Открытые security/engineering долги
 
-1. PR #25 merged: CSP и symlink-ancestor checks; PR #26 merged: guarded reads/JSON conflict guard. Остаются filesystem TOCTOU, hardlinks, ACL/Windows junction edge cases, directory handles и отсутствие транзакции backup+target.
+1. PR #25 merged: CSP/ancestor checks; PR #26 merged: guarded reads/conflicts; PR #28 merged: реальный Windows NTFS test workflow; PR #29 merged: File ID + bytes, hardlinks, staged SHA-256, Windows path deny. Остаются last check→rename TOCTOU, directory handles, ACL/Windows edge cases, concurrent writers и отсутствие транзакции backup+target.
 2. Реальные golden fixtures с provenance по DX100/DX200/YRC1000 и firmware.
 3. Полная native grammar, byte/word aliasing, System/User ownership.
 4. Взаимодействие флагов и условий EN при полном скане; крайние MOV byte=256, SHL/SHR n=0/16.
@@ -91,6 +91,10 @@ Backend не предоставляет рабочей команды сохра
 
 `guarded_read::read_regular` использует единый дескриптор для содержимого (на Windows — дополнительные контрольные дескрипторы), предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.md).
 
-## 9. Архитектурный маршрут
+## 9. PR #28/#29 — Windows regression и filesystem hardening (merged)
 
-**Следующие отдельные изменения:** автоматизируемые Windows security regressions → targeted file-handle threat review → synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based semantics → unified offline workspace. [Implementation plan](implementation_plan.md) · [Verification gates](verification_gates.md) · [Decisions D1–D9](engineering_decisions.md). Ни один документ не санкционирует запись native или подключение контроллера.
+[Windows workflow](../.github/workflows/windows-security-acceptance.yml) после PR #28 исполняет тесты на Windows runner, компилирует Tauri EXE с production CSP и формирует временный unsigned artifact. В PR #29 JSON read/save расширены `FileIdentity` snapshots и запретом hardlinked target/backup; staged JSON сверяет File ID и SHA-256 перед переименованием. Прямые Windows alternate streams, UNC/device/verbatim и drive-relative пути отклоняются; для работы выбирать обычные локальные копии. [Threat review](filesystem_security_pr29.md). **Не гарантируются** directory-handle atomicity, сохранение ACL, crash durability и транзакция пары `backup+target`. В `Cargo.toml` всё ещё указан `suppaftp` как зависимость — отдельная проверка зависимостей не означает, что сетевой runtime активен.
+
+## 10. Архитектурный маршрут после PR #29
+
+**Следующие отдельные изменения:** synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based typed syntax → source-linked static analysis → unified Offline Engineering IDE → условный Windows 0.6.x preview. [Implementation plan](implementation_plan.md) · [Verification gates](verification_gates.md) · [Decisions D1–D9](engineering_decisions.md). Ни один документ не санкционирует запись native или подключение контроллера.
