@@ -51,3 +51,7 @@ PR #25 проверял symlink компонентов пути до файло�
 **Результаты CI не означают ручной Windows smoke или full TOCTOU closure.** Следующий план: [implementation_plan.md](implementation_plan.md), [verification_gates.md](verification_gates.md).
 
 **Windows API sources:** [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle), [BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information), [FILE_FLAG_OPEN_REPARSE_POINT](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew). FFI-код требует независимого security review (ABI, reparse и NTFS/ReFS различия), а не только прохождения компиляции.
+
+## Последующие доказательства PR #28–#29 (18.11.2026)
+
+Этот документ является **историческим исследованием PR #26**, а не описанием исчерпывающей текущей защиты. После него [PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) ввёл регулярный Windows NTFS/Win32 build/regression; [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) — JSON bytes+File ID snapshots, hardlink rejection, staged identity+SHA-256 и Windows ADS/UNC/device path deny. [Фактический main CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) — SUCCESS, но **не** ручной WebView2 smoke и не гарантия полного TOCTOU closure. Канонический продолженный review: [filesystem_security_pr29.md](filesystem_security_pr29.md).
