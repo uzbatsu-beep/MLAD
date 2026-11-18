@@ -64,17 +64,10 @@ async fn read_cioprg_bytes(file_path: &str) -> Result<Vec<u8>, String> {
     if !path.extension().is_some_and(|ext| ext.to_string_lossy().eq_ignore_ascii_case("lst")) {
         return Err("Выберите файл .LST для просмотра".into());
     }
-    draft_io::verify_parent_directory(path)?;
-    let metadata = tokio::fs::symlink_metadata(path).await
-        .map_err(|e| format!("Не удалось прочитать метаданные файла: {e}"))?;
-    if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() > MAX_CIO_FILE_BYTES {
-        return Err("Файл должен быть обычным .LST размером не более 16 МиБ".into());
-    }
-    let bytes = tokio::fs::read(path).await
-        .map_err(|e| format!("Не удалось прочитать .LST: {e}"))?;
-    if bytes.len() as u64 > MAX_CIO_FILE_BYTES {
-        return Err("Файл .LST превышает ограничение 16 МиБ".into());
-    }
+    let selected=path.to_path_buf();
+    let bytes=tokio::task::spawn_blocking(move ||
+        guarded_read::read_regular(&selected,MAX_CIO_FILE_BYTES as usize))
+        .await.map_err(|e|format!("Ошибка безопасного чтения CIO: {e}"))??;
     // Bound line metadata and diagnostic allocation even for hostile text made
     // almost entirely of newline bytes. CRLF is one line terminator.
     let mut line_breaks = 0usize;
@@ -189,17 +182,10 @@ async fn cmd_inspect_ioname(file_path: String)
         .is_some_and(|n|n.eq_ignore_ascii_case("IONAME.DAT")) {
         return Err("Для просмотра выберите IONAME.DAT (копию файла)".into());
     }
-    draft_io::verify_parent_directory(path)?;
-    let meta=tokio::fs::symlink_metadata(path).await
-        .map_err(|e|format!("Нет доступа к IONAME.DAT: {e}"))?;
-    if meta.file_type().is_symlink() || !meta.is_file() || meta.len()>MAX_IONAME_BYTES {
-        return Err("IONAME.DAT: обычный файл без symlink размером до 4 МиБ".into());
-    }
-    let bytes=tokio::fs::read(path).await
-        .map_err(|e|format!("Не удалось прочитать IONAME.DAT: {e}"))?;
-    if bytes.len() as u64>MAX_IONAME_BYTES {
-        return Err("IONAME.DAT превышает 4 МиБ".into());
-    }
+    let selected=path.to_path_buf();
+    let bytes=tokio::task::spawn_blocking(move ||
+        guarded_read::read_regular(&selected,MAX_IONAME_BYTES as usize))
+        .await.map_err(|e|format!("Ошибка безопасного чтения IONAME: {e}"))??;
     Ok(compiler::ioname::inspect(&bytes))
 }
 
@@ -248,7 +234,7 @@ async fn cmd_pick_native_file(
             draft_io::verify_parent_directory(&path)?;
             let file = tokio::fs::symlink_metadata(&path).await
                 .map_err(|e| format!("Не удалось проверить выбранный файл: {e}"))?;
-            if file.file_type().is_symlink() || !file.is_file() {
+            if guarded_read::is_indirection(&file) || !file.is_file() {
                 return Err("Можно открыть только обычный файл, не ссылку".into());
             }
             let max_size = if kind == "cioprg" { 16 * 1024 * 1024 } else { 4 * 1024 * 1024 };
