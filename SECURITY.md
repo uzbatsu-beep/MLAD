@@ -42,7 +42,7 @@
 - FTP/HSES, мониторинг, live I/O, деплой и команды записи в робот **отключены**.
 - `TRUE/FALSE/UNKNOWN` в локальных моделях — **не** живые сигналы контроллера.
 - `MOV/ADD/SUB/SHL/SHR`: `TypedCandidate`, статические ссылки и `ManualDerived` **не** равны результатам исполнения на конкретной системе.
-- Известные непроверенные области включают `csp: null`, файловые symlink/TOCTOU, атомарность JSON и правильность взаимодействия с ОС. Наличие `SECURITY.md` **не устраняет** эти риски.
+- В текущем `main` PR #25 добавил production CSP и проверки предков путей, PR #26 — identity-checked reads, reparse detection и JSON conflict guard. **Открыты:** финальные TOCTOU-окна, hardlinks/ACL, backup+target transaction, power-loss durability и пользовательский Windows/WebView2 smoke. CSP и прохождение CI **не гарантируют** устранения этих рисков; [модель угроз](docs/guarded_io_review.md).
 
 Проверяйте экспериментальное ПО только автономно на копиях, **без подключения к действующему промышленному оборудованию**. Не исследуйте уязвимости на чужом контроллере, предприятии или сети без явного разрешения.
 
@@ -51,3 +51,7 @@
 Сопровождающий оценивает сообщение, определяет влияние и согласовывает корректное раскрытие. Публикация патча, Advisory/CVE, сроки и решение о выпуске версии принимаются отдельно. **Автоматическая публикация деталей до исправления не предполагается.** Проверки Rust/TypeScript/CI и аппаратная верификация — разные уровни подтверждения.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) · [Архитектура](docs/architecture.md) · [Текущее состояние](docs/project_status.md)
+
+## Техническая контрольная точка (18.11.2026)
+
+`main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28` прошёл [Linux validation](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776); PR #26 прошёл [Windows MSVC/Tauri CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Эти результаты **не** подтверждают ручной WebView2 smoke, независимое исследование уязвимостей, проверку эксплуатации на контроллере или допуск native writer. [Checklist](docs/verification_gates.md).
