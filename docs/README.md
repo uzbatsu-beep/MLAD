@@ -1,6 +1,6 @@
 # MLAD — каталог технической документации
 
-**Актуально для `main` от 18.11.2026:** PR #1–#28 merged; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) на SHA `3c184cd3`. PR #29 — отдельный Draft; опубликованная rc.9 не содержит новые PR #24–#29. [Статус](project_status.md).
+**Сверено 18.11.2026:** `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged), [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) не содержит PR #24–#29. Публикация документационного PR #30 не означает merge; [текущий статус](project_status.md).
 
 ## С чего начать
 
@@ -8,11 +8,11 @@
 | --- | --- |
 | Назначение и быстрый старт | [README репозитория](../README.md) |
 | Полная сверенная функциональность, риски, прогресс | [project_status.md](project_status.md) |
-| Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
-| Исполнимый backlog PR #27+ и зависимости | [implementation_plan.md](implementation_plan.md) |
+| **Актуальная roadmap v3:** M0–M13, приоритеты, зависимости | [roadmap.md](roadmap.md) |
+| **План разработки PR #30–#37:** объём, проверки, последовательность | [implementation_plan.md](implementation_plan.md) |
 | Матрица CI, Windows smoke, проверок и релизов | [verification_gates.md](verification_gates.md) |
 | Windows Acceptance & Security Regression (PR #28 merged) | [windows_acceptance_pr28.md](windows_acceptance_pr28.md) |
-| Filesystem Security Hardening и остаточные угрозы (PR #29 Draft) | [filesystem_security_pr29.md](filesystem_security_pr29.md) |
+| Filesystem Security Hardening и остаточные угрозы (PR #29 merged) | [filesystem_security_pr29.md](filesystem_security_pr29.md) |
 | Согласованные инженерные решения D1–D9 | [engineering_decisions.md](engineering_decisions.md) |
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
@@ -26,6 +26,7 @@
 | Доступность интерфейса и ограничения | [ACCESSIBILITY.md](../ACCESSIBILITY.md) |
 | Шаблон PR с ограничениями MLAD | [PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md) |
 | Лицензия и сторонние компоненты | [licensing.md](licensing.md) |
+| Реестр ревизии всех Markdown после PR #29 | [documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.md) |
 | Исторический аудит документации на 17.11.2026 | [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.md) |
 
 ## Исходные файлы, адреса и семантика
@@ -67,15 +68,27 @@
 | rc.6 | Post-END и группировка диагностики | [rc.6](releases/v0.5.0-rc.6-postend.md) |
 | rc.7 | Типизация пяти команд | [rc.7](releases/v0.5.0-rc.7-typed.md) |
 | rc.8 | Статические гипотезы источников | [rc.8](releases/v0.5.0-rc.8-evidence.md) |
-| **rc.9** | **OEM reference для пяти команд — текущая** | [rc.9](releases/v0.5.0-rc.9-oem-reference.md) |
+| **rc.9** | **OEM reference для пяти команд — последний опубликованный** | [rc.9](releases/v0.5.0-rc.9-oem-reference.md) |
 
 Текущий [GitHub Release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); опубликованный архив исходников соответствует релизному commit, а не будущим изменениям `main`.
 
-## Архивные перенаправления
+## Исторические материалы и перенаправления
+
+- [roadmap_v2_archive.md](roadmap_v2_archive.md) — **архив** прежней детальной дорожной карты, в ней есть устаревшие на сегодня Draft-статусы.
+- [implementation_plan_v2_archive.md](implementation_plan_v2_archive.md) — **архив** прежней очереди PR #27–#35; текущие номера переназначены после документального PR #30.
+- [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.md) — исторический аудит на дату создания.
+
 
 - [ladder_spec.md](ladder_spec.md) → [cioprg_lst_spec.md](cioprg_lst_spec.md).
 - [memory_map.md](memory_map.md) → [typed_memory_model.md](typed_memory_model.md).
 - [references.md](references.md) → [source_registry.md](source_registry.md).
+
+## Политика актуализации Markdown
+
+- **Действующие источники истины:** этот индекс, `project_status.md`, `roadmap.md`, `implementation_plan.md`, `verification_gates.md`, `engineering_decisions.md`, `SECURITY.md`, `architecture.md`.
+- **Спецификации функций** (CIOPRG, memory, parser, graph, advanced, HSES) остаются действующими **только в описанных ими границах**; старое `PR #21` в заголовке означает provenance реализации, а не последний слитый PR проекта.
+- **Исторические записи** (rc.1–rc.9, архивные решения, датированные audits) не переписывать задним числом и не принимать их SHA/CI за сегодняшнее состояние.
+- Отчёт по проверке покрытия всех Markdown — [documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.md). После нового merge повторять ревизию только изменённых/статусных файлов, сохраняя архивы.
 
 ## Дисциплина доказательности
 
