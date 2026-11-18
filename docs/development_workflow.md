@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026, `main` PR #1–#24 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901), [rc.9 Windows SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155). Основной процесс — отдельный PR, CI и явное согласование владельца. [Текущий статус](project_status.md).
+**Актуализация:** 18.11.2026, `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`, PR #1–#26 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031); опубликованный [rc.9 Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155) собран до PR #24–#26. [Текущий статус](project_status.md).
 
 ## 1. Git и изменение функций
 
@@ -76,6 +76,14 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 Новый staged writer тестируется Rust-модулем `draft_io.rs`, а `test:security` дополнительно запрещает прямую запись JSON из Tauri handlers. Для приёмки нужны: новый/существующий черновик, предыдущая `*.bak`, oversized input, прямая symlink, ошибка создания/замены и проверка неизменности оригинальных `CIOPRG.LST`/`IONAME.DAT`. Rust CI на Linux **не доказывает** идентичное поведение замены на Windows; до выпуска нужен Windows smoke с закрытым WebView2 и открытым JSON-файлом. Действующие угрозы CSP, parent symlink/races и backup transaction остались за рамками этого PR.
 
 
-## 7. PR #25 — CSP и защита пути (Draft)
+## 7. PR #25 — CSP и защита пути (merged)
 
 Перед выпуском проверить синтаксис CSP через `npm run test:security`, `cargo test --locked`, сборку Windows Tauri, запуск WebView2, проверку системного Open dialog, визуальных Ladder/TMR панелей, локального редактирования JSON и отсутствие blocked Tauri IPC. Нормальные символические ссылки предков сознательно отвергаются для уменьшения риска: пользователь должен выбирать **прямой путь к обычной копии файла**. Тесты не устраняют filesystem TOCTOU; отдельный review directory-handle/Windows reparse остаётся.
+
+## 8. PR #26 — guarded reads / JSON conflict guard (merged)
+
+Проверки identity/reparse ограничивают ошибки подмены между путём и открытым дескриптором; JSON-писатель отказывает при обнаруженном конкурентном изменении. Автоматические Linux/Windows CI пройдены, но не устраняют финальное окно `check→rename`, reparse/ACL/power-loss edge cases и не являются ручной Windows приёмкой. [Guarded I/O](guarded_io_review.md).
+
+## 9. Единый checklist новых PR
+
+При планировании следовать [implementation_plan.md](implementation_plan.md), после каждой функциональной доработки заполнять [verification_gates.md](verification_gates.md), согласованные запреты сверять с [engineering_decisions.md](engineering_decisions.md). Результаты CI привязывать к **точному head SHA**. Для документационного PR Windows/hardware — `NOT RUN (docs-only)`; для функционального Windows PR требуются тесты на Tauri runner, а перед пользовательским релизом — ручной smoke. Ни один этап не снимает запрет на HSES/FTP, native writer или deployment.
