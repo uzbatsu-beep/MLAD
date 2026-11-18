@@ -76,7 +76,8 @@ test("native file reads and every JSON persistence entry check parent paths", ()
   const storage=readFileSync("src-tauri/src/draft_io.rs","utf8");
   assert.match(storage,/pub fn verify_parent_directory/);
   assert.match(storage,/Component::ParentDir/);
-  assert.match(storage,/file_type\(\)\.is_symlink\(\)/);
+  assert.match(storage,/crate::guarded_read::is_indirection\(&meta\)/);
+  assert.match(storage,/crate::guarded_read::is_indirection\(&metadata\)/);
   assert.match(storage,/fn symlinked_parent_directory_cannot_redirect_json_into_native_folder/);
   assert.match(storage,/fn relative_parent_traversal_rejected_before_any_write/);
   assert.match(rust,/draft_io::verify_parent_directory\(path\)/);
