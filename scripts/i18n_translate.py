@@ -10,7 +10,7 @@ ROOT_DOCS=("README.md","ACCESSIBILITY.md","CONTRIBUTING.md","SECURITY.md","CODE_
 NAV_START="<!-- MLAD-I18N:NAV:START -->"
 NAV_END="<!-- MLAD-I18N:NAV:END -->"
 NAV_RE=re.compile(re.escape(NAV_START)+r"[\s\S]*?"+re.escape(NAV_END)+r"\n*",re.M)
-INLINES=re.compile(r"(`+[^`\n]+`+|!?\[[^\]\n]+\]\([^\n)]*\)|https?://[^\s)]+|<!--.*?-->|</?[A-Za-z][^>]*>)")
+INLINES=re.compile(r"(`+[^`\n]+`+|!?\[[^\]\n]+\]\([^\n)]*\)|https?://[^\s)]+|(?:CIOPRG\.LST|IONAME\.DAT|YRC1000micro|YRC1000|DX100|DX200|HSES|FTP|WebView2|GPL-3\.0-only|SHA-256|SHA256SUMS\.txt|PR #[0-9]+|\.graph\.json|\.advanced\.json)|<!--.*?-->|</?[A-Za-z][^>]*>)")
 FENCE=re.compile(r"^\s*(`{3,}|~{3,})")
 IDENT=re.compile(r"^[A-Za-z0-9_./@:\-+]+$")
 def sources():
