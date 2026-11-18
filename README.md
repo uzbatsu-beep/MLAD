@@ -23,7 +23,9 @@
 
 **Сохранение JSON:** PR #24 слит в `main`; используются staged file/rename и `.bak`, отдельные Windows MSVC tests прошли, но ручной Windows smoke пока не проводился. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
 
-**Новый PR #29 (Draft):** сравнение File ID/inode наряду с JSON-байтами, отказ для hardlink target/backup, проверка идентичности и SHA-256 staged JSON перед rename; сохраняются окна TOCTOU, ACL/permissions и отсутствие атомарной транзакции backup+target. [Подробный аудит](docs/filesystem_security_pr29.md).\n\n**Усиление защиты (PR #25 и #26 merged):** CSP ограничивает внешние загрузки/JS eval, а файловые проверки выявляют часть symlink/reparse-подмен и конфликтов изменения JSON. [CSP](docs/csp_path_hardening.md) · [guarded reads и остаточные гонки](docs/guarded_io_review.md). [Windows MSVC/Tauri CI для PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), **ручной Windows smoke не подтверждён**; полная защита от TOCTOU не заявляется.
+**Новый PR #29 (Draft):** сравнение File ID/inode наряду с JSON-байтами, отказ для hardlink target/backup, проверка идентичности и SHA-256 staged JSON перед rename; сохраняются окна TOCTOU, ACL/permissions и отсутствие атомарной транзакции backup+target. [Подробный аудит](docs/filesystem_security_pr29.md).
+
+**Усиление защиты (PR #25 и #26 merged):** CSP ограничивает внешние загрузки/JS eval, а файловые проверки выявляют часть symlink/reparse-подмен и конфликтов изменения JSON. [CSP](docs/csp_path_hardening.md) · [guarded reads и остаточные гонки](docs/guarded_io_review.md). [Windows MSVC/Tauri CI для PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), **ручной Windows smoke не подтверждён**; полная защита от TOCTOU не заявляется.
 
 **Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 
