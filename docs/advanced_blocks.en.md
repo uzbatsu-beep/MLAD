@@ -1,10 +1,11 @@
 <!-- Generated en companion for docs/advanced_blocks.md; review required. -->
 > **English** · [Русский](advanced_blocks.ru.md) · [English](advanced_blocks.en.md) · [Original / Оригинал](advanced_blocks.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Yaskawa Advanced CIO Instructions — PR #5updating after PR #21
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21It means that the whole project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
 
 **Status (18.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
 

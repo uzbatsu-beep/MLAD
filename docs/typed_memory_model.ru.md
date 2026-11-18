@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/typed_memory_model.md; review required. -->
 > **Русский** · [Русский](typed_memory_model.ru.md) · [English](typed_memory_model.en.md) · [Original / Оригинал](typed_memory_model.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Модель памяти CIO — DX100 / DX200 / YRC1000
 

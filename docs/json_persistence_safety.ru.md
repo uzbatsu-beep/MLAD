@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/json_persistence_safety.md; review required. -->
 > **Русский** · [Русский](json_persistence_safety.ru.md) · [English](json_persistence_safety.en.md) · [Original / Оригинал](json_persistence_safety.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — модель безопасности JSON сохранения (PR #24)
 

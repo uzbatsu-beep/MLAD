@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/documentation_inventory_2026-11-18.md; review required. -->
 > **Русский** · [Русский](documentation_inventory_2026-11-18.ru.md) · [English](documentation_inventory_2026-11-18.en.md) · [Original / Оригинал](documentation_inventory_2026-11-18.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — аудит всего каталога Markdown после PR #29
 

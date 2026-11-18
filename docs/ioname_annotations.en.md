@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/ioname_annotations.md; review required. -->
 > **English** · [Русский](ioname_annotations.ru.md) · [English](ioname_annotations.en.md) · [Original / Оригинал](ioname_annotations.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 

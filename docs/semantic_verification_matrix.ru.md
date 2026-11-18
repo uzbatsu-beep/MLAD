@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/semantic_verification_matrix.md; review required. -->
 > **Русский** · [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Original / Оригинал](semantic_verification_matrix.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD PR #20 — семантическая верификация и аудит ссылок
 

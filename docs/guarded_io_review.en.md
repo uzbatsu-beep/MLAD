@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/guarded_io_review.md; review required. -->
 > **English** · [Русский](guarded_io_review.ru.md) · [English](guarded_io_review.en.md) · [Original / Оригинал](guarded_io_review.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD PR #26 — Guarded Reads & JSON Conflict Prevention
 

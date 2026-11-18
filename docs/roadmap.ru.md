@@ -1,10 +1,11 @@
 <!-- Generated ru companion for docs/roadmap.md; review required. -->
 > **Русский** · [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Оригинал](roadmap.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — дорожная карта v3: Native CIO Workspace → Offline Engineering IDE
 
-**Контрольная точка:** 18.11.2026, `main` = `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1#29 Слияние. [Успешная проверка Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Восприятие и регрессия безопасности Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Windows GitHub Release: [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) — старый артефакт, **не содержит PR #24–#29**. Отдельное прохождение тестов на ПК пользователя и на роботе **не подтверждено**.
+**Контрольная точка:** 18.11.2026, `main` = `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 объединены. [Успешная проверка Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Восприятие и регрессия безопасности Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Windows GitHub Release: [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) — старый артефакт, **не содержит PR #24–#29**. Отдельное прохождение тестов на ПК пользователя и на роботе **не подтверждено**.
 
 **Статус:** техническая дорожная карта; новые PR после #29 пока **предложены**, а не созданы, за исключением отдельного документационного PR #30 при его публикации. [Детальный backlog](implementation_plan.ru.md) · [Фактическое состояние](project_status.ru.md) · [Решения D1–D9](engineering_decisions.ru.md) · [Историческая roadmap v2](roadmap_v2_archive.ru.md).
 
@@ -46,17 +47,17 @@
 | M0 - Git/CI/legal baseline | P0 | **Сделано:** PR #1–#29, Windows+Linux CI успешны; branch `main` не защищён | Правила merge / опциональная Branch Protection отдельно |
 | M1 — OEM источник корпуса | P0 | **PARTIAL:** приватная предварительная инвентаризация; firmware/OEM provenance не полный | Правомерные private fixtures + controller/firmware + OEM результат; synthetic public corpus |
 | M2 - файловая система/безопасность | P0 | **PARTIAL:** #24–#29 снизили выявленные риски | Windows UserSmoke + согласованные остаточные ACL/races/crash risks и дополнительные security reviews |
-| M3 — родное рабочее пространство | P0 | **DONE (read-only базовый):** #15–#17 | Стабильное окно чтения, без native save |
+| M3 — рабочая область Native Workspace | P0 | **DONE (read-only базовый):** #15–#17 | Стабильное окно чтения, без native save |
 | M4 — навигация/диагностика | P0 | **PARTIAL:** paging, source/search, список рунгов/группировка | Надёжный source↔rung/block/diagnostic jump, фильтры и large-file UX |
 | M5 — родной тип синтаксиса | P1 | **PARTIAL:** 5 opcodes + opaque для прочего | Синтетические edge cases + evidence-validated grammar increments |
 | M6 - статический семантический/поток данных | P1 | **PARTIAL:** Boolean AST, статичные M-ссылки, ссылки ручного производства | Verified references и честное unknown, без fake scan |
 | M7 - портативная офлайн-сессия | P1 | **OPEN:** local annotations есть, `*.mlad.json` нет | Версия коляски, хеш-связывание, миграция / конфликт / обработка ошибок |
 | M8 — единая инженерная IDE | P1 | **OPEN:** разные редакторы JSON работают отдельно | Общая навигация, связка source/notes/drafts без изменённого native |
 | M9 — сканирующий тренажер | P2 | **Открыт/не проверен** | Формально проверенный OEM scan/time contract + bench |
-| M10 - Скамейка OEM | P1–P2 | *Не бегать* | Отдельный разрешённый изолированный стенд, точная модель и firmware |
-| M11 - только для чтения HSES | P2 | ** Заблокировано** | Независимый owner decision + протокол и risk review |
-| M12 — родной CIO писатель | P3 | ** Заблокировано** | Полная OEM grammar/System/User и golden round-trip, отдельный допуск |
-| M13 — развертывание роботов | P3 | ** Заблокировано** | M12, независимая safety/recovery процедура, явно согласованные права |
+| M10 - OEM-стенд | P1–P2 | **NOT RUN (не проводилось)** | Отдельный разрешённый изолированный стенд, точная модель и firmware |
+| M11 - только для чтения HSES | P2 | **BLOCKED (заблокировано)** | Независимый owner decision + протокол и risk review |
+| M12 — родной CIO писатель | P3 | **BLOCKED (заблокировано)** | Полная OEM grammar/System/User и golden round-trip, отдельный допуск |
+| M13 — развертывание роботов | P3 | **BLOCKED (заблокировано)** | M12, независимая safety/recovery процедура, явно согласованные права |
 | MX - выпуск/UX/качество | P0–P2 | **ONGOING:** CI и rc.9, но новый релиз не выпускался | Manual Windows acceptance, legal/assets, воспроизводимые SHA |
 
 ## 4. Стратегия v3 — что делать в каком порядке

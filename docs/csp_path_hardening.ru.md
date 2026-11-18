@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/csp_path_hardening.md; review required. -->
 > **Русский** · [Русский](csp_path_hardening.ru.md) · [English](csp_path_hardening.en.md) · [Original / Оригинал](csp_path_hardening.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — CSP и проверки безопасности файловых путей (PR #25)
 
@@ -48,7 +49,7 @@
 | Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | PASS - PR #25/#26 CI |
 | Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | PASS - основной /PR #26 CI |
 | Windows Tauri с компилированным CSP | GitHub Windows workflow, не публикует релиз | [PASS - PR #26 Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031) |
-| В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | Не бегать |
+| В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | NOT RUN (не проводилось) |
 | Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Регрессия ржавчины | PASS — автоматические тесты; независимый UserSmoke NOT RUN |
 | File-handle/no-follow, symlink race testing, policy для Windows junction | Отдельная задача | OPEN |
 

@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/semantic_verification_matrix.md; review required. -->
 > **English** · [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Original / Оригинал](semantic_verification_matrix.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD PR #20 Semantic verification and audit of references
 

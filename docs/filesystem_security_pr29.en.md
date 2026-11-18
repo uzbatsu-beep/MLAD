@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/filesystem_security_pr29.md; review required. -->
 > **English** · [Русский](filesystem_security_pr29.ru.md) · [English](filesystem_security_pr29.en.md) · [Original / Оригинал](filesystem_security_pr29.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD PR #29 — Filesystem Security Hardening: threat review and evidence
 

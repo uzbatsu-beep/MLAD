@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/ui_multi_rung_state.md; review required. -->
 > **English** · [Русский](ui_multi_rung_state.ru.md) · [English](ui_multi_rung_state.en.md) · [Original / Оригинал](ui_multi_rung_state.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 

@@ -1,22 +1,23 @@
 <!-- Generated en companion for README.md; review required. -->
 > **English** · [Русский](README.ru.md) · [English](README.en.md) · [Original / Оригинал](README.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Reconciliation 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest release released by Windows is **rc.9**, it doesn't include PR #24-#29**. Documentary updating - [roadmap v3](docs/roadmap.en.md), [status](docs/project_status.en.md)hand-held WebView2/OEM bench **NOT RUN**.
+**Verified on 18 November 2026:** [main](https://github.com/uzbatsu-beep/MLAD) at `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest published Windows release is **rc.9** and does **not** include PR #24–#29. See [roadmap v3](docs/roadmap.en.md) and [project status](docs/project_status.en.md). Manual WebView2 smoke testing and OEM bench verification are **NOT RUN**.
 
 **Last published Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Main CI - SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
-> **Security:** MLAD is not a Yaskawa certified environment or a confirmed compiler `CIOPRG.LST`. Original. `CIOPRG.LST` и `IONAME.DAT` **Read only; native writer, FTP/HSESRobot upload and real telemetry turned off. To work with the equipment, use the official means of the manufacturer and a separate admission procedure.
+> **Safety:** MLAD is neither a Yaskawa-certified engineering environment nor a verified native `CIOPRG.LST` compiler. Original `CIOPRG.LST` and `IONAME.DAT` are **read-only**. Native writing, FTP/HSES, robot deployment and live telemetry are **disabled**. Use manufacturer-approved tools and independent authorization for any work involving physical equipment.
 
-## Virtually available
+## Implemented functionality
 
-| Function | Status. |
+| Function | Status |
 | --- | --- |
 | Profiles DX100/DX200/YRC1000 | Typed address formats and range checking; Controller card/firmware still needs to be confirmed |
-| Native Workspace | Main work area: compact header, system opening dialogue, wood, page source, search and diagnosis |
-| CIOPRG.LST | Bypass immutability, SHA-256, sections after `END` As data, secure classification of supported/unknown |
+| Native Workspace | Main work area: compact header, system opening dialogue, navigation tree, paginated source text, search and diagnosis |
+| CIOPRG.LST | Byte-for-byte immutability, SHA-256, sections after `END` As data, secure classification of supported/unknown |
 | Ladder | **All recognized** chains of the current SemanticPreview, scale, references to source code; unknown fragments are not completed |
 | TMR/CNT/GSTR/GOUT | View native patterns and individual **offline drafts** `*.advanced.json` |
 | IONAME.DAT / Comments / | Read-only preview, local chain/address comments, manual associations; originals do not change |

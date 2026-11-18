@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/graph_editor.md; review required. -->
 > **Русский** · [Русский](graph_editor.ru.md) · [English](graph_editor.en.md) · [Original / Оригинал](graph_editor.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Ladder Graph Editor & Visualization (альбом) PR #4 + интерфейсные изменения PR #7/#8
 

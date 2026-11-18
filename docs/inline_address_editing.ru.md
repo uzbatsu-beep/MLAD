@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/inline_address_editing.md; review required. -->
 > **Русский** · [Русский](inline_address_editing.ru.md) · [English](inline_address_editing.en.md) · [Original / Оригинал](inline_address_editing.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Inline editing of operand addresss — слияние PR #8
 

@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/advanced_hardware_test_matrix.md; review required. -->
 > **Русский** · [Русский](advanced_hardware_test_matrix.ru.md) · [English](advanced_hardware_test_matrix.en.md) · [Original / Оригинал](advanced_hardware_test_matrix.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — Hardware Bench Validation MatrixDX100 / DX200 / YRC1000)
 

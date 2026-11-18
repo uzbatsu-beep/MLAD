@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/references.md; review required. -->
 > **English** · [Русский](references.ru.md) · [English](references.en.md) · [Original / Оригинал](references.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # References – Archive of Preliminary Source List
 

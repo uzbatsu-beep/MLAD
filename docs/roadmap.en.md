@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/roadmap.md; review required. -->
 > **English** · [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Оригинал](roadmap.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD - roadmap v3: Native CIO Workspace → Offline Engineering IDE
 
@@ -18,7 +19,7 @@
 2. `supported / partially supported / opaque / malformed` They are different, not confirmed logic. `PART`/`END` and tail data is not automatically a System/User policy.
 3. `*.graph.json`, `*.advanced.json` и legacy `*.json` individual user projects. Potential `*.mlad.json` The sidecar is also a ***** controller format.
 4. MOV/ADD/SUB/SHL/SHR have a typed and manual-derived ** reference** subset, but there is no verified scan/EN/dataflow execution. OFFLINE TRUE/FALSE/UNKNOWN is not a physical I/O.
-5. HSES/FTPLive monitoring, native writer, robot deployment and automatic control of the **BLOCKED** controller. Any change to the boundary requires an independent clearance of the owner and OEM evidence; a successful CI does not issue such an admission.
+5. HSES/FTP, live monitoring, native writer, robot deployment and automatic control of the **BLOCKED** controller. Any change to the boundary requires an independent clearance of the owner and OEM evidence; a successful CI does not issue such an admission.
 6. Private real export files, controller configuration and personal/production information are not published on GitHub, Issues or CI. Public fixtures are only self-created synthetic or explicitly authorized.
 7. Each technical stage is a separate PR with positive/negative tests, evidence, CI and a separate decision of the owner about merge.
 
@@ -27,7 +28,7 @@
 | PR Group | Implementation framework | Limitation |
 | --- | --- | --- |
 | #1–#12 | Address types, lossless read-only, Boolean AST, individual Graph/Advanced JSON, Windows preview GPL-3.0-only, npm lockfile / `npm ci` | No scanner, no native writer. |
-| #13–#18 | Remote compiled HSES/FTP runtime; paging/search; unified Native Workspace, IONAME and local annotations;`END` data | UX/cross-ref and OEM validity are not complete |
+| #13–#18 | Compiled HSES/FTP runtime removed; paging/search; unified Native Workspace, IONAME and local annotations;`END` data | UX/cross-ref and OEM validity are not complete |
 | #19–#21 | TypedCandidate for five operations, static M-links, isolated OEM manual-derived vectors | No confirmed execution/scan and firmware-level OEM bench |
 | #22–#23 | Source/architectural circuit design and Community Standards | Not hardware certification |
 | #24–#26 | Staged JSON с `*.bak`; CSP; bounded guarded native/JSON reads, File ID checks, JSON conflict detection | Remain directory races, ACL, crash recovery |

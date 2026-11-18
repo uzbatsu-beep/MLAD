@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/hse_protocol.md; review required. -->
 > **Русский** · [Русский](hse_protocol.ru.md) · [English](hse_protocol.en.md) · [Original / Оригинал](hse_protocol.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Высокоскоростной Ethernet YaskawaHSES) — статус и требования к верификации
 

@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/documentation_audit_2026-11-17.md; review required. -->
 > **English** · [Русский](documentation_audit_2026-11-17.ru.md) · [English](documentation_audit_2026-11-17.en.md) · [Original / Оригинал](documentation_audit_2026-11-17.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Results of MLAD Documentation Audit – 17 November 2026
 

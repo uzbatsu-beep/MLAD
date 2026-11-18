@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/ui_multi_rung_state.md; review required. -->
 > **Русский** · [Русский](ui_multi_rung_state.ru.md) · [English](ui_multi_rung_state.en.md) · [Original / Оригинал](ui_multi_rung_state.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Несколько видимых рангов и офлайн-визуализация трех состояний — слились PR #7
 

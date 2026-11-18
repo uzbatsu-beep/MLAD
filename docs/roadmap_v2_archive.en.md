@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/roadmap_v2_archive.md; review required. -->
 > **English** · [Русский](roadmap_v2_archive.ru.md) · [English](roadmap_v2_archive.en.md) · [Original / Оригинал](roadmap_v2_archive.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 > **Historical copy.** The content below is recorded before updating after merge PR #29 18.11.2026. The “current” SHAs, Draft Statuses, and P.R. numbers listed here reflect the past date. ** Current versions:** [roadmap](roadmap.en.md), [implementation plan](implementation_plan.en.md), [project status](project_status.en.md). Do not use this archive as an actual task or security clearance.
 

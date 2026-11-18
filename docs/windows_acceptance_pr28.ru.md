@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/windows_acceptance_pr28.md; review required. -->
 > **Русский** · [Русский](windows_acceptance_pr28.ru.md) · [English](windows_acceptance_pr28.en.md) · [Original / Оригинал](windows_acceptance_pr28.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD PR #28 Восприятие и регрессия безопасности Windows
 
@@ -56,7 +57,7 @@ pwsh -NoProfile -File .\windows-acceptance.ps1 -Mode Prepare -FixtureRoot $fixtu
 | ID | Сценарий | Критерий |
 | --- | --- | --- |
 | WIN-01 | Запуск EXE / создание окна | Tauri/WebView2 показывает UI, нет crash/blank page |
-| WIN-02 | Родное рабочее пространство | Системный Open выбирает синтетический `CIOPRG.LST`, показывает source/сообщает внятную ошибку |
+| WIN-02 | Рабочая область Native Workspace | Системный Open выбирает синтетический `CIOPRG.LST`, показывает source/сообщает внятную ошибку |
 | WIN-03 | Только чтение / диагностика | Источник/opaque/сообщения видны корректно, нет операции сохранения нативного `.LST` |
 | WIN-04 | Верность SHA | Повторный `-Mode Verify` подтверждает SHA-256 обоих исходных файлов |
 | WIN-05 | `IONAME.DAT` | Read-only preview либо корректный отказ для искусственного формата; original не изменён |

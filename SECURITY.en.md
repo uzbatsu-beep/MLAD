@@ -1,6 +1,7 @@
 <!-- Generated en companion for SECURITY.md; review required. -->
 > **English** · [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Original / Оригинал](SECURITY.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Security Policy MLAD (Security Policy)
 
@@ -10,9 +11,9 @@
 
 ## Supported versions and corrections
 
-| Component | Politics |
+| Component | Policy |
 | --- | --- |
-| Actual `main` | Communications and corrections are accepted; timing of response and issuance of corrections is not guaranteed |
+| Current `main` | Communications and corrections are accepted; timing of response and issuance of corrections is not guaranteed |
 | Last Windows pre-release (as of policy date): `v0.5.0-rc.9-oem-reference`) | Messages accepted; experimental version, **not certified as safe for equipment** |
 | Old RCs and individual archive branches | Not supported as separate lines of correction; it is recommended to check the defect with the current one. `main` |
 

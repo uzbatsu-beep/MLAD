@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/controller_fixture_intake.md; review required. -->
 > **Русский** · [Русский](controller_fixture_intake.ru.md) · [English](controller_fixture_intake.en.md) · [Original / Оригинал](controller_fixture_intake.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # CIOPRG.LST — приёмка оригинальных файлов с DX100/DX200/YRC1000
 

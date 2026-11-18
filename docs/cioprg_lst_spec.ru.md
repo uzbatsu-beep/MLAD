@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/cioprg_lst_spec.md; review required. -->
 > **Русский** · [Русский](cioprg_lst_spec.ru.md) · [English](cioprg_lst_spec.en.md) · [Original / Оригинал](cioprg_lst_spec.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # CIOPRG.LST базовый уровень спецификацииDX100 / DX200 / YRC1000)
 

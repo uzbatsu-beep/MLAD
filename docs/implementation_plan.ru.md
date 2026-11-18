@@ -1,10 +1,11 @@
 <!-- Generated ru companion for docs/implementation_plan.md; review required. -->
 > **Русский** · [Русский](implementation_plan.ru.md) · [English](implementation_plan.en.md) · [Original / Оригинал](implementation_plan.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — исполнимый план разработки после PR #29
 
-**Базовая точка:** 18.11.2026, `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1#29 Слияние. [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний [Выпуск Windows — rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен **до** PR #24–#29. Ручной `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. После следующего merge обновлять конкретный baseline в [project_status.md](project_status.ru.md).
+**Базовая точка:** 18.11.2026, `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 объединены. [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний [Выпуск Windows — rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен **до** PR #24–#29. Ручной `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. После следующего merge обновлять конкретный baseline в [project_status.md](project_status.ru.md).
 
 **Статус плана:** PR #30 — только документационная синхронизация; PR #31–#37 — **предложенные номера**, а не созданные PR/согласованные сроки. Каждый этап требует собственного Draft PR, CI и **явного решения владельца о merge**. Согласованные D1–D9 сохраняются без изменений. [Дорожная карта v3](roadmap.ru.md) · [Реестр решений](engineering_decisions.ru.md) · [Архив плана v2](implementation_plan_v2_archive.ru.md).
 

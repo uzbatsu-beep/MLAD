@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/filesystem_security_pr29.md; review required. -->
 > **Русский** · [Русский](filesystem_security_pr29.ru.md) · [English](filesystem_security_pr29.en.md) · [Original / Оригинал](filesystem_security_pr29.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD PR #29 Укрепление безопасности файловой системы: обзор угроз и доказательства
 

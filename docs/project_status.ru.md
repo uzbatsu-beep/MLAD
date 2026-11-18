@@ -1,12 +1,13 @@
 <!-- Generated ru companion for docs/project_status.md; review required. -->
 > **Русский** · [Русский](project_status.ru.md) · [English](project_status.en.md) · [Original / Оригинал](project_status.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — фактическое состояние проекта
 
 **Сверка:** 18 ноября 2026. **Baseline:** GitHub `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR **#1–#29 слился**. [Основной успех Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) (`frontend-build`, `rust-tests`), [Основные достижения Windows Acceptance & Security Regression](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) (`windows-security`) на указанном SHA. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) merged, его [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892563) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892566) CI также SUCCESS.
 
-**Последний опубликованный Windows Release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), 17.11.2026. Release содержит опубликованные артефакты только своего tag; **PR #24–#29 в него не входят**. CI build после PR #29 формирует временный **unsigned non-release** EXE, но это не новый GitHub Release. Версия в манифестах приложения пока `0.5.0`; пользовательский Windows/WebView2 `UserSmoke=NOT RUN`Скамейка OEM `NOT RUN`.
+**Последний опубликованный Windows Release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), 17.11.2026. Release содержит опубликованные артефакты только своего tag; **PR #24–#29 в него не входят**. CI build после PR #29 формирует временный **unsigned non-release** EXE, но это не новый GitHub Release. Версия в манифестах приложения пока `0.5.0`; пользовательский Windows/WebView2 `UserSmoke=NOT RUN`OEM-стенд `NOT RUN`.
 
 > **Область:** этот документ описывает доказанный GitHub baseline, а не установленную на компьютере пользователя версию. Статус изменится после новых merge или release; не приписывать новый код старым release assets. Подробности: [дорожная карта v3](roadmap.ru.md), [план PR #30+](implementation_plan.ru.md), [Проверочные ворота](verification_gates.ru.md).
 
@@ -20,7 +21,7 @@ MLAD — **OFFLINE/BENCH** инженерный прототип для анал
 | --- | --- | --- | --- |
 | Типизация адресов | Контрольно-семейные релейные классы, M-регистрации, типизированные синтаксические проверки | Не верифицированы firmware-specific разрешения на запись | #1, #19 |
 | Инспекция без потерь | Точные байты, SHA-256, пролеты источника, BOM / сохранение линии, непрозрачный хвост | Не full OEM grammar/compiler | #2, #14, #18 |
-| Родное рабочее пространство | Системный Open, дерево, source paging/search, диаграммы распознанных rungs, компактные блоки | Визуально отображается только доказанное поддерживаемое подмножество | #15–#18 |
+| Рабочая область Native Workspace | Системный Open, дерево, source paging/search, диаграммы распознанных rungs, компактные блоки | Визуально отображается только доказанное поддерживаемое подмножество | #15–#18 |
 | `IONAME.DAT` | Таблица / предварительный просмотр + локальные аннотации / ручные ассоциации | Нет доказанной автоматической OEM mapping | #16 |
 | Редактор Graph JSON | `*.graph.json`, проверка ввода, диаграмма/Undo/Redo, сохранение/загрузка | Не CIOPRG compiler | #4, #7–#8 |
 | Расширенный JSON | Карты TMR/CNT/GSTR/GOUT `*.advanced.json`Изолированные помощники тестовой модели | Не исполнение контроллера | #5, #8 |
@@ -40,9 +41,9 @@ MLAD — **OFFLINE/BENCH** инженерный прототип для анал
 | `WindowsCI` | [Основной рабочий процесс Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на `f85ddfc` | **Пасс** |
 | `UserSmoke` | Ручной Windows 10/11 WebView2 Протокол WIN-01...WIN-12 | **NOT RUN** (нет подтверждённого отчёта) |
 | `ManualDerived` | Подмножество MOV/ADD/SUB/SHL/SHR | **PARTIAL**; независимый scan не реализован |
-| `OEMBenchVerified` | DX100/DX200/YRC1000 контроллер/firmware/записи результата | **Не бегать** |
-| `Authorized native writer` | Нет протокола разрешения или полной OEM грамматики | ** Заблокировано** |
-| `Authorized FTP/HSES/deployment` | Отдельного OEM/safety/owner допуска нет | ** Заблокировано** |
+| `OEMBenchVerified` | DX100/DX200/YRC1000 контроллер/firmware/записи результата | **NOT RUN (не проводилось)** |
+| `Authorized native writer` | Нет протокола разрешения или полной OEM грамматики | **BLOCKED (заблокировано)** |
+| `Authorized FTP/HSES/deployment` | Отдельного OEM/safety/owner допуска нет | **BLOCKED (заблокировано)** |
 
 Ни одна зелёная GitHub Actions проверка не отменяет `NOT RUN` или `BLOCKED` на других уровнях. Manual Windows test находится в [Принятие Windows](windows_acceptance_pr28.ru.md), а стендовые испытания — в [аппаратная матрица](advanced_hardware_test_matrix.ru.md).
 
@@ -64,16 +65,16 @@ MLAD — **OFFLINE/BENCH** инженерный прототип для анал
 | M0 — базовая инфраструктура | **DONE: ** #1-#29 | Ревизия документации PR #30Обсуждение GitHub Ruleset |
 | M1 — реальные fixtures | ** Частично** | Синтетический корпус, частное происхождение OEM |
 | M2 — безопасность | ** Частично** | Windows UserSmoke, остаточный обзор файловой системы / ACL |
-| M3 — родное рабочее пространство | **Только для чтения** | Перейти к M4 UX |
+| M3 — рабочая область Native Workspace | **Только для чтения** | Перейти к M4 UX |
 | M4 - исходная навигация | ** Частично** | Cross-navigation/large-file/filter PR #32 |
 | M5 — типизированный парсер | ** Частично** | Доказательная грамматика PR #34 |
 | M6 — статическая семантика | ** Частично** | Исходно-индексированный поток данных PR #35 |
 | M7–M8 – единый офлайн-проект | ** Открыто** | Sidecar #33 + интегрированный UX #36 |
 | M9 — сканирование | **Открыт/не проверен** | Только после OEM scan evidence |
-| M10 - Скамейка OEM | **Не бегать** | Изолированный допущенный стенд |
-| M11 - только для чтения HSES | ** Заблокировано** | Отдельное решение владельца, protocol evidence |
-| M12 — родной писатель | ** Заблокировано** | Полное одобрение владельцев OEM+ |
-| M13 — развертывание | ** Заблокировано** | Дополнительная процедура безопасности и разрешения |
+| M10 - OEM-стенд | **NOT RUN (не проводилось)** | Изолированный допущенный стенд |
+| M11 - только для чтения HSES | **BLOCKED (заблокировано)** | Отдельное решение владельца, protocol evidence |
+| M12 — родной писатель | **BLOCKED (заблокировано)** | Полное одобрение владельцев OEM+ |
+| M13 — развертывание | **BLOCKED (заблокировано)** | Дополнительная процедура безопасности и разрешения |
 
 ## 6. Текущая очередь разработки
 

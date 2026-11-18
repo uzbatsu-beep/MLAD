@@ -1,10 +1,11 @@
 <!-- Generated ru companion for README.md; review required. -->
 > **Русский** · [Русский](README.ru.md) · [English](README.en.md) · [Original / Оригинал](README.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD - анализ мотоманской лестницы и проект IDE
 
-**Сверка 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1#29 Слияние **. [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [дорожная карта v3](docs/roadmap.ru.md), [полный статус](docs/project_status.ru.md); ручной WebView2/OEM скамейка ** Не бегать**
+**Сверка 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) `f85ddfcce3063dd087425be981a9d2b7a16d6309`, **PR #1–#29 объединены**; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows-релиз — **rc.9**, без PR #24–#29. См. [roadmap v3](docs/roadmap.ru.md) и [статус](docs/project_status.ru.md). Ручная проверка WebView2 и OEM-испытания — **NOT RUN**.
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (портативный ZIP, настройка NSIS, архив источников GPL, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -15,7 +16,7 @@
 | Функция | Состояние |
 | --- | --- |
 | Профили DX100/DX200/YRC1000 | Типизированные форматы адресов и проверка диапазонов; контроллерную карту/firmware ещё требуется подтвердить |
-| Родное рабочее пространство | Главная рабочая область: компактная шапка, системный диалог открытия, дерево, постраничный исходник, поиск и диагностика |
+| Рабочая область Native Workspace | Главная рабочая область: компактная шапка, системный диалог открытия, дерево, постраничный исходник, поиск и диагностика |
 | CIOPRG.LST | Побайтовая неизменность, SHA-256, разделы после `END` как данные, безопасная классификация поддерживаемого/неизвестного |
 | Ladder | **Все распознанные** цепи текущего SemanticPreview, масштаб, ссылки на исходный текст; неизвестные фрагменты не дорисовываются |
 | TMR/CNT/GSTR/GOUT | Просмотр native-паттернов и отдельные **офлайн-черновики** `*.advanced.json` |

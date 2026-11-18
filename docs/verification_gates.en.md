@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/verification_gates.md; review required. -->
 > **English** · [Русский](verification_gates.ru.md) · [English](verification_gates.en.md) · [Original / Оригинал](verification_gates.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD – Uniform Verification, CI and Release Criteria
 
@@ -24,7 +25,7 @@ Record the result: `PASS / FAIL / NOT RUN / BLOCKED`, date, commit SHA, controll
 
 ## 2. Primary CI – mandatory for every PR
 
-Start from pure wood, by lockfiles:
+Start from pure navigation tree, by lockfiles:
 
 ```bash
 npm ci --no-audit --no-fund

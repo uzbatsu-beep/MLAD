@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/windows_acceptance_pr28.md; review required. -->
 > **English** · [Русский](windows_acceptance_pr28.ru.md) · [English](windows_acceptance_pr28.en.md) · [Original / Оригинал](windows_acceptance_pr28.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD PR #28 — Windows Acceptance & Security Regression
 

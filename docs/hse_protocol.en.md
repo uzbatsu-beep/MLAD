@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/hse_protocol.md; review required. -->
 > **English** · [Русский](hse_protocol.ru.md) · [English](hse_protocol.en.md) · [Original / Оригинал](hse_protocol.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Yaskawa High-Speed Ethernet (HSESstatus and verification requirements
 

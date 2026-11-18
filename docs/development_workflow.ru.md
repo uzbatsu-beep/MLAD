@@ -1,10 +1,11 @@
 <!-- Generated ru companion for docs/development_workflow.md; review required. -->
 > **Русский** · [Русский](development_workflow.ru.md) · [English](development_workflow.en.md) · [Original / Оригинал](development_workflow.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026; `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR #1#29 Слияние, [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный rc.9 — до PR #24–#29. Новый план — [Дорожная карта v3](roadmap.ru.md); Документы PR #30 не расширяет runtime.
+**Актуализация:** 18.11.2026; `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR #1–#29 объединены, [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный rc.9 — до PR #24–#29. Новый план — [Дорожная карта v3](roadmap.ru.md); Документы PR #30 не расширяет runtime.
 
 ## 1. Git и изменение функций
 

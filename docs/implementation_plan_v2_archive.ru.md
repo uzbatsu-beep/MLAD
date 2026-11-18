@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/implementation_plan_v2_archive.md; review required. -->
 > **Русский** · [Русский](implementation_plan_v2_archive.ru.md) · [English](implementation_plan_v2_archive.en.md) · [Original / Оригинал](implementation_plan_v2_archive.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 > **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.ru.md), [План осуществления](implementation_plan.ru.md), [статус проекта](project_status.ru.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
 

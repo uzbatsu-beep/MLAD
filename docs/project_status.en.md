@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/project_status.md; review required. -->
 > **English** · [Русский](project_status.ru.md) · [English](project_status.en.md) · [Original / Оригинал](project_status.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD – the actual status of the project
 
@@ -20,7 +21,7 @@ MLAD - **OFFLINE/BENCH** engineering prototype for Yaskawa Concurrent I/O analys
 | --- | --- | --- | --- |
 | Address typing | Controller-family relay classes, M-registers, typed syntax checks | Unverified firmware-specific recording permissions | #1, #19 |
 | Lossless native inspection | Bounded exact bytes, SHA-256, source spans, BOM/newline preservation, opaque tail | Not full OEM grammar/compiler | #2, #14, #18 |
-| Native Workspace | System Open, wood, source paging/search, recognized rungs diagrams, compact blocks | Only a proven supported subset is visually displayed | #15–#18 |
+| Native Workspace | System Open, navigation tree, source paging/search, recognized rungs diagrams, compact blocks | Only a proven supported subset is visually displayed | #15–#18 |
 | `IONAME.DAT` | Read-only table/preview + local annotations/manual associations | No Proven Automatic OEM Mapping | #16 |
 | Graph JSON editor | `*.graph.json`, input validation, diagram/Undo/Redo, save/load | Not CIOPRG compiler | #4, #7–#8 |
 | Advanced JSON | TMR/CNT/GSTR/GOUT cards, `*.advanced.json`, isolated test-model helpers | Non-execution of the controller | #5, #8 |

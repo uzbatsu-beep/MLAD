@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/engineering_decisions.md; review required. -->
 > **Русский** · [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Original / Оригинал](engineering_decisions.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — реестр утверждённых инженерных решений
 

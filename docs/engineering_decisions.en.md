@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/engineering_decisions.md; review required. -->
 > **English** · [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Original / Оригинал](engineering_decisions.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD – Register of Approved Engineering Solutions
 

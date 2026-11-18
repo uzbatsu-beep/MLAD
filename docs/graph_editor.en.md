@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/graph_editor.md; review required. -->
 > **English** · [Русский](graph_editor.ru.md) · [English](graph_editor.en.md) · [Original / Оригинал](graph_editor.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # Ladder Graph Editor & Visualization — PR #4 + Interface changes PR #7/#8
 

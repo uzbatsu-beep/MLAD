@@ -1,6 +1,7 @@
 <!-- Generated ru companion for SECURITY.md; review required. -->
 > **Русский** · [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Original / Оригинал](SECURITY.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Политика безопасности MLAD (Security Policy)
 

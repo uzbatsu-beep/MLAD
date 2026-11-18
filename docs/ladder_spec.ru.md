@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/ladder_spec.md; review required. -->
 > **Русский** · [Русский](ladder_spec.ru.md) · [English](ladder_spec.en.md) · [Original / Оригинал](ladder_spec.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # Лестница / CIOPRG.LST — архив предварительной спецификации
 

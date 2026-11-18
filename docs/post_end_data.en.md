@@ -1,6 +1,7 @@
 <!-- Generated en companion for docs/post_end_data.md; review required. -->
 > **English** · [Русский](post_end_data.ru.md) · [English](post_end_data.en.md) · [Original / Оригинал](post_end_data.md)
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
+> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
 # MLAD — read-only post-END data classification and diagnostics
 

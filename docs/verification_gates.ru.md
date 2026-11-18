@@ -1,10 +1,11 @@
 <!-- Generated ru companion for docs/verification_gates.md; review required. -->
 > **Русский** · [Русский](verification_gates.ru.md) · [English](verification_gates.en.md) · [Original / Оригинал](verification_gates.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD — единые критерии верификации, CI и выпуска
 
-**Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1#29 Слияние, [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.
+**Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 объединены, [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.
 
 Этот документ — acceptance contract для новых PR и offline preview. Не заменяет [стендовую матрицу](advanced_hardware_test_matrix.ru.md) или официальный регламент безопасности.
 
@@ -50,7 +51,7 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 | --- | --- | --- |
 | `CIOPRG.LST` reader | Поиск, paging, exact source spans и SHA-256 | BOM/newlines, malformed/oversize, unsupported/opaque, read-only, file swap/reparse |
 | `IONAME.DAT` | Bounded preview, ручные ассоциации | Неизвестная карта, oversized, неверные index, immutable bytes |
-| Родное рабочее пространство | Все доступные строки; source↔rung; компактные блоки | Unsupported не превращается в выполняемый Ladder, offscreen/large source, false LIVE |
+| Рабочая область Native Workspace | Все доступные строки; source↔rung; компактные блоки | Unsupported не превращается в выполняемый Ladder, offscreen/large source, false LIVE |
 | Typed/semantic | Проверяемые типы, ranges и links с provenance | Неизвестный код операции, двусмысленный псевдоним/operand, EN/scan неизвестный, `PART/END` boundaries |
 | JSON draft/sidecar | Сохранить / открыть, резервная копия, версия схемы, исходный хеш-матч | Параллельное редактирование, путь только для чтения, негабаритный размер, симлинк / соединение, поврежденный JSON, неправильный хеш, нет нативной перезаписи |
 | CSP/Tauri IPC | Локальный UI и разрешённые команды работают | Нет remote scripts/connect, `unsafe-eval`, HSES/FTP/write/Развертывание роботов |
@@ -89,7 +90,7 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 | Фактические Linux CI / Windows CI | URL + статус |
 | Положительные / отрицательные тесты | Имена и результаты |
 | Windows UserSmoke | PASS/FAIL/NOT RUN |
-| OEM скамейка | PASS/FAIL/NOT RUN/BLOCKED, модель и firmware |
+| OEM-стенд | PASS/FAIL/NOT RUN/BLOCKED, модель и firmware |
 | Безопасность | неизменный оригинал; HSES/FTPписатель инвалид |
 | Остаточный риск | Конкретное ограничение |
 | Право слияния | Отдельное согласование владельца |

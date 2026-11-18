@@ -1,6 +1,7 @@
 <!-- Generated ru companion for docs/typed_opcode_grammar.md; review required. -->
 > **Русский** · [Русский](typed_opcode_grammar.ru.md) · [English](typed_opcode_grammar.en.md) · [Original / Оригинал](typed_opcode_grammar.md)
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
+> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
 # MLAD - Тип формы кандидата для родного CIOPRG.LST (PR #19)
 
