@@ -1,0 +1,128 @@
+name: MLAD Windows Acceptance & Security Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - "src/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/windows-security-acceptance.yml"
+      - "docs/windows_acceptance_pr28.md"
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - "src/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/windows-security-acceptance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-security:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Check out exact PR or main source
+        uses: actions/checkout@v4
+
+      - name: Node.js 22 and pinned npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Rust stable MSVC
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Rust build outputs
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Reproducible frontend install
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify npm lockfile was not mutated
+        run: git diff --exit-code -- package.json package-lock.json
+
+      - name: Offline boundary, Windows security contracts and docs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          npm run test:security
+          if ($LASTEXITCODE -ne 0) { throw "Offline boundary tests failed" }
+          node --test scripts/windows-security-contract.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Windows security contract tests failed" }
+          npm run test:native
+          if ($LASTEXITCODE -ne 0) { throw "Native workspace tests failed" }
+          npm run docs:check
+          if ($LASTEXITCODE -ne 0) { throw "Markdown checks failed" }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
+
+      - name: All Rust tests on actual Windows NTFS
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Require Windows-specific NTFS regression tests to be compiled
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $list = cargo test --manifest-path src-tauri/Cargo.toml --locked -- --list
+          if ($LASTEXITCODE -ne 0) { throw "Cannot enumerate compiled Windows tests" }
+          $all = $list -join [Environment]::NewLine
+          foreach ($name in @(
+            "windows_exclusive_lock_refuses_write_without_truncation_or_temp_leak",
+            "windows_junction_parent_never_writes_into_target_directory",
+            "windows_junction_parent_rejects_native_read_and_preserves_bytes",
+            "windows_regular_file_has_identifiers_and_no_reparse_flag"
+          )) {
+            if (-not $all.Contains($name)) { throw "Missing Windows-specific test: $name" }
+          }
+
+      - name: Build unsigned production Tauri EXE with packaged CSP
+        run: npm run tauri -- build --no-bundle
+
+      - name: Validate synthetic fixture hash stability on Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $fixture = Join-Path $env:RUNNER_TEMP "mlad-pr28-synthetic"
+          pwsh -NoProfile -File scripts/windows-acceptance.ps1 -Mode Prepare -FixtureRoot $fixture
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic fixture preparation failed" }
+          pwsh -NoProfile -File scripts/windows-acceptance.ps1 -Mode Verify -FixtureRoot $fixture
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic source integrity verification failed" }
+
+      - name: Package non-release acceptance executable and evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = "src-tauri/target/release/yaskawa-ladder-ide.exe"
+          $out = "pr28-acceptance-artifact"
+          if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { throw "Tauri executable missing" }
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          Copy-Item -LiteralPath $exe -Destination $out
+          Copy-Item -LiteralPath "LICENSE" -Destination $out
+          Copy-Item -LiteralPath "docs/windows_acceptance_pr28.md" -Destination $out
+          Copy-Item -LiteralPath "scripts/windows-acceptance.ps1" -Destination $out
+          pwsh -NoProfile -File scripts/windows-acceptance.ps1 -Mode ValidateBinary -Executable $exe -EvidenceDir $out
+          if ($LASTEXITCODE -ne 0) { throw "PE evidence verification failed" }
+
+      - name: Upload unsigned Windows acceptance candidate (NOT a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MLAD-PR28-Windows-Unsigned-Acceptance-NonRelease
+          path: pr28-acceptance-artifact/*
+          retention-days: 14
+          if-no-files-found: error
