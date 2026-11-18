@@ -64,7 +64,8 @@ test("PR29 Windows regression includes same-byte swap, hardlinks and staged inte
   for (const name of [
     "same_content_target_replacement_is_a_save_conflict",
     "hardlink_alias_to_native_source_or_json_backup_is_rejected",
-    "staged_file_modified_after_flush_cannot_be_committed"
+    "staged_file_modified_after_flush_cannot_be_committed",
+    "windows_ads_unc_and_device_paths_are_rejected_before_filesystem_io"
   ]) {
     assert.ok(draft.includes("fn " + name), "Rust regression missing: " + name);
     assert.ok(workflow.includes(name), "Windows CI must compile: " + name);
