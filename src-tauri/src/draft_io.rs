@@ -38,8 +38,8 @@ pub fn verify_parent_directory(path: &Path) -> Result<(), String> {
                 cursor.push(name);
                 let meta=fs::symlink_metadata(&cursor)
                     .map_err(|e|format!("Не удалось проверить каталог {}: {e}",cursor.display()))?;
-                if meta.file_type().is_symlink() {
-                    return Err("Символическая ссылка в родительском каталоге запрещена".into());
+                if crate::guarded_read::is_indirection(&meta) {
+                    return Err("Ссылка или reparse point в родительском каталоге запрещены".into());
                 }
                 if !meta.is_dir() {
                     return Err("Родительский путь не является каталогом".into());
@@ -54,8 +54,8 @@ fn validate_file(path: &Path, allow_missing: bool) -> Result<bool, String> {
     verify_parent_directory(path)?;
     match fs::symlink_metadata(path) {
         Ok(metadata) => {
-            if metadata.file_type().is_symlink() {
-                return Err("Прямые символические ссылки для JSON запрещены".into());
+            if crate::guarded_read::is_indirection(&metadata) {
+                return Err("Прямые ссылки/reparse для JSON запрещены".into());
             }
             if !metadata.is_file() {
                 return Err("JSON должен быть обычным файлом".into());
@@ -74,14 +74,7 @@ fn validate_file(path: &Path, allow_missing: bool) -> Result<bool, String> {
 /// no-follow open on every filesystem or prohibit symlink ancestors.
 pub fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
     validate_file(path,false)?;
-    let handle=File::open(path).map_err(|e|format!("Не удалось открыть JSON: {e}"))?;
-    let mut result=Vec::new();
-    handle.take((MAX_JSON_BYTES+1) as u64).read_to_end(&mut result)
-        .map_err(|e|format!("Ошибка чтения JSON: {e}"))?;
-    if result.len()>MAX_JSON_BYTES {
-        return Err("JSON превышает предел 2 МиБ".into());
-    }
-    Ok(result)
+    crate::guarded_read::read_regular(path,MAX_JSON_BYTES)
 }
 
 struct StagedFile(PathBuf);
@@ -129,6 +122,11 @@ impl Drop for StagedFile {
 /// failure also leaves the original in place; the previous backup might
 /// already be updated. Folder metadata sync is best effort on Unix only.
 pub fn write_atomic(path:&Path, content:&[u8])->Result<(),String> {
+    write_atomic_inner(path,content,||{})
+}
+
+/// Internal seam for deterministic tests of external changes just before commit.
+fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->Result<(),String> {
     if content.len()>MAX_JSON_BYTES {
         return Err("JSON превышает предел 2 МиБ".into());
     }
@@ -138,8 +136,8 @@ pub fn write_atomic(path:&Path, content:&[u8])->Result<(),String> {
     }
     let existed=validate_file(path,true)?;
     let staged=StagedFile::create_near(path,content)?;
-    if existed {
-        let original=read_bounded(path)?;
+    let original=if existed {Some(read_bounded(path)?)} else {None};
+    if let Some(ref original)=original {
         let basename=path.file_name().and_then(|s|s.to_str())
             .ok_or("Не удалось определить имя JSON")?;
         let backup=path.with_file_name(format!("{basename}.bak"));
@@ -148,9 +146,24 @@ pub fn write_atomic(path:&Path, content:&[u8])->Result<(),String> {
         // Don't replace a newly appeared symlink; parent-dir swaps remain
         // an explicitly documented limitation of std::fs path-based APIs.
         validate_file(&backup,true)?;
+        if read_bounded(path)? != *original {
+            return Err("JSON изменён при подготовке резервной копии".into());
+        }
         previous.replace(&backup)?;
     }
-    validate_file(path,true)?;
+    before_commit();
+    match original {
+        Some(expected)=>{
+            if read_bounded(path)? != expected {
+                return Err("Конфликт сохранения: JSON изменён другим процессом".into());
+            }
+        }
+        None=>{
+            if validate_file(path,true)? {
+                return Err("Конфликт сохранения: другой процесс создал JSON".into());
+            }
+        }
+    }
     staged.replace(path)?;
     #[cfg(unix)]
     if let Some(parent)=path.parent(){
@@ -301,6 +314,30 @@ mod tests {
         assert_eq!(fs::read(&draft).unwrap(),b"untouched");
         assert_eq!(fs::read(&native).unwrap(),b"original robot data");
         assert!(!real.join("draft.graph.json.bak").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn external_change_between_backup_and_commit_cannot_be_overwritten(){
+        let root=folder();let path=root.join("client.graph.json");
+        fs::write(&path,b"baseline").unwrap();
+        let result=write_atomic_inner(&path,b"stale client",||{
+            fs::write(&path,b"external update").unwrap();
+        });
+        assert!(result.is_err());
+        assert_eq!(fs::read(&path).unwrap(),b"external update");
+        assert_eq!(fs::read(root.join("client.graph.json.bak")).unwrap(),b"baseline");
+        assert_eq!(fs::read_dir(&root).unwrap().count(),2);
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn competing_new_file_creation_is_not_overwritten(){
+        let root=folder();let path=root.join("new.advanced.json");
+        let result=write_atomic_inner(&path,b"my draft",||{
+            fs::write(&path,b"other process").unwrap();
+        });
+        assert!(result.is_err());
+        assert_eq!(fs::read(&path).unwrap(),b"other process");
+        assert!(!root.join("new.advanced.json.bak").exists());
         fs::remove_dir_all(root).unwrap();
     }
     #[test]

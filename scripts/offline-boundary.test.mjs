@@ -76,7 +76,8 @@ test("native file reads and every JSON persistence entry check parent paths", ()
   const storage=readFileSync("src-tauri/src/draft_io.rs","utf8");
   assert.match(storage,/pub fn verify_parent_directory/);
   assert.match(storage,/Component::ParentDir/);
-  assert.match(storage,/file_type\(\)\.is_symlink\(\)/);
+  assert.match(storage,/crate::guarded_read::is_indirection\(&meta\)/);
+  assert.match(storage,/crate::guarded_read::is_indirection\(&metadata\)/);
   assert.match(storage,/fn symlinked_parent_directory_cannot_redirect_json_into_native_folder/);
   assert.match(storage,/fn relative_parent_traversal_rejected_before_any_write/);
   assert.match(rust,/draft_io::verify_parent_directory\(path\)/);
@@ -84,4 +85,25 @@ test("native file reads and every JSON persistence entry check parent paths", ()
   assert.match(rust,/fn read_only_native_file_through_symlinked_parent_is_rejected/);
   assert.match(rust,/fn read_only_native_direct_symlink_is_rejected/);
   assert.doesNotMatch(rust,/pub mod network;/);
+});
+
+
+test("PR26 native and JSON reads use one handle with filesystem identity checks",()=>{
+  const safe=readFileSync("src-tauri/src/guarded_read.rs","utf8");
+  const drafts=readFileSync("src-tauri/src/draft_io.rs","utf8");
+  assert.match(rust,/mod guarded_read;/);
+  assert.equal((rust.match(/guarded_read::read_regular\(&selected,/g)||[]).length,2);
+  assert.match(drafts,/guarded_read::read_regular\(path,MAX_JSON_BYTES\)/);
+  assert.match(safe,/GetFileInformationByHandle/);
+  assert.match(safe,/FILE_FLAG_OPEN_REPARSE_POINT/);
+  assert.match(safe,/win_file_id\(&before_win\)/);
+  assert.match(safe,/win_file_id\(&after_win\)/);
+  assert.match(safe,/same_identity\(&before,&opened\)/);
+  assert.match(safe,/is_indirection\(&after_path\)/);
+  assert.match(safe,/FILE_ATTRIBUTE_REPARSE_POINT/);
+  assert.match(safe,/substituted_file_between_metadata_and_open_fails_closed/);
+  assert.match(drafts,/Конфликт сохранения: JSON изменён другим процессом/);
+  assert.match(drafts,/Конфликт сохранения: другой процесс создал JSON/);
+  assert.match(drafts,/external_change_between_backup_and_commit_cannot_be_overwritten/);
+  assert.doesNotMatch(rust,/tokio::fs::read\(path\)/);
 });

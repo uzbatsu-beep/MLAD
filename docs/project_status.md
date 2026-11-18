@@ -1,8 +1,8 @@
 # MLAD — актуальное состояние проекта
 
 **Дата сверки:** 18 ноября 2026 года.  
-**Проверенный baseline:** GitHub `main` @ `6b8434376affcc02bf6d651cbf8e0edd797ca430`.  
-**Последний слитый PR:** [#24](https://github.com/uzbatsu-beep/MLAD/pull/24), все PR #1–#24 merged. PR #25 — Draft.  
+**Проверенный baseline:** GitHub `main` @ `05f61b2c74854c3b15619cb0a33cd674bcd34ae2`.  
+**Последний слитый PR:** [#25](https://github.com/uzbatsu-beep/MLAD/pull/25), все PR #1–#25 merged. PR #26 — Draft.  
 **Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901) для указанного `main`.  
 **Последний опубликованный Windows pre-release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); соответствующий [Windows workflow — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).  
 **Версия приложения в манифестах:** `0.5.0`; суффиксы `rc.9` применяются к release tag / Windows preview, а не означают релиз 1.0 или промышленную готовность.
@@ -60,7 +60,7 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 | --- | --- |
 | M0: PR-база и CI | Выполнено: #1–#21 merged, main CI SUCCESS |
 | M1: приватные OEM golden fixtures | Частично: 5 исходников исследованы, нет полной модели controller/firmware/OEM outcome |
-| M2: hardening/воспроизводимость | Частично: PR #24 merged — staging JSON + `.bak`, Windows MSVC tests; PR #25 Draft — CSP + symlink ancestor guards; TOCTOU и ручной smoke остаются |
+| M2: hardening/воспроизводимость | Частично: PR #24–#25 merged (staging JSON, CSP, linked path checks); PR #26 Draft — guarded reads/conflict detection. Полный TOCTOU и Windows smoke остаются |
 | M3: Native Workspace | Основной read-only workflow реализован (#15–#17) |
 | M4: навигация и диагностика | Реализована база; расширенные фильтры/cross-ref/performance остаются |
 | M5: Typed Syntax | Частично реализовано для 5 команд, другой синтаксис остаётся opaque |
@@ -98,3 +98,8 @@ Merged PR #24 реализовал единый модуль `draft_io.rs` дл�
 ## 9. PR #25 — CSP и проверки ссылок в пути (проектируемый, не в main)
 
 Для Tauri предлагается строгая production CSP и отдельная devCsp для localhost/Vite. При чтении native данных и чтении/записи JSON выполняется предварительная проверка каждого родительского каталога на известные symlink. Это **defense-in-depth**, не истинный защитный `openat/no-follow` на дескрипторе и не гарантия от TOCTOU. Стендовая верификация и robot writer по-прежнему недоступны. [Контракт PR #25](csp_path_hardening.md).
+
+
+## 10. PR #26 — File Handle Identity & JSON Conflict Guard (Draft)
+
+Предлагается read-only проверка идентичности уже открытого файла для native и JSON, а также fail-closed при конкурентной записи в JSON. Оригинальные файлы роботов никогда не меняются. **Обнаруженная подмена** ≠ доказанная защита от любой TOCTOU гонки. [Описание ограничений](guarded_io_review.md).
