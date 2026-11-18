@@ -15,7 +15,7 @@
 
 | Function | Status |
 | --- | --- |
-| Profiles DX100/DX200/YRC1000 | Typed address formats and range checking; Controller card/firmware still needs to be confirmed |
+| Profiles DX100/DX200/YRC1000 | Typed address formats and range checking; Controller mapping/firmware still needs to be confirmed |
 | Native Workspace | Main work area: compact header, system opening dialogue, navigation tree, paginated source text, search and diagnosis |
 | CIOPRG.LST | Byte-for-byte immutability, SHA-256, sections after `END` As data, secure classification of supported/unknown |
 | Ladder | **All recognized** chains of the current SemanticPreview, scale, references to source code; unknown fragments are not completed |

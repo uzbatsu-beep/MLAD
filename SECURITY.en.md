@@ -5,9 +5,9 @@
 
 # Security Policy MLAD (Security Policy)
 
-**Date of introduction: ** 18.11.2026. **Region:** MLAD open repository and its published engineering preview builds.
+**Effective date:** 18.11.2026. **Scope:** MLAD open repository and its published engineering preview builds.
 
-> MLAD is an experimental OFFLINE/BENCH analysis tool for Yaskawa Concurrent I/O. **Do not use as a proven compiler, security device, robot operation tool or live I/O source.** No mode allows downloading programs to the robot or modifying the original CIOPRG.LST/IONAME.DAT.
+> MLAD is an experimental OFFLINE/BENCH analysis tool for Yaskawa Concurrent I/O. **Do not use as a proven compiler, security device, robot operation tool or live I/O source.** No mode permits uploading or deploying programs to a robot controller or modifying the original CIOPRG.LST/IONAME.DAT.
 
 ## Supported versions and corrections
 

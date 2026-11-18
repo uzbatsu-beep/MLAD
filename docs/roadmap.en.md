@@ -44,7 +44,7 @@ Designations: **DONE** = validated software implementation, **PARTIAL** = suppor
 
 | Phase | Priority | Status on `f85ddfc` | Transition criterion |
 | --- | --- | --- | --- |
-| M0 — Git/CI/legal baseline | P0 | **DONE:** PR #1#29, Windows+Linux CI is successful; branch `main` unprotected | Rules of merge / optional Branch Protection separately |
+| M0 — Git/CI/legal baseline | P0 | **DONE:** PR #1–#29, Windows+Linux CI is successful; branch `main` unprotected | Rules of merge / optional Branch Protection separately |
 | M1 — OEM source corpus | P0 | **PARTIAL:** Private pre-inventory; firmware/OEM provenance incomplete | Legitimate private fixtures + controller/firmware + OEM result; synthetic public corpus |
 | M2 — filesystem/security | P0 | **PARTIAL:** #24-#29 reduced identified risks | Windows UserSmoke + agreed residual ACL/races/crash risks and additional security reviews |
 | M3 — Native Workspace | P0 | **DONE (read-only base):** #15-#17 | Stable reading window without native save |

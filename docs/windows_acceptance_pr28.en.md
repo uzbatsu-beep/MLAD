@@ -5,7 +5,7 @@
 
 # MLAD PR #28 — Windows Acceptance & Security Regression
 
-**Region:** Windows 10/11 x64 . WebView2, NTFS, Rust/Tauri v2, OFFLINE/BENCH. **Base:** `main` later [PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27), SHA `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`. Status: [PR #28 merged](https://github.com/uzbatsu-beep/MLAD/pull/28) в `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). **No* release and no hardware acceptance; UserSmoke still `NOT RUN`.
+**Scope:** Windows 10/11 x64 . WebView2, NTFS, Rust/Tauri v2, OFFLINE/BENCH. **Base:** `main` later [PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27), SHA `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`. Status: [PR #28 merged](https://github.com/uzbatsu-beep/MLAD/pull/28) в `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). **No* release and no hardware acceptance; UserSmoke still `NOT RUN`.
 
 ## 1. What is truly automated
 

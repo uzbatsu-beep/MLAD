@@ -9,7 +9,7 @@
 
 **Last published Windows Release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference)17.11.2026. Release contains published artifacts only of its tag; **PR #24-#29 doesn't fit in. CI build after PR #29 It forms a temporary **unsigned non-release** EXE, but it's not a new GitHub Release. The version in the application manifests for now `0.5.0`; custom Windows/WebView2 `UserSmoke=NOT RUN`, OEM bench `NOT RUN`.
 
-> **Region:** This document describes the proven GitHub baseline, not the version installed on the user's computer. The status will change after new merge or release; do not assign new code to old release assets. Details: [roadmap v3](roadmap.en.md), [plan PR #30+](implementation_plan.en.md), [verification gates](verification_gates.en.md).
+> **Scope:** This document describes the proven GitHub baseline, not the version installed on the user's computer. The status will change after new merge or release; do not assign new code to old release assets. Details: [roadmap v3](roadmap.en.md), [plan PR #30+](implementation_plan.en.md), [verification gates](verification_gates.en.md).
 
 ## 1. Product boundary
 
