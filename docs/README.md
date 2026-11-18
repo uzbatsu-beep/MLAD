@@ -1,6 +1,6 @@
 # MLAD — каталог технической документации
 
-**Актуально для `main` от 18.11.2026:** PR #1–#27 merged, [основной CI на `bdb443eb` успешен](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310); PR #28 — Draft; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
+**Актуально для `main` от 18.11.2026:** PR #1–#28 merged; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) на SHA `3c184cd3`. PR #29 — отдельный Draft; опубликованная rc.9 не содержит новые PR #24–#29. [Статус](project_status.md).
 
 ## С чего начать
 
@@ -11,7 +11,8 @@
 | Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
 | Исполнимый backlog PR #27+ и зависимости | [implementation_plan.md](implementation_plan.md) |
 | Матрица CI, Windows smoke, проверок и релизов | [verification_gates.md](verification_gates.md) |
-| Windows Acceptance & Security Regression (PR #28 Draft) | [windows_acceptance_pr28.md](windows_acceptance_pr28.md) |
+| Windows Acceptance & Security Regression (PR #28 merged) | [windows_acceptance_pr28.md](windows_acceptance_pr28.md) |
+| Filesystem Security Hardening и остаточные угрозы (PR #29 Draft) | [filesystem_security_pr29.md](filesystem_security_pr29.md) |
 | Согласованные инженерные решения D1–D9 | [engineering_decisions.md](engineering_decisions.md) |
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
