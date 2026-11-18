@@ -65,3 +65,7 @@
 ## PR #21 — документальная семантика, без стендовой эквивалентности
 
 Таблица неизвестных выше отражает состояние **до** изучения YRC1000 R12 §12.2–12.3 и DX100 Rev.0. Условия EN=ON, отдельные формулы и таблицы флагов теперь документально описаны для всех пяти команд в [исследовании](oem_5_opcode_analysis.md). Это **не** переводит реальный CIOPRG в исполняемое подмножество и не меняет `semantics_verified=false`, `scan_order_verified=false`.
+
+## Дальнейшая работа после PR #29
+
+[Roadmap v3](roadmap.md) предлагает parser fixtures, typed grammar (условный PR #34) и source-linked static analysis (условный PR #35). Нынешние `ManualDerived` и M-link observations **не подтверждают** реальные значения EN/Carry/Zero/Error во время скана, System/User ownership или иерархию чтения-записи в аппаратном CIO. До независимых OEM bench данных результаты сохраняют `Unresolved` и `NotExecuted`, а HSES/FTP/native writer — `BLOCKED`. [Current status](project_status.md).
