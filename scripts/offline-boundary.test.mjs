@@ -36,3 +36,52 @@ test("all JSON save entrypoints use staged replacement, not truncating direct wr
   assert.doesNotMatch(rust,/std::fs::write\(&file_path,/);
   assert.match(rust,/cmd_toggle_monitoring\s*,\s*cmd_deploy_to_robot/);
 });
+
+
+test("Tauri production CSP is explicit, offline and does not enable inline/eval scripts", () => {
+  const config=JSON.parse(readFileSync("src-tauri/tauri.conf.json","utf8"));
+  const csp=config.app?.security?.csp;
+  assert.ok(csp && typeof csp==="object","production CSP must not be null");
+  assert.equal(csp["default-src"],"'self'");
+  assert.equal(csp["script-src"],"'self'");
+  assert.ok(!csp["script-src"].includes("unsafe-inline"));
+  assert.ok(!csp["script-src"].includes("unsafe-eval"));
+  assert.equal(csp["object-src"],"'none'");
+  assert.equal(csp["frame-src"],"'none'");
+  assert.equal(csp["base-uri"],"'none'");
+  assert.equal(csp["form-action"],"'none'");
+  assert.equal(csp["worker-src"],"'none'");
+  assert.match(csp["connect-src"],/\bipc:/);
+  assert.match(csp["connect-src"],/http:\/\/ipc\.localhost/);
+  assert.doesNotMatch(csp["connect-src"],/\bhttps?:\/\/(?!ipc\.localhost)|\bwss?:\/\//);
+  assert.equal(csp["style-src"],"'self' 'unsafe-inline'",
+    "Legacy React inline styles require a documented exception");
+  assert.ok(!JSON.stringify(csp).includes("'unsafe-eval'"));
+  assert.ok(!JSON.stringify(csp).includes("*"));
+});
+
+test("Vite development CSP only opens localhost HMR and native IPC", () => {
+  const config=JSON.parse(readFileSync("src-tauri/tauri.conf.json","utf8"));
+  const dev=config.app.security.devCsp;
+  assert.ok(dev);
+  assert.match(dev["connect-src"],/http:\/\/localhost:5173/);
+  assert.match(dev["connect-src"],/ws:\/\/localhost:5173/);
+  assert.match(dev["connect-src"],/http:\/\/ipc\.localhost/);
+  assert.equal(dev["object-src"],"'none'");
+  assert.doesNotMatch(dev["script-src"],/unsafe-eval|unsafe-inline/);
+  assert.doesNotMatch(dev["connect-src"],/\bhttps:\/\/|\bwss:\/\//);
+});
+
+test("native file reads and every JSON persistence entry check parent paths", () => {
+  const storage=readFileSync("src-tauri/src/draft_io.rs","utf8");
+  assert.match(storage,/pub fn verify_parent_directory/);
+  assert.match(storage,/Component::ParentDir/);
+  assert.match(storage,/file_type\(\)\.is_symlink\(\)/);
+  assert.match(storage,/fn symlinked_parent_directory_cannot_redirect_json_into_native_folder/);
+  assert.match(storage,/fn relative_parent_traversal_rejected_before_any_write/);
+  assert.match(rust,/draft_io::verify_parent_directory\(path\)/);
+  assert.match(rust,/tokio::fs::symlink_metadata\(path\)/);
+  assert.match(rust,/fn read_only_native_file_through_symlinked_parent_is_rejected/);
+  assert.match(rust,/fn read_only_native_direct_symlink_is_rejected/);
+  assert.doesNotMatch(rust,/pub mod network;/);
+});
