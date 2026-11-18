@@ -101,3 +101,7 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 [Windows regression workflow](../.github/workflows/windows-security-acceptance.yml) срабатывает на релевантные PR/push в `main` и может запускаться вручную после появления в default branch. Проверяет Node security contracts, Rust file integrity/NTFS exclusive lock/junction, locked dependencies, Tauri production EXE, binary hash/PE evidence. Временный unsigned artifact хранится 14 дней и **не является релизом**. [Подробный протокол](windows_acceptance_pr28.md).
 
 До реального подтверждения запуска CI отмечать WindowsCI `NOT RUN`; после успешного CI менять **только** WindowsCI на `PASS`. Ручной WebView2 `UserSmoke` (WIN-01…WIN-12) и OEM Bench остаются `NOT RUN` до независимого протокола. Проверка пользовательского интерфейса, control-system connectivity, абсолютная защита TOCTOU и полная атомарность backup+target не следуют из `cargo test` и `tauri build`.
+
+## 9. PR #29 — новая граница File ID/Hardlink/Staging (Draft)
+
+[Модель угроз и acceptance](filesystem_security_pr29.md): обязательно проверить сравнение JSON байтов **и** идентичности открытого файла (Windows volume/file index, Unix dev/inode), запрет hardlinks на JSON и backup, повторную проверку staged временного файла по File ID+SHA-256 и возврат fail-closed при обнаруженной подмене. CI: Linux Rust и Windows NTFS/Rust на том же SHA PR, Node security, Tauri EXE. **Не выдавать** прохождение за full TOCTOU closure или гарантию сохранения ACL/атомарности backup+target. UserSmoke и OEM Bench остаются независимыми.
