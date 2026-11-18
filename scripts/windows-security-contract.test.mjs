@@ -60,6 +60,20 @@ test("Windows tests must exercise NTFS exclusive lock, junctions and read-only b
   assert.match(backend, /cmd_toggle_monitoring\s*,\s*cmd_deploy_to_robot/);
 });
 
+test("PR29 Windows regression includes same-byte swap, hardlinks and staged integrity", () => {
+  for (const name of [
+    "same_content_target_replacement_is_a_save_conflict",
+    "hardlink_alias_to_native_source_or_json_backup_is_rejected",
+    "staged_file_modified_after_flush_cannot_be_committed"
+  ]) {
+    assert.ok(draft.includes("fn " + name), "Rust regression missing: " + name);
+    assert.ok(workflow.includes(name), "Windows CI must compile: " + name);
+  }
+  assert.match(guarded, /pub\(crate\) fn read_regular_with_identity/);
+  assert.match(guarded, /pub\(crate\) fn verify_single_link/);
+  assert.match(draft, /Sha256::digest/);
+});
+
 test("acceptance fixture tool is synthetic-only and reports manual smoke as NOT RUN", () => {
   assert.match(harness, /ValidateSet\("Prepare", "Verify", "ValidateBinary"\)/);
   assert.match(harness, /SYNTHETIC ONLY - NOT AN OEM PROGRAM/);
