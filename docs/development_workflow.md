@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026; `main` `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) SUCCESS. PR #29 — отдельный Draft; опубликованный Windows rc.9 — до PR #24–#29. [Статус](project_status.md).
+**Актуализация:** 18.11.2026; `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный rc.9 — до PR #24–#29. Новый план — [roadmap v3](roadmap.md); docs PR #30 не расширяет runtime.
 
 ## 1. Git и изменение функций
 
@@ -98,4 +98,13 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 
 ## 12. PR #29 — filesystem security: новые regression gates
 
-Rust JSON reader/writer использует байты **и** identity открытого дескриптора при записи, а также отдельный hardlink check и checksum staged file. Перечень ограничений и конфликтных сценариев: [filesystem_security_pr29.md](filesystem_security_pr29.md). В Windows regression workflow требуется перечисление/исполнение новых тестов на реальной Windows NTFS, затем unsigned non-release Tauri EXE. `PR #29 Draft` до одобрения владельца нельзя считать частью `main` или выпуском новой версии. Directory-handle/TOCTOU/ACL/backup transaction остаются отдельными security-review темами.
+Rust JSON reader/writer использует байты **и** identity открытого дескриптора при записи, а также отдельный hardlink check и checksum staged file. Перечень ограничений и конфликтных сценариев: [filesystem_security_pr29.md](filesystem_security_pr29.md). В Windows regression workflow требуется перечисление/исполнение новых тестов на реальной Windows NTFS, затем unsigned non-release Tauri EXE. **PR #29 merged** в `main`; [main Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Это не новый опубликованный release или пользовательский smoke. Directory-handle/TOCTOU/ACL/backup transaction остаются отдельными security-review темами.
+
+## 13. Действующая схема PR #30–#37
+
+1. [Документационный baseline](implementation_plan.md) (docs-only), затем synthetic native parser fixtures и Native Workspace UX в отдельных PR; parallel private OEM intake не публикуется.
+2. Перед вводом новых editable форматов (sidecar) проверять path/ACL/TOCTOU из [PR #29 threat review](filesystem_security_pr29.md), не опираться только на unit-tests.
+3. Каждый технический PR требует безопасности + функциональных Rust/Node тестов, `npm ci`, `npm run docs:check`, Linux CI и отдельного Windows CI при изменении filesystem/Tauri; только точный PR HEAD SHA считается проверенным.
+4. Указанное в UI `OFFLINE` не заменяет доказательства OEM scan и не даёт сетевого разрешения; HSES, native writer, deployment заблокированы.
+5. Выпуск 0.6.x возможен **только после** самостоятельного [Windows UserSmoke](windows_acceptance_pr28.md), legal/source assets и согласования владельца. CI не подменяет UserSmoke.
+6. `main` на момент последней проверки возвращал GitHub `protected=false`; рекомендуется отдельное включение Ruleset/Branch Protection (выполняет владелец). До его внедрения придерживаться обязательного ручного review и запрета merge без согласия.

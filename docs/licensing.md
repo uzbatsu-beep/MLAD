@@ -60,3 +60,7 @@
 - При изменении лицензии или принципов внешней поставки нужен отдельный юридический/организационный review.
 
 **Состояние на 18.11.2026:** GPL-3.0-only, реквизиты правообладателя, PR #11–#12 и релизный ZIP+GPL source pipeline уже есть. **Остаются:** независимая проверка прав, SBOM/third-party notices, точность установочных уведомлений и Windows code signing. Этот документ не является индивидуальным юридическим заключением.
+
+## 6. Актуальный релизный gate после PR #29
+
+Готовность `main` (PR #1–#29 merged, CI SUCCESS) **не** равна завершённому лицензированию дистрибутива. Последний опубликованный Windows rc.9 собран до PR #24–#29; новые temporary unsigned CI artifacts не являются релизами. Для будущей версии 0.6.x отдельно требуются GPL source archive точного tag, third-party notices/license/SBOM review, Windows code-signing status, source asset/hash integrity и решение владельца о публикации. Договорные права на материалы Yaskawa/клиентов из лицензии MLAD не следуют. [Current status](project_status.md) · [Release gates](verification_gates.md).

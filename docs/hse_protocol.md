@@ -9,7 +9,7 @@
 - В PR #13 прежний неподтверждённый файл `src-tauri/src/network/mod.rs` **удалён** из исходников, а `pub mod network` отсутствует в `src-tauri/src/main.rs`. Неподтверждённый UDP/FTP клиент не компилируется в MLAD.
 - `cmd_toggle_monitoring` возвращает отказ во включении; `cmd_deploy_to_robot` всегда возвращает отказ. Существование Tauri IPC ради совместимости не является поддержкой протокола.
 - `TRUE/FALSE/UNKNOWN` и локальные TMR/CNT/GSTR состояния происходят только из ручных/автономных моделей, **не live HSES**.
-- Риски общего Tauri/файлового доступа сохраняются: `csp: null`, symlink/TOCTOU, JSON-сохранение. Исключение сетевого клиента не равняется полной security-сертификации.
+- Впоследствии PR #25–#29 добавили production CSP, guarded reads, File ID, hardlink/staged safeguards и Windows regression. По-прежнему открыты last check→rename TOCTOU, ACL, backup+target и ручной WebView2 acceptance. Исключение сетевого клиента **не** означает полного security-аудита; [актуальная модель](filesystem_security_pr29.md).
 
 ## 2. Что нужно подтвердить по руководствам Yaskawa
 
@@ -52,3 +52,7 @@ Gate H4: независимая оценка кода, безопасности 
 **Даже завершённый read-only HSES не разрешает FTP upload, запись регистров, управление роботом или редактирование System Ladder.**
 
 Источники и пробелы: [source_registry.md](source_registry.md), [architecture.md](architecture.md), [roadmap.md](roadmap.md).
+
+## 5. Статус после merged PR #29
+
+В `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` команды мониторинга/деплоя сохраняют **deny-only** поведение; [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) выполнены. В `Cargo.toml` при этом ещё присутствует `suppaftp` как dependency, что требует отдельной supply-chain review/удаления неиспользуемых компонентов, **без** включения сетевого runtime. Возможный read-only HSES относится к **BLOCKED M11** и требует самостоятельного approval и OEM evidence. [Решения](engineering_decisions.md).

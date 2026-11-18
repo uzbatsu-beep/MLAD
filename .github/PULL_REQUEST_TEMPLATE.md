@@ -41,3 +41,11 @@
 - Известные риски и способ отката:
 
 **Слияние только после отдельного явного согласования владельца проекта.**
+
+## Актуальность документации и границы решения
+
+- [ ] Сверены фактический `main` SHA, открытые PR, релизы и статусы CI с [project status](../docs/project_status.md).
+- [ ] При изменении функции обновлены [roadmap v3](../docs/roadmap.md), [implementation plan](../docs/implementation_plan.md), [verification gates](../docs/verification_gates.md) и профильные MD; **не** переписаны исторические release notes задним числом.
+- [ ] Если затронуты file paths/JSON/Tauri, проведён review [PR #29 filesystem boundaries](../docs/filesystem_security_pr29.md) (File ID/hardlink/ADS ≠ закрытие TOCTOU/ACL/backup transaction).
+- [ ] Уровни `SyntheticTested`, `WindowsCI`, `UserSmoke`, `OEMBenchVerified`, `Authorized` зафиксированы независимо, отсутствующие тесты честно отмечены `NOT RUN`.
+- [ ] Отдельное явное согласие владельца на merge получено (не считать CI разрешением).

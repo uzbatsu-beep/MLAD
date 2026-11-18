@@ -1,6 +1,6 @@
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
-> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+> **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
 
 **Status после merged PR #21 (18.11.2026):** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
 

@@ -39,3 +39,7 @@
 Перед финальным обновлением JSON сравнивается с snapshot старой версии; появление другого файла при первичном сохранении также вызывает отказ. Стадирование/backup из PR #24 сохраняется. **Не гарантируется** исключение races после последней проверки и транзакция backup+target. [Исследование](guarded_io_review.md).
 
 **Проверка актуального baseline:** [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Ручной Windows WebView2 smoke и проверка сбоя питания — NOT RUN. [Unified gates](verification_gates.md).
+
+## Дополнение после PR #28–#29 (merged, 18.11.2026)
+
+[PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) добавил Windows NTFS regression (junction, exclusive lock) и формальный UserSmoke checklist. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) добавил сравнение snapshot по **File ID + байтам**, отказ для hardlinked JSON target/backup, проверку staged File ID+SHA-256 и запрет Windows ADS/UNC/device paths. `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` прошёл [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) CI. Иными словами, контракт PR #24 дополнен **новыми регрессиями**, но полной atomic backup+target, ACL-preservation или final check→rename TOCTOU guarantee по-прежнему нет. [Актуальная модель угроз](filesystem_security_pr29.md). Ручной WebView2 smoke = `NOT RUN`.

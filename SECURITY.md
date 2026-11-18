@@ -42,7 +42,7 @@
 - FTP/HSES, мониторинг, live I/O, деплой и команды записи в робот **отключены**.
 - `TRUE/FALSE/UNKNOWN` в локальных моделях — **не** живые сигналы контроллера.
 - `MOV/ADD/SUB/SHL/SHR`: `TypedCandidate`, статические ссылки и `ManualDerived` **не** равны результатам исполнения на конкретной системе.
-- В текущем `main` PR #25 добавил production CSP и проверки предков путей, PR #26 — identity-checked reads, reparse detection и JSON conflict guard. **Открыты:** финальные TOCTOU-окна, hardlinks/ACL, backup+target transaction, power-loss durability и пользовательский Windows/WebView2 smoke. CSP и прохождение CI **не гарантируют** устранения этих рисков; [модель угроз](docs/guarded_io_review.md).
+- В текущем `main` PR #25–#26 добавили CSP/path guard/identity-checked reads, PR #28 — Windows NTFS security CI, PR #29 — сравнение File ID+bytes, отказ от hardlinks/ADS/UNC/device paths и staged SHA-256 checks. **Открыты:** финальное `check→rename` TOCTOU, ancestor races, Windows ACL, транзакция `backup+target`, power-loss durability и ручной Windows/WebView2 smoke. CI **не** является независимым pentest; [модель угроз](docs/filesystem_security_pr29.md).
 
 Проверяйте экспериментальное ПО только автономно на копиях, **без подключения к действующему промышленному оборудованию**. Не исследуйте уязвимости на чужом контроллере, предприятии или сети без явного разрешения.
 
@@ -54,4 +54,4 @@
 
 ## Техническая контрольная точка (18.11.2026)
 
-`main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28` прошёл [Linux validation](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776); PR #26 прошёл [Windows MSVC/Tauri CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Эти результаты **не** подтверждают ручной WebView2 smoke, независимое исследование уязвимостей, проверку эксплуатации на контроллере или допуск native writer. [Checklist](docs/verification_gates.md).
+Проверен `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` после merged [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Это **не** подтверждает независимый WebView2 smoke, защиту от всех файловых гонок, OEM bench или допуск native writer. [Verification gates](docs/verification_gates.md) · [Roadmap v3](docs/roadmap.md).

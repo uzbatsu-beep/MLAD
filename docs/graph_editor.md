@@ -107,3 +107,7 @@ PR #3's `SemanticPreview` now also returns the first **4,096 indexed expression 
 - Inline-редактирование, ограничения F2/Enter/Esc и read-only Inspector: [inline_address_editing.md](inline_address_editing.md).
 - Схемы TMR, CNT с раздельными C/R и групповой передачи: [advanced_blocks.md](advanced_blocks.md).
 - У JSON-черновиков нет подтверждённой трансляции в native файл робота. Результаты `cmd_validate_graph_draft` не дают права на экспорт.
+
+## 9. JSON persistence после PR #29
+
+Сохранение Graph/Advanced/legacy JSON теперь использует staged-file, backup, конфликтные проверки **байтов + File ID**, отказ для hardlinks и проверку SHA-256 временного файла; Windows ADS/UNC/device paths запрещены. Это применяется к backend writer, не делает графический JSON файлом контроллера. [Filesystem threat review](filesystem_security_pr29.md): last check→rename, ACL, atomic backup+target и power-loss остаются **OPEN**. Отдельный план portable sidecar — [PR #33 (предложение)](implementation_plan.md), не реализован.

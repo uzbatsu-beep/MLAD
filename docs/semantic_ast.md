@@ -1,6 +1,6 @@
 # Semantic AST & Ladder Logic Analyzer — PR #3, актуализация после PR #21
 
-> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+> **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
 
 **Scope (18.11.2026):** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
 

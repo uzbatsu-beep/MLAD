@@ -1,6 +1,6 @@
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 
-> **Сверка статуса 18.11.2026:** в `main` включены PR #1–#21, Windows `rc.9` опубликован и CI успешен. Данный материал относится к ограниченному техническому подмножеству; аппаратная эквивалентность не подтверждена. [Актуальный статус проекта](project_status.md).
+> **Статус и применимость:** документ фиксирует OFFLINE tri-state и UI-поведение PR #7/#8/#16/#17. Общий `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и уровни проверок отражены в [project_status.md](project_status.md). Этот UI **не** является live I/O или источником физической safety-индикации.
 
 **Status (18.11.2026):** PR #7/#8 merged; PR #16/#17 добавили native multi-rung и независимый масштаб. Документ описывает в первую очередь **OFFLINE** visual states, не live I/O.
 

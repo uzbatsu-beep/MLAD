@@ -128,3 +128,7 @@ For each completed case, capture controller family, exact firmware, application/
 | GEN-01 | DX100/DX200/YRC1000, отдельные firmware | Различия поколений |
 
 Отсутствие доступа к роботам означает **NOT RUN** для всех этих тестов, независимо от CI и ручной reference-модели. [Подробнее](oem_5_opcode_analysis.md).
+
+## Статус аппаратной проверки после PR #29
+
+На дату сверки `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` прошёл [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621), но **ни один тест этой hardware matrix не подтверждён как выполненный на DX100, DX200 или YRC1000**: `OEMBench=NOT RUN`. Проверка на Windows runner не является стендовой проверкой. Будущее проведение — только при отдельном разрешённом изолированном стенде, OEM-инструменте и отдельной процедуре безопасности. [Verification gates](verification_gates.md).

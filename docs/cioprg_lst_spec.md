@@ -1,6 +1,6 @@
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+> **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
 
 **Status (18.11.2026, after merged PR #21):** документируемая **частичная** спецификация; реализованы read-only lossless/semantic/advanced source inspection. **NOT** a complete verified file grammar, native writer or certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
@@ -148,7 +148,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 - До сих пор нет подтверждённого **полного** нативного файла, всех разделителей и System/User ownership для каждого firmware/application. `PART` является только меткой анализа, не доказательством возможности правки System Ladder.
 - `src-tauri/src/compiler/parser.rs` — **legacy parser** для старой JSON-модели. Он не должен заменять `lossless.rs` и не должен использоваться для нового native импорта.
-- `src-tauri/src/network/mod.rs` сохраняет неподтверждённые исторические заготовки HSES/FTP. Их вызов через интерфейс сейчас заблокирован Tauri-командами, но модуль требует будущего изолирования на уровне исходного кода. См. [HSES](hse_protocol.md).
+- В PR #13 файл `src-tauri/src/network/mod.rs` **удалён** и неподтверждённый сетевой runtime не подключён к Tauri; HSES/FTP/deploy остаются deny-only. В `src-tauri/Cargo.toml` всё ещё есть зависимость `suppaftp` для отдельного dependency review, но она **не** является доказательством наличия доступного robot upload. См. [HSES](hse_protocol.md), [Security](../SECURITY.md).
 - По выбору DX100/DX200/YRC1000 **в новых вкладках UI профиль уже доступен**, однако это не привязка к конкретной firmware/опциям/топологии роботизированной ячейки. Старый JSON-интерфейс и его совместимый валидатор не предназначены для аппаратной проверки.
 - Комбинированная семантика stateful инструкций, порядок scan, M-регистры, полная валидация файлов и OEM acceptance остаются непроверенными на реальных контроллерах.
 - Закрытие пробелов — [приёмка оригиналов](controller_fixture_intake.md) и [roadmap](roadmap.md), а не расширение неподтверждённых шаблонов.
@@ -162,3 +162,7 @@ The lossless parser now distinguishes syntactically valid \`END\` from subsequen
 ## PR #19 — типизированные кандидаты MOV/ADD/SUB/SHL/SHR
 
 Добавлен слой `TypedCandidate` отдельно от исполняемого `Instruction` и `UnsupportedInstruction`. Проверяются только лексические роли операндов и ограничения из документированных таблиц DX200/YRC1000 (не транслируются в полную семантику). Флаги, запись регистров, сканирование, реле и типы значения остаются неподтверждёнными. Для DX100 подтверждения форм данного этапа нет. [Таблица форм/источников/ограничений](typed_opcode_grammar.md).
+
+## Следующий этап проверки native grammar (после PR #29)
+
+[Roadmap v3](roadmap.md) и [предлагаемый parser corpus PR #31](implementation_plan.md) требуют синтетических edge cases для `//$M`, `PART/END`, пост-END данных, unknown/opaque и точных spans. Приватные реальные источники допускаются только по [fixture intake](controller_fixture_intake.md) и не публикуются. Никакая из этих работ не разрешает native writer.

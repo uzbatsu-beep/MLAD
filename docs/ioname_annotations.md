@@ -28,3 +28,7 @@ References:
 4. Manual association of IONAME label to `#XXXXX` or `Mxxx` affects only local display.
 5. Full Ladder list is limited to all SemanticPreview rungs, with explicit warning if results were truncated.
 6. No HSES/FTP, device I/O, source translation, or System/User authorization is activated.
+
+## Следующий шаг: portable annotations (предложение, не реализация)
+
+В [roadmap v3](roadmap.md) после merged PR #29 предлагается versioned sidecar `*.mlad.json` (условный PR #33), привязанный к source SHA, с миграциями и отказом на stale source. На данный момент localStorage остаётся локальным механизмом, **не** переносимым проектом и не гарантированным backup. Native `IONAME.DAT` остаётся read-only; автоматическое сопоставление имен адресам **не** утверждено.

@@ -1,6 +1,6 @@
 # Yaskawa Advanced CIO Instructions — PR #5, актуализация после PR #21
 
-> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+> **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
 
 **Status (18.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
 

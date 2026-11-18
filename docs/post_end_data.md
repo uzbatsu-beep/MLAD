@@ -31,3 +31,7 @@ The status strip shows first valid END line, the number of post-END lines, recog
 ## Known limits
 
 This change prevents a documented class of false positives; it does not fix other unsupported opcodes (`MOV`, `ADD`, `SUB`, `SHL`, etc.), establish firmware-specific memory mapping, grant System/User modification rights or guarantee diagnostic completeness. Each supported controller family still requires private source/correctness comparison with OEM Ladder Editor.
+
+## Next verification cycle (roadmap v3)
+
+[Proposed PR #31 synthetic parser corpus](implementation_plan.md) must include `PART/END` combinations and synthetic `//ALARM`/`//MESSAGE` tail records with exact source spans and no fake Ladder interpretation. Findings from private exports **do not establish universal OEM grammar**. Main after PR #29 uses unchanged read-only parser boundaries; no native export or robot deployment is authorized. [Status](project_status.md).
