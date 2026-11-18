@@ -38,6 +38,10 @@ fn same_identity(_a:&Metadata,_b:&Metadata)->bool {false}
 /// Reject changed path identity/size/mtime and symlinks, including Windows
 /// reparse points. Filesystems lacking reliable identifiers fail closed.
 pub fn read_regular(path:&Path,max:usize)->Result<Vec<u8>,String>{
+    read_regular_inner(path,max,||{})
+}
+
+fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Vec<u8>,String>{
     crate::draft_io::verify_parent_directory(path)?;
     let before=fs::symlink_metadata(path)
         .map_err(|e|format!("Ошибка проверки файла: {e}"))?;
@@ -47,6 +51,7 @@ pub fn read_regular(path:&Path,max:usize)->Result<Vec<u8>,String>{
     if before.len()>max as u64 {
         return Err("Размер файла превышает разрешённый предел".into());
     }
+    before_open();
     let handle=OpenOptions::new().read(true).open(path)
         .map_err(|e|format!("Ошибка открытия файла: {e}"))?;
     let opened=handle.metadata()
@@ -91,6 +96,20 @@ mod tests {
         fs::write(&p,data).unwrap();
         assert_eq!(read_regular(&p,100).unwrap(),data);
         assert!(read_regular(&p,2).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn substituted_file_between_metadata_and_open_fails_closed(){
+        let root=dir();let path=root.join("draft.graph.json");
+        let displaced=root.join("original.snapshot");
+        fs::write(&path,b"first").unwrap();
+        let result=read_regular_inner(&path,100,||{
+            fs::rename(&path,&displaced).unwrap();
+            fs::write(&path,b"second").unwrap();
+        });
+        assert!(result.is_err(),"a substituted file must not pass identity check");
+        assert_eq!(fs::read(&path).unwrap(),b"second");
+        assert_eq!(fs::read(&displaced).unwrap(),b"first");
         fs::remove_dir_all(root).unwrap();
     }
     #[cfg(unix)]
