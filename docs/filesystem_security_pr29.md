@@ -1,6 +1,6 @@
 # MLAD PR #29 — Filesystem Security Hardening: threat review and evidence
 
-**Baseline:** `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, [PR #28 merged](https://github.com/uzbatsu-beep/MLAD/pull/28), [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264) and [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173) SUCCESS. PR #29 — отдельная ветка/Draft, не часть `main` до согласованного merge. Дата: 18.11.2026.
+**История:** PR #29 разработан от `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea` и [merged](https://github.com/uzbatsu-beep/MLAD/pull/29) 18.11.2026 в `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. Финальные проверки [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Исторические [Linux PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892563) и [Windows PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892566) также успешны. **UserSmoke/OEMBench = NOT RUN**; это не release.
 
 ## 1. Границы доверия и атакующий
 
@@ -46,14 +46,18 @@
 | Byte immutability | Rust fixtures + ручной [WIN-01–WIN-12](windows_acceptance_pr28.md) | Синтетический оригинал не меняется; UserSmoke `NOT RUN`, пока нет отчёта |
 | Hardware | **Не выполнять** | `OEMBench=NOT RUN`; HSES/FTP/writer `BLOCKED` |
 
-## 5. Необходимо отдельно проверить перед merge
+## 5. Результаты CI и открытые задачи после merge
 
-- [ ] CI on actual PR HEAD SHA, Linux frontend/Rust и Windows acceptance: только реальный SUCCESS.
-- [ ] В Windows полный `cargo test --locked`: hardlink snapshot и staging protection без flaky failures.
-- [ ] Сохранение первого/второго JSON, поведение `.bak`, cleanup `.tmp`, oversized JSON и ошибки Windows lock не регрессировали.
-- [ ] При одинаковых байтах подменённого JSON тест возвращает конфликт вместо тихого overwrite.
-- [ ] Отдельно отметить неизменность `CIOPRG.LST` / `IONAME.DAT` и границы native writer/FTP/HSES.
-- [ ] Проанализировать открытые угрозы выше, не писать `TOCTOU fixed` / `atomic backup+target`.
-- [ ] **Только владелец** решает merge; даже после merge требуется отдельная Windows UserSmoke до претензий на user acceptance.
+- [x] PR HEAD `0e1eae035309a1bc8a43594323b1197deb57a47f`: Linux/Windows CI SUCCESS; после merge `main` SHA `f85ddfc` — Linux/Windows CI SUCCESS.
+- [x] Windows `cargo test --locked` и Windows-specific regression tests выполнены в указанном GitHub Actions.
+- [x] Имеющиеся Rust unit/regression тесты JSON staging/backup/oversize/lock прошли на Windows runner; **ручной UI тест по-прежнему NOT RUN**.
+- [x] Rust same-content File ID swap test возвращает конфликт до rename; последнее race window остаётся OPEN.
+- [x] Synthetic Rust test подтверждает отсутствие native write в протестированных сценариях; HSES/FTP/native writer остаются BLOCKED.
+- [x] Не заявляется `TOCTOU fixed` / `atomic backup+target`; отдельный архитектурный review directory handles/ACL и crash recovery остаётся OPEN.
+- [x] PR #29 merged; независимая Windows UserSmoke/проверка WebView2 всё ещё **NOT RUN** и должна быть отдельно зафиксирована.
 
 См. [PR #26 review](guarded_io_review.md), [verification gates](verification_gates.md), [Windows protocol](windows_acceptance_pr28.md), [implementation plan](implementation_plan.md).
+
+## 6. После PR #29 — следующий risk review
+
+**Реализованные проверки — только обнаруживаемые случаи.** Для нового versioned sidecar и любых последующих edit-paths отдельно оценить атомарность target+backup, parent-handle traversal, ACL/owner inheritance, одновременный UI session save и crash recovery. §main§ включает PR #29, но **M2 остаётся PARTIAL**. [Текущая roadmap v3](roadmap.md) · [план](implementation_plan.md) · [Windows manual acceptance](windows_acceptance_pr28.md).
