@@ -63,9 +63,10 @@ async fn read_cioprg_bytes(file_path: &str) -> Result<Vec<u8>, String> {
     if !path.extension().is_some_and(|ext| ext.to_string_lossy().eq_ignore_ascii_case("lst")) {
         return Err("Выберите файл .LST для просмотра".into());
     }
-    let metadata = tokio::fs::metadata(path).await
+    draft_io::verify_parent_directory(path)?;
+    let metadata = tokio::fs::symlink_metadata(path).await
         .map_err(|e| format!("Не удалось прочитать метаданные файла: {e}"))?;
-    if !metadata.is_file() || metadata.len() > MAX_CIO_FILE_BYTES {
+    if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() > MAX_CIO_FILE_BYTES {
         return Err("Файл должен быть обычным .LST размером не более 16 МиБ".into());
     }
     let bytes = tokio::fs::read(path).await
@@ -187,6 +188,7 @@ async fn cmd_inspect_ioname(file_path: String)
         .is_some_and(|n|n.eq_ignore_ascii_case("IONAME.DAT")) {
         return Err("Для просмотра выберите IONAME.DAT (копию файла)".into());
     }
+    draft_io::verify_parent_directory(path)?;
     let meta=tokio::fs::symlink_metadata(path).await
         .map_err(|e|format!("Нет доступа к IONAME.DAT: {e}"))?;
     if meta.file_type().is_symlink() || !meta.is_file() || meta.len()>MAX_IONAME_BYTES {
@@ -242,6 +244,7 @@ async fn cmd_pick_native_file(
         Some(value) => {
             let path = value.into_path().map_err(|_| "Выбранный путь не является локальным файлом".to_string())?;
             validate_native_pick(&kind, &path)?;
+            draft_io::verify_parent_directory(&path)?;
             let file = tokio::fs::symlink_metadata(&path).await
                 .map_err(|e| format!("Не удалось проверить выбранный файл: {e}"))?;
             if file.file_type().is_symlink() || !file.is_file() {
@@ -319,6 +322,7 @@ fn check_graph_draft_path(file_path: &str) -> Result<&std::path::Path, String> {
 // Reject direct symlink targets before any JSON write. This is a
 // defense-in-depth check, not a substitute for filesystem ACLs or locking.
 async fn reject_existing_symlink(path: &std::path::Path) -> Result<(), String> {
+    draft_io::verify_parent_directory(path)?;
     match tokio::fs::symlink_metadata(path).await {
         Ok(meta) if meta.file_type().is_symlink() =>
             Err("Сохранение через символическую ссылку запрещено".into()),
@@ -550,6 +554,42 @@ mod graph_write_safety_tests {
         std::fs::remove_dir(&root).unwrap();
     }
 
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn read_only_native_file_through_symlinked_parent_is_rejected(){
+        let root=std::env::temp_dir().join(format!(
+            "mlad-native-parent-{}", uuid::Uuid::new_v4()));
+        let real=root.join("regular");
+        std::fs::create_dir_all(&real).unwrap();
+        let cioprg=real.join("CIOPRG.LST");
+        let ioname=real.join("IONAME.DAT");
+        std::fs::write(&cioprg,b"/CIOPRG DX\r\nEND\r\n").unwrap();
+        std::fs::write(&ioname,b"synthetic").unwrap();
+        let link=root.join("link");
+        std::os::unix::fs::symlink(&real,&link).unwrap();
+        assert!(read_cioprg_bytes(link.join("CIOPRG.LST")
+            .to_string_lossy().as_ref()).await.is_err());
+        assert!(cmd_inspect_ioname(link.join("IONAME.DAT")
+            .to_string_lossy().to_string()).await.is_err());
+        assert_eq!(std::fs::read(&cioprg).unwrap(),b"/CIOPRG DX\r\nEND\r\n");
+        assert_eq!(std::fs::read(&ioname).unwrap(),b"synthetic");
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn read_only_native_direct_symlink_is_rejected(){
+        let root=std::env::temp_dir().join(format!(
+            "mlad-native-file-{}",uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let real=root.join("source.LST");
+        let alias=root.join("CIOPRG.LST");
+        std::fs::write(&real,b"/CIOPRG DX\r\nEND\r\n").unwrap();
+        std::os::unix::fs::symlink(&real,&alias).unwrap();
+        assert!(read_cioprg_bytes(alias.to_string_lossy().as_ref()).await.is_err());
+        assert_eq!(std::fs::read(&real).unwrap(),b"/CIOPRG DX\r\nEND\r\n");
+        std::fs::remove_dir_all(&root).unwrap();
+    }
     #[test]
     fn graph_draft_path_never_targets_native_files() {
         assert!(check_graph_draft_path("CIOPRG.LST").is_err());
