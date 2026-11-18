@@ -311,8 +311,8 @@ fn check_graph_draft_path(file_path: &str) -> Result<&std::path::Path, String> {
 async fn reject_existing_symlink(path: &std::path::Path) -> Result<(), String> {
     draft_io::verify_parent_directory(path)?;
     match tokio::fs::symlink_metadata(path).await {
-        Ok(meta) if meta.file_type().is_symlink() =>
-            Err("Сохранение через символическую ссылку запрещено".into()),
+        Ok(meta) if guarded_read::is_indirection(&meta) =>
+            Err("Сохранение через символическую ссылку или reparse point запрещено".into()),
         Ok(meta) if !meta.is_file() =>
             Err("Сохранение допускается только в обычный файл".into()),
         Ok(_) => Ok(()),
