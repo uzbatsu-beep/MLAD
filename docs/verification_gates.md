@@ -95,3 +95,9 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 ## 7. Правила репозитория и полномочия
 
 **Наблюдение 18.11.2026:** `main` возвращается GitHub как `protected=false`. Даже успешный workflow не препятствует ручному обходу процесса без branch protection. Отдельно от этого docs PR рекомендуется настроить GitHub Ruleset/Branch Protection с обязательными проверками `frontend-build` и `rust-tests`, запретом прямых push и процедурой review, доступной для текущего типа аккаунта. Техническое правило **не заменяет** явного решения владельца о merge. Документационный PR #27 не меняет настройки репозитория.
+
+## 8. PR #28 — Windows Acceptance & Security Regression
+
+[Windows regression workflow](../.github/workflows/windows-security-acceptance.yml) срабатывает на релевантные PR/push в `main` и может запускаться вручную после появления в default branch. Проверяет Node security contracts, Rust file integrity/NTFS exclusive lock/junction, locked dependencies, Tauri production EXE, binary hash/PE evidence. Временный unsigned artifact хранится 14 дней и **не является релизом**. [Подробный протокол](windows_acceptance_pr28.md).
+
+До реального подтверждения запуска CI отмечать WindowsCI `NOT RUN`; после успешного CI менять **только** WindowsCI на `PASS`. Ручной WebView2 `UserSmoke` (WIN-01…WIN-12) и OEM Bench остаются `NOT RUN` до независимого протокола. Проверка пользовательского интерфейса, control-system connectivity, абсолютная защита TOCTOU и полная атомарность backup+target не следуют из `cargo test` и `tauri build`.
