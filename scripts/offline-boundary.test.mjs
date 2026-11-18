@@ -94,8 +94,10 @@ test("PR26 native and JSON reads use one handle with filesystem identity checks"
   assert.match(rust,/mod guarded_read;/);
   assert.equal((rust.match(/guarded_read::read_regular\(&selected,/g)||[]).length,2);
   assert.match(drafts,/guarded_read::read_regular\(path,MAX_JSON_BYTES\)/);
-  assert.match(safe,/volume_serial_number\(\)/);
-  assert.match(safe,/file_index\(\)/);
+  assert.match(safe,/GetFileInformationByHandle/);
+  assert.match(safe,/FILE_FLAG_OPEN_REPARSE_POINT/);
+  assert.match(safe,/win_file_id\(&before_win\)/);
+  assert.match(safe,/win_file_id\(&after_win\)/);
   assert.match(safe,/same_identity\(&before,&opened\)/);
   assert.match(safe,/is_indirection\(&after_path\)/);
   assert.match(safe,/FILE_ATTRIBUTE_REPARSE_POINT/);
