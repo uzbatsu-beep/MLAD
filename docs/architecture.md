@@ -1,6 +1,6 @@
 # Архитектура MLAD и границы доверия
 
-**Статус от 18.11.2026:** отражает `main` `39c5ead8d1b9ac63b49be607312dc8b3976549dd` после merged PR #21. Подробности: [актуальный статус](project_status.md) и [roadmap](roadmap.md). Все нативные исходники только для чтения; сеть и деплой отключены.
+**Статус от 18.11.2026:** соответствует `main` `2092db1825880d251c87efcb7c331d78cb5e4d28` после merged PR #26. [Статус](project_status.md), [roadmap](roadmap.md), [план ближайших PR](implementation_plan.md). Native исходники только для чтения; network/deploy отключены.
 
 ## 1. Слои и поток данных
 
@@ -28,6 +28,8 @@ React / TypeScript / Tauri WebView
     ├── compiler/reference_semantics.rs — isolated manual-derived vectors
     │   (НЕ подключено к CIO исполняющему AST или Tauri command)
     ├── compiler/ioname.rs — ограниченный read-only структурный preview
+    ├── guarded_read.rs — bounded snapshot и identity/reparse проверки
+    ├── draft_io.rs — staged JSON write, backup, conflict guard
     └── legacy draft/parser helpers — отдельные JSON модели
 ```
 
@@ -65,7 +67,7 @@ Backend не предоставляет рабочей команды сохра
 
 ## 5. Открытые security/engineering долги
 
-1. В PR #25 предлагается CSP и symlink-ancestor checks; остаются filesystem TOCTOU, Windows junction/reparse, directory handles и отсутствие транзакции backup+target.
+1. PR #25 merged: CSP и symlink-ancestor checks; PR #26 merged: guarded reads/JSON conflict guard. Остаются filesystem TOCTOU, hardlinks, ACL/Windows junction edge cases, directory handles и отсутствие транзакции backup+target.
 2. Реальные golden fixtures с provenance по DX100/DX200/YRC1000 и firmware.
 3. Полная native grammar, byte/word aliasing, System/User ownership.
 4. Взаимодействие флагов и условий EN при полном скане; крайние MOV byte=256, SHL/SHR n=0/16.
@@ -80,11 +82,15 @@ Backend не предоставляет рабочей команды сохра
 Три IPC-метода записи JSON используют один Rust `draft_io::write_atomic` для временного файла с уникальным именем, `sync_all` и замены файла в той же папке. Читатели Graph/Advanced/legacy JSON ограничены 2 МиБ и отвергают прямые symlink. Резервная копия `*.bak` формируется отдельно и **не атомарна одновременно** с целевым JSON. Это **не** capability grant для записи CIOPRG.LST или IONAME.DAT, no FTP/HSES. См. [модель безопасности записи](json_persistence_safety.md).
 
 
-## 7. PR #25 — CSP and linked path rejection (Draft)
+## 7. PR #25 — CSP and linked path rejection (merged)
 
 Настройка `app.security.csp` ограничивает external loads в packaged WebView; `devCsp` отдельно позволяет только Vite localhost HMR. Inline CSS/React styles требуют исключения `style-src 'unsafe-inline'`; JS остаётся без `unsafe-inline` и `unsafe-eval`. Для файлов `draft_io::verify_parent_directory` предварительно выявляет symlink ancestors/ParentDir, но не удерживает дескриптор директории от изменения. [Подробные ограничения](csp_path_hardening.md).
 
 
-## 8. PR #26 — bounded identity-checked read and JSON conflict guard (Draft)
+## 8. PR #26 — bounded identity-checked read and JSON conflict guard (merged)
 
 `guarded_read::read_regular` использует единый дескриптор для содержимого (на Windows — дополнительные контрольные дескрипторы), предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.md).
+
+## 9. Архитектурный маршрут
+
+**Следующие отдельные изменения:** автоматизируемые Windows security regressions → targeted file-handle threat review → synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based semantics → unified offline workspace. [Implementation plan](implementation_plan.md) · [Verification gates](verification_gates.md) · [Decisions D1–D9](engineering_decisions.md). Ни один документ не санкционирует запись native или подключение контроллера.
