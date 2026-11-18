@@ -46,7 +46,7 @@ React / TypeScript / Tauri WebView
 | Локальные TMR/CNT/GSTR test steps | Детерминированные **ручные** шаги | Не реальный scan/IO |
 | HSES / FTP | Deny-only Tauri IPC | **OFFLINE / запрещено** |
 
-Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. Действующие проверки файлов не заменяют полноценный sandbox: **CSP сейчас `null`**; PR #24 предлагает stage/rename JSON и backups, но filesystem races/symlinks/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего audit.
+Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 Draft** предлагает production CSP и проверки предков путей; CSP **в rc.9 ещё отсутствует**, а filesystem races/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего аудита.
 
 ## 3. Три уровня интерпретации
 
@@ -65,7 +65,7 @@ Backend не предоставляет рабочей команды сохра
 
 ## 5. Открытые security/engineering долги
 
-1. CSP и filesystem symlink/TOCTOU; PR #24 предлагает stage/rename JSON, но не полноценную транзакцию backup+target и не locked file handles.
+1. В PR #25 предлагается CSP и symlink-ancestor checks; остаются filesystem TOCTOU, Windows junction/reparse, directory handles и отсутствие транзакции backup+target.
 2. Реальные golden fixtures с provenance по DX100/DX200/YRC1000 и firmware.
 3. Полная native grammar, byte/word aliasing, System/User ownership.
 4. Взаимодействие флагов и условий EN при полном скане; крайние MOV byte=256, SHL/SHR n=0/16.
@@ -75,6 +75,11 @@ Backend не предоставляет рабочей команды сохра
 Открытые темы — в [roadmap](roadmap.md); OEM испытания — в [матрице](semantic_verification_matrix.md). Прохождение Rust/TypeScript/Windows CI само по себе не закрывает эти риски.
 
 
-## 6. PR #24 — offline JSON persistence (Draft, без слияния)
+## 6. PR #24 — offline JSON persistence (merged, не в выпущенном rc.9)
 
 Три IPC-метода записи JSON используют один Rust `draft_io::write_atomic` для временного файла с уникальным именем, `sync_all` и замены файла в той же папке. Читатели Graph/Advanced/legacy JSON ограничены 2 МиБ и отвергают прямые symlink. Резервная копия `*.bak` формируется отдельно и **не атомарна одновременно** с целевым JSON. Это **не** capability grant для записи CIOPRG.LST или IONAME.DAT, no FTP/HSES. См. [модель безопасности записи](json_persistence_safety.md).
+
+
+## 7. PR #25 — CSP and linked path rejection (Draft)
+
+Настройка `app.security.csp` ограничивает external loads в packaged WebView; `devCsp` отдельно позволяет только Vite localhost HMR. Inline CSS/React styles требуют исключения `style-src 'unsafe-inline'`; JS остаётся без `unsafe-inline` и `unsafe-eval`. Для файлов `draft_io::verify_parent_directory` предварительно выявляет symlink ancestors/ParentDir, но не удерживает дескриптор директории от изменения. [Подробные ограничения](csp_path_hardening.md).

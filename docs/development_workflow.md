@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026, `main` PR #1–#21 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [rc.9 Windows SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155). Основной процесс — отдельный PR, CI и явное согласование владельца. [Текущий статус](project_status.md).
+**Актуализация:** 18.11.2026, `main` PR #1–#24 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901), [rc.9 Windows SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155). Основной процесс — отдельный PR, CI и явное согласование владельца. [Текущий статус](project_status.md).
 
 ## 1. Git и изменение функций
 
@@ -71,6 +71,11 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 См. [CONTRIBUTING.md](../CONTRIBUTING.md) и [контроллерные фикстуры](controller_fixture_intake.md).
 
 
-## 6. Проверка безопасного сохранения JSON (PR #24, Draft)
+## 6. Проверка безопасного сохранения JSON (PR #24 merged)
 
 Новый staged writer тестируется Rust-модулем `draft_io.rs`, а `test:security` дополнительно запрещает прямую запись JSON из Tauri handlers. Для приёмки нужны: новый/существующий черновик, предыдущая `*.bak`, oversized input, прямая symlink, ошибка создания/замены и проверка неизменности оригинальных `CIOPRG.LST`/`IONAME.DAT`. Rust CI на Linux **не доказывает** идентичное поведение замены на Windows; до выпуска нужен Windows smoke с закрытым WebView2 и открытым JSON-файлом. Действующие угрозы CSP, parent symlink/races и backup transaction остались за рамками этого PR.
+
+
+## 7. PR #25 — CSP и защита пути (Draft)
+
+Перед выпуском проверить синтаксис CSP через `npm run test:security`, `cargo test --locked`, сборку Windows Tauri, запуск WebView2, проверку системного Open dialog, визуальных Ladder/TMR панелей, локального редактирования JSON и отсутствие blocked Tauri IPC. Нормальные символические ссылки предков сознательно отвергаются для уменьшения риска: пользователь должен выбирать **прямой путь к обычной копии файла**. Тесты не устраняют filesystem TOCTOU; отдельный review directory-handle/Windows reparse остаётся.

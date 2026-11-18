@@ -1,9 +1,9 @@
 # MLAD — актуальное состояние проекта
 
 **Дата сверки:** 18 ноября 2026 года.  
-**Проверенный baseline:** GitHub `main` @ `39c5ead8d1b9ac63b49be607312dc8b3976549dd`.  
-**Последний слитый функциональный PR:** [#21](https://github.com/uzbatsu-beep/MLAD/pull/21), все PR #1–#21 закрыты со статусом merged.  
-**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563) для указанного `main`.  
+**Проверенный baseline:** GitHub `main` @ `6b8434376affcc02bf6d651cbf8e0edd797ca430`.  
+**Последний слитый PR:** [#24](https://github.com/uzbatsu-beep/MLAD/pull/24), все PR #1–#24 merged. PR #25 — Draft.  
+**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901) для указанного `main`.  
 **Последний опубликованный Windows pre-release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); соответствующий [Windows workflow — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).  
 **Версия приложения в манифестах:** `0.5.0`; суффиксы `rc.9` применяются к release tag / Windows preview, а не означают релиз 1.0 или промышленную готовность.
 
@@ -60,7 +60,7 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 | --- | --- |
 | M0: PR-база и CI | Выполнено: #1–#21 merged, main CI SUCCESS |
 | M1: приватные OEM golden fixtures | Частично: 5 исходников исследованы, нет полной модели controller/firmware/OEM outcome |
-| M2: hardening/воспроизводимость | Частично: отказ сети, lockfiles и CI; в Draft PR #24 предлагается stage/rename JSON с резервной копией. CSP/TOCTOU/Windows smoke остаются |
+| M2: hardening/воспроизводимость | Частично: PR #24 merged — staging JSON + `.bak`, Windows MSVC tests; PR #25 Draft — CSP + symlink ancestor guards; TOCTOU и ручной smoke остаются |
 | M3: Native Workspace | Основной read-only workflow реализован (#15–#17) |
 | M4: навигация и диагностика | Реализована база; расширенные фильтры/cross-ref/performance остаются |
 | M5: Typed Syntax | Частично реализовано для 5 команд, другой синтаксис остаётся opaque |
@@ -90,6 +90,11 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 Публичные Issues не предназначены для реальных `CIOPRG.LST`, `IONAME.DAT`, закрытых карт памяти/сети и деталей уязвимостей. Включение GitHub Private Vulnerability Reporting зависит от настроек репозитория и проверяется владельцем отдельно. Публикация SECURITY.md **не включает** этот механизм автоматически.
 
 
-## 8. Статус PR #24 — сохранение JSON (ещё не в main)
+## 8. Статус PR #24 — сохранение JSON (merged, ещё не в отдельном Windows-релизе)
 
-Рабочая ветка предлагает единый модуль `draft_io.rs` для staged JSON write/backup, проверки ограничений размера 2 МиБ при чтении/записи и отказов при прямых symlink. Это **кандидат** на завершение части M2, а не релизная функция. После merge надо отдельно проверить Windows и продолжить CSP/TOCTOU; нативные роботовые файлы и сетевое управление остаются вне области изменений. [Контракт и пределы](json_persistence_safety.md).
+Merged PR #24 реализовал единый модуль `draft_io.rs` для staged JSON write/backup, проверки ограничений размера 2 МиБ при чтении/записи и отказов при прямых symlink. Функция уже находится в `main`, но **не** выпущена отдельным Windows binary rc.9 и не закрывает M2. После merge надо отдельно проверить Windows и продолжить CSP/TOCTOU; нативные роботовые файлы и сетевое управление остаются вне области изменений. [Контракт и пределы](json_persistence_safety.md).
+
+
+## 9. PR #25 — CSP и проверки ссылок в пути (проектируемый, не в main)
+
+Для Tauri предлагается строгая production CSP и отдельная devCsp для localhost/Vite. При чтении native данных и чтении/записи JSON выполняется предварительная проверка каждого родительского каталога на известные symlink. Это **defense-in-depth**, не истинный защитный `openat/no-follow` на дескрипторе и не гарантия от TOCTOU. Стендовая верификация и robot writer по-прежнему недоступны. [Контракт PR #25](csp_path_hardening.md).

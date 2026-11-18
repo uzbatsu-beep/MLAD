@@ -1,6 +1,6 @@
 # MLAD — дорожная карта v2: Native CIO Workspace → Engineering IDE → Verified Controller Integration
 
-**Актуализация:** 18.11.2026; `main` `39c5ead8d1b9ac63b49be607312dc8b3976549dd`, PR **#1–#21 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), Windows [rc.9 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).  
+**Актуализация:** 18.11.2026; `main` `6b8434376affcc02bf6d651cbf8e0edd797ca430`, PR **#1–#24 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901), Windows [rc.9 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).  
 **Статус:** базовый Native Workspace и read-only parser работают; пять команд типизированы и снабжены автономными OEM-reference векторами, но scan/dataflow, System/User, стенд и native writer **не подтверждены/заблокированы**. [Текущий статус](project_status.md).
 
 ## 1. Продуктовая цель и ограничения
@@ -39,7 +39,7 @@
 |---|---|---|---|---|---|
 | M0 | Baseline PR #1–#21 | DONE | — | Выполнены текущие CI, code/docs синхронизированы | DONE: PR #1–#21 в main; основной CI SUCCESS |
 | M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
-| M2 | Безопасность и воспроизводимость | P0 | M0 | Сетевой runtime удалён, lockfiles и CI; PR #24 предлагает stage+rename+backup для JSON | PARTIAL: в PR #24 — атомарная замена draft JSON; CSP/TOCTOU/parent symlinks/transaction остаются |
+| M2 | Безопасность и воспроизводимость | P0 | M0 | Сетевой runtime удалён, lockfiles/CI; PR #24 merged; PR #25 Draft CSP + parent-path checks | PARTIAL: есть staging JSON, в PR #25 — CSP и отказ от явных symlink; TOCTOU/directory handles/Windows smoke открыты |
 | M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
 | M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | PARTIAL: paging/search/diagnostics; расширенные cross-ref/UX открыты |
 | M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | PARTIAL: пять typed opcodes; иные команды unknown |
@@ -187,10 +187,18 @@
 **Организация:** каждый будущий этап в отдельном Draft PR, с тестами и согласованием владельца до слияния. Разделы с вариантами приоритетов выше сохранены как история обсуждения, а не текущая задача по первому запуску UI.
 
 
-### PR #24 — Atomic Offline JSON Draft Persistence (предложен; Draft)
+### PR #24 — Atomic Offline JSON Draft Persistence (merged, 18.11.2026)
 
 - Сохраняются только отдельные `*.graph.json`, `*.advanced.json`, legacy `*.json`; оригиналы `CIOPRG.LST` и `IONAME.DAT` всегда read-only.
 - Перед записью ограничение размера 2 МиБ; запись во вновь создаваемый файл в той же директории, `sync_all`, переименование/замена; предыдущая версия при перезаписи переносится в `*.bak` через отдельный staging/rename.
 - Защита от **прямых** symlink у JSON и backup; Rust-тесты на первоначальную запись, последовательные сохранения, отказ, oversized и symlink. Ошибка backup/rename не должна обрезать старый JSON.
 - **Остаётся M2 PARTIAL:** backup и target не образуют единую транзакцию; Windows replacement зависит от правил файловой системы/ACL, нет межпроцессной блокировки, не устранены гонки parent path, hardlinks и TOCTOU; CSP `null` без изменений. Следующий security PR должен рассматривать доступ по file handle, directory trust/locks и CSP отдельно.
 - Влияние на release: Windows binary `rc.9` не изменялся; нужен отдельный Windows acceptance smoke перед объявлением устойчивости поведения на Windows.
+
+
+### PR #25 — Tauri CSP и parent-path safety (Draft; ещё не слит)
+
+- CSP production: запрет удалённых scripts/connect, `unsafe-eval`, объектов, iframes, worker; разрешён только локальный `'self'` и `ipc: http://ipc.localhost`. `style-src 'unsafe-inline'` временно необходим существующему React/inline CSS. Vite dev CSP отдельно ограничен localhost:5173 + WebSocket для HMR.
+- Файловые операции: отклонение явно обнаруженных symlink в родительских каталогах, `..` и direct symlink у native CIOPRG/IONAME. JSON read/write продолжают staging из PR #24, но проверяют всех текущих предков.
+- Rust-тесты: обычные вложенные пути, symlink-parent, symlink-native, traversal, побайтовая сохранность исходника; Node security tests валидируют CSP/код. Windows MSVC и сборка Tauri требуют отдельного успешного CI.
+- **Не заявлять полноту M2:** путь может быть заменён между проверкой и open/rename; недоверенные Windows junction/reparse points и hardlinks, concurrent writers, permission ACL и CSP runtime smoke проверяются отдельно. Без аппаратного интерфейса.
