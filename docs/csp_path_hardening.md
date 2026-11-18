@@ -8,7 +8,7 @@
 - [Tauri SecurityConfig](https://v2.tauri.app/reference/config/#securityconfig) — production `csp` и отдельный `devCsp`, по умолчанию dev наследует production.
 - [Tauri Vite Guide](https://v2.tauri.app/start/frontend/vite/) — локальный Vite сервер и HMR через WebSocket.
 
-## 1. Предлагаемая production CSP
+## 1. Реализованная production CSP
 
 В `src-tauri/tauri.conf.json` строго определены `default-src` и `script-src: 'self'`, без `'unsafe-inline'`/`'unsafe-eval'` для JavaScript. `connect-src` допускает только приложение и Tauri IPC (`ipc: http://ipc.localhost`). `object-src`, `frame-src`, `worker-src`, `base-uri`, `form-action` блокируются. `img-src 'self' data:` и `font-src 'self'` не разрешают CDN и внешние изображения.
 
@@ -41,11 +41,13 @@
 
 | Проверка | Автоматическая/ручная | Статус |
 | --- | --- | --- |
-| Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | До результата PR CI |
-| Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | До результата PR CI |
-| Windows Tauri build with compiled CSP | GitHub Windows workflow, не публикует релиз | До результата |
+| Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | PASS — PR #25/#26 CI |
+| Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | PASS — main/PR #26 CI |
+| Windows Tauri build with compiled CSP | GitHub Windows workflow, не публикует релиз | [PASS — PR #26 Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031) |
 | В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | NOT RUN |
-| Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Rust regression | До результата |
+| Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Rust regression | PASS — автоматические тесты; независимый UserSmoke NOT RUN |
 | File-handle/no-follow, symlink race testing, policy для Windows junction | Отдельная задача | OPEN |
 
 **Решение:** PR #25 устраняет `csp:null` и снижает класс рисков symlink-ancestor, но **M2 остаётся PARTIAL**, а robot writer и HSES/FTP запрещены.
+
+**Примечание к истории:** первая реализация — PR #25, в PR #26 добавлен guarded read и Windows reparse check. Это **не** снимает открытые file races и manual WebView2 validation. [Фактический статус](project_status.md) · [единые gates](verification_gates.md).

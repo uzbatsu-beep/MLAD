@@ -1,9 +1,9 @@
 # MLAD — актуальное состояние проекта
 
 **Дата сверки:** 18 ноября 2026 года.  
-**Проверенный baseline:** GitHub `main` @ `05f61b2c74854c3b15619cb0a33cd674bcd34ae2`.  
-**Последний слитый PR:** [#25](https://github.com/uzbatsu-beep/MLAD/pull/25), все PR #1–#25 merged. PR #26 — Draft.  
-**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901) для указанного `main`.  
+**Проверенный baseline:** GitHub `main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28`.  
+**Последний слитый PR:** [#26](https://github.com/uzbatsu-beep/MLAD/pull/26), все PR #1–#26 merged; открытых PR при сверке нет.  
+**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776) на указанном `main`, оба job `frontend-build` / `rust-tests` успешны. [Windows security CI PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031); ручной Windows smoke не проводился.
 **Последний опубликованный Windows pre-release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); соответствующий [Windows workflow — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).  
 **Версия приложения в манифестах:** `0.5.0`; суффиксы `rc.9` применяются к release tag / Windows preview, а не означают релиз 1.0 или промышленную готовность.
 
@@ -34,6 +34,9 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 | Статические ссылки | Предположительные соседние M-register site links | Не доказывают фактическую передачу значения или порядок сканов | #20 |
 | OEM-справка/эталон | Документальная таблица пяти команд, 16-bit manual-derived reference vectors и edge cases | Изолированное Rust-ядро **не подключено** к реальному CIOPRG и Tauri IPC; стенд не проверен | #21 |
 | Сборка и правовая база | GNU GPL-3.0-only, `package-lock.json`, `Cargo.lock`, `npm ci`, Rust/TS CI, Windows releases | Юридический аудит third-party/SBOM и подписывание EXE не завершены | #11–#13, release workflow |
+| JSON persistence | Staged write/backup, bounded JSON reads/writes | Backup+target не атомарная транзакция; ручной Windows smoke отсутствует | #24 |
+| CSP и контроль путей | Production/dev CSP, symlink ancestor/traversal rejection | CSP runtime не подтверждён ручным smoke; не полная защита от гонок | #25 |
+| Guarded native/JSON reads | File identity/reparse checks, размеры 2/4/16 МиБ; JSON конфликт при внешнем изменении | Не исключены последние TOCTOU-окна, hardlinks, ACL, power loss | #26 |
 
 Разделы `PART 1/2` — метки структуры, **не** подтверждённая политика доступа к System/User. Весь native исходник доступен постранично; визуальное представление ограничено поддерживаемой семантикой и лимитами безопасного preview.
 
@@ -50,7 +53,7 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 2. **Семантика пяти команд:** документированы основные формулы и правила Carry/Zero/Error; MOV→byte при значении 256, Carry при SHL/SHR n=0/16, конфликты регистров, EN/скан и перенос правил между DX100/DX200/YRC1000 требуют независимых тестов.
 3. **Native CIO grammar:** неизвестные инструкции/секции сохраняются без потерь, но полный OEM-синтаксис, System/User ownership и безопасная сериализация **не подтверждены**.
 4. **IONAME:** парсер основан на наблюдаемой структуре 4-slot, а карта индексов на CIO-адреса и OEM-совместимый writer **не подтверждены**; комментарии хранятся локально и могут пропасть при очистке профиля.
-5. **Безопасность Tauri:** сетевой runtime HSES/FTP исключён из сборки; команды включения/загрузки отказывают. Остаются: review `csp: null`, filesystem symlink/race/TOCTOU, transactional backup, Windows smoke и защита профиля. PR #24 предлагает staging/rename и bounded JSON I/O, но **не** полное устранение гонок.
+5. **Безопасность Tauri:** HSES/FTP отключены; CSP добавлена PR #25, guarded reads и JSON lost-update checks добавлены PR #26. Остаются window `check→rename`, directory handle/ACL, hardlinks/reparse edge cases, общая атомарность backup+target и реальный пользовательский Windows/WebView2 smoke. Отдельный [Windows CI PR #26 успешен](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), но это не security-аудит.
 6. **Лицензирование:** GPL-3.0-only установлен; third-party notices/SBOM и происхождение всех материалов требуют отдельного аудита.
 7. **UX:** source paging реализован; не каждая нативная команда имеет диаграмму, долгосрочный portable sidecar для комментариев не завершён.
 
@@ -58,9 +61,9 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 
 | Веха | Прогресс на дату сверки |
 | --- | --- |
-| M0: PR-база и CI | Выполнено: #1–#21 merged, main CI SUCCESS |
+| M0: PR-база и CI | Выполнено: #1–#26 merged, main CI SUCCESS на SHA `2092db18` |
 | M1: приватные OEM golden fixtures | Частично: 5 исходников исследованы, нет полной модели controller/firmware/OEM outcome |
-| M2: hardening/воспроизводимость | Частично: PR #24–#25 merged (staging JSON, CSP, linked path checks); PR #26 Draft — guarded reads/conflict detection. Полный TOCTOU и Windows smoke остаются |
+| M2: hardening/воспроизводимость | Частично: PR #24–#26 merged (JSON staging, CSP, guarded reads/conflict checks); Windows CI успешен, но ручной Windows smoke, полная TOCTOU и backup transaction открыты |
 | M3: Native Workspace | Основной read-only workflow реализован (#15–#17) |
 | M4: навигация и диагностика | Реализована база; расширенные фильтры/cross-ref/performance остаются |
 | M5: Typed Syntax | Частично реализовано для 5 команд, другой синтаксис остаётся opaque |
@@ -95,11 +98,14 @@ MLAD (Motoman Ladder Analysis & Draft IDE) — **инженерный OFFLINE/BE
 Merged PR #24 реализовал единый модуль `draft_io.rs` для staged JSON write/backup, проверки ограничений размера 2 МиБ при чтении/записи и отказов при прямых symlink. Функция уже находится в `main`, но **не** выпущена отдельным Windows binary rc.9 и не закрывает M2. После merge надо отдельно проверить Windows и продолжить CSP/TOCTOU; нативные роботовые файлы и сетевое управление остаются вне области изменений. [Контракт и пределы](json_persistence_safety.md).
 
 
-## 9. PR #25 — CSP и проверки ссылок в пути (проектируемый, не в main)
+## 9. PR #25 — CSP и проверки путей (merged)
 
-Для Tauri предлагается строгая production CSP и отдельная devCsp для localhost/Vite. При чтении native данных и чтении/записи JSON выполняется предварительная проверка каждого родительского каталога на известные symlink. Это **defense-in-depth**, не истинный защитный `openat/no-follow` на дескрипторе и не гарантия от TOCTOU. Стендовая верификация и robot writer по-прежнему недоступны. [Контракт PR #25](csp_path_hardening.md).
+CSP настроена для production/dev WebView, входные пути проверяются на известные symlink/traversal. Результат включён в `main`, но **не** в опубликованный rc.9. Ручной WebView2 smoke и security penetration-test не проведены. [Контракт](csp_path_hardening.md).
 
+## 10. PR #26 — Guarded File Snapshots / JSON Conflict Guard (merged)
 
-## 10. PR #26 — File Handle Identity & JSON Conflict Guard (Draft)
+Native CIOPRG/IONAME и JSON открываются с проверкой identity/reparse и ограничением длины; при внешнем редактировании JSON используется fail-closed conflict detection. [Linux CI для main](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776) и [Windows MSVC/Tauri проверки PR #26](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031) успешны. **Не доказаны** абсолютная атомарность backup+target, отсутствие всех file races, power-loss durability или user smoke. [Threat review](guarded_io_review.md).
 
-Предлагается read-only проверка идентичности уже открытого файла для native и JSON, а также fail-closed при конкурентной записи в JSON. Оригинальные файлы роботов никогда не меняются. **Обнаруженная подмена** ≠ доказанная защита от любой TOCTOU гонки. [Описание ограничений](guarded_io_review.md).
+## 11. Управление следующими этапами
+
+[Исполнимый план PR #27+](implementation_plan.md) · [матрица доказательности/приёмки](verification_gates.md) · [реестр решений D1–D9](engineering_decisions.md). Без отдельного согласия владельца не сливать будущие PR, не публиковать новые релизы и не включать HSES/native writer/deployment.

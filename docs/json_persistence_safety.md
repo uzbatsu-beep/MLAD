@@ -22,7 +22,7 @@
 3. На Windows `rename` при занятом/защищённом целевом файле может вернуть ошибку; задача — сохранить старый файл и сообщить об отказе, а не обещать бесшовную замену на любом томе.
 4. Нет шифрования JSON и отдельных гарантированных прав на каталоги, профили или резервные копии. Пользователь отвечает за права доступа к своей папке. Без Windows smoke, моделирования отключения питания и проверки NTFS нельзя обещать crash-consistent durable commit.
 5. Содержание legacy проекта проходит существующую модель валидации и ограничения формата, не модель native CIO.
-6. PR #24 не менял CSP. PR #25 (Draft) предлагает CSP + предварительную проверку symlink-предков: [security review](csp_path_hardening.md). Это не обещает устранения TOCTOU и не включено в выпущенный rc.9.
+6. PR #24 не менял CSP, но последующие merged PR #25 и #26 добавили CSP/path checks и guarded JSON conflict detection: [CSP review](csp_path_hardening.md), [guarded I/O](guarded_io_review.md). Это не обещает устранения TOCTOU и не включено в выпущенный rc.9.
 
 ## Приёмка
 
@@ -34,6 +34,8 @@
 **Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
 
 
-## PR #26 (Draft): конкурентное редактирование
+## PR #26 (merged): конкурентное редактирование
 
 Перед финальным обновлением JSON сравнивается с snapshot старой версии; появление другого файла при первичном сохранении также вызывает отказ. Стадирование/backup из PR #24 сохраняется. **Не гарантируется** исключение races после последней проверки и транзакция backup+target. [Исследование](guarded_io_review.md).
+
+**Проверка актуального baseline:** [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Ручной Windows WebView2 smoke и проверка сбоя питания — NOT RUN. [Unified gates](verification_gates.md).

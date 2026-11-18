@@ -1,6 +1,6 @@
 # MLAD — дорожная карта v2: Native CIO Workspace → Engineering IDE → Verified Controller Integration
 
-**Актуализация:** 18.11.2026; `main` `6b8434376affcc02bf6d651cbf8e0edd797ca430`, PR **#1–#24 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44221610901), Windows [rc.9 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).  
+**Актуализация:** 18.11.2026; `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`, PR **#1–#26 merged**, [CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776); Windows [rc.9 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) и не содержит PR #24–#26. [План следующих PR](implementation_plan.md).
 **Статус:** базовый Native Workspace и read-only parser работают; пять команд типизированы и снабжены автономными OEM-reference векторами, но scan/dataflow, System/User, стенд и native writer **не подтверждены/заблокированы**. [Текущий статус](project_status.md).
 
 ## 1. Продуктовая цель и ограничения
@@ -33,13 +33,13 @@
 
 ## 3. Этапы разработки и зависимости
 
-Обозначения: **P0** — блокирующий фундамент; **P1** — ключевая функция офлайн IDE; **P2** — углубление проверок/чтения; **P3** — потенциальные операции записи только после отдельных допусков. В статусах ниже учитываются слитые PR #1–#21; `DONE` означает выполненный программный этап, **не** аппаратную верификацию.
+Обозначения: **P0** — блокирующий фундамент; **P1** — ключевая функция офлайн IDE; **P2** — углубление проверок/чтения; **P3** — потенциальные операции записи только после отдельных допусков. В статусах ниже учитываются слитые PR #1–#26; `DONE` означает выполненный программный этап, **не** аппаратную верификацию.
 
 | ID | Этап | Приоритет | Зависит от | Проверяемый результат | Статус |
 |---|---|---|---|---|---|
-| M0 | Baseline PR #1–#21 | DONE | — | Выполнены текущие CI, code/docs синхронизированы | DONE: PR #1–#21 в main; основной CI SUCCESS |
+| M0 | Baseline PR #1–#26 | DONE | — | В main объединены #1–#26, основной CI успешен | DONE: main `2092db18`, docs sync — отдельный PR #27 |
 | M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
-| M2 | Безопасность и воспроизводимость | P0 | M0 | Сетевой runtime удалён, lockfiles/CI; PR #24 merged; PR #25 Draft CSP + parent-path checks | PARTIAL: есть staging JSON, в PR #25 — CSP и отказ от явных symlink; TOCTOU/directory handles/Windows smoke открыты |
+| M2 | Безопасность и воспроизводимость | P0 | M0 | HSES/FTP runtime удалён; lockfiles; #24 staged JSON, #25 CSP/path checks, #26 file identity/conflict guard | PARTIAL: Windows CI успешен; user smoke, TOCTOU/directory handles, ACL/backup transaction открыты |
 | M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
 | M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | PARTIAL: paging/search/diagnostics; расширенные cross-ref/UX открыты |
 | M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | PARTIAL: пять typed opcodes; иные команды unknown |
@@ -125,13 +125,13 @@
 | **C — Reliability-first** | M2 → M1 → M3/M4 | Меньше риска security/сборки перед расширением функций | Позднее появится заметный новый UX |
 | **D — Баланс (рекомендуется к обсуждению)** | Короткий M2 safety baseline + M3/M4; M1 параллельно; M5/M6 по оригиналам | Ранний полезный workspace без заявлений о полной грамматике; к parser этапу накапливаются fixtures | Требует дисциплины в статусах поддержки и едином source-span контракте |
 
-**Рекомендация для обсуждения:** D. Открывать native `CIOPRG.LST` в главном окне и делать поиск/связи, **пока** собираются файлы и фиксируются тесты; но не объединять это с необоснованным разрешением редактирования native файла.
+**Ранее обсуждавшаяся рекомендация (выбран и принят путь D):** открывать native `CIOPRG.LST` в главном окне и делать поиск/связи, **пока** собираются файлы и фиксируются тесты; но не объединять это с необоснованным разрешением редактирования native файла.
 
-## 5. Решения, которые нужно принять до кодового PR
+## 5. Утверждённые решения D1–D9 (исторически зафиксированные в roadmap)
 
-| ID | Решение | Варианты / предлагаемое значение | Влияние |
+| ID | Решение | Зафиксированное значение | Влияние |
 |---|---|---|---|
-| D1 | Главная цель ближайшего релиза | Просмотр native (A) / полнота parser (B) / безопасность (C) / гибрид (D) | Порядок PR |
+| D1 | Главная цель ближайшего релиза | **Гибридный путь D:** короткий security baseline → Native Workspace + навигация; M1 параллельно; parser/semantics по evidence | Порядок PR |
 | D2 | Работа с исходным `CIOPRG.LST` | **Только чтение, редактируемый sidecar отдельно** | Граница доверия |
 | D3 | Как размещать блоки в native workspace | **Компактный список + раскрытие**, выбор цепи в центре | Производительность/UX |
 | D4 | Как показывать unknown | **Текст source + span + unsupported**, без графической реконструкции | Честность анализа |
@@ -178,7 +178,7 @@
 - Справка по OEM в Native Workspace; никакой интеграции reference-ядра с реальным CIO, HSES/FTP, writer или scan engine.
 - Windows rc.9 опубликован, PR #21 слит; испытания на контроллере не проводились.
 
-## 8. Актуальный маршрут после PR #21 (18.11.2026)
+## 8. Исторический маршрут после PR #21 и фактические PR #24–#26 (18.11.2026)
 
 **Пока недоступны роботы:** документально сверить ревизии DX200, расширить negative/parser tests, разработать переносимый проверяемый sidecar для локальных комментариев, усилить cross-ref/diff и отдельно провести security review CSP/filesystem/JSON, third-party notices/SBOM. **Не** включать native writer или сеть.
 
@@ -200,13 +200,19 @@
 
 - CSP production: запрет удалённых scripts/connect, `unsafe-eval`, объектов, iframes, worker; разрешён только локальный `'self'` и `ipc: http://ipc.localhost`. `style-src 'unsafe-inline'` временно необходим существующему React/inline CSS. Vite dev CSP отдельно ограничен localhost:5173 + WebSocket для HMR.
 - Файловые операции: отклонение явно обнаруженных symlink в родительских каталогах, `..` и direct symlink у native CIOPRG/IONAME. JSON read/write продолжают staging из PR #24, но проверяют всех текущих предков.
-- Rust-тесты: обычные вложенные пути, symlink-parent, symlink-native, traversal, побайтовая сохранность исходника; Node security tests валидируют CSP/код. Windows MSVC и сборка Tauri требуют отдельного успешного CI.
+- Rust-тесты: обычные вложенные пути, symlink-parent, symlink-native, traversal, побайтовая сохранность исходника; Node security tests валидируют CSP/код. Windows MSVC и сборка Tauri проверены отдельным успешным CI для PR #25; пользовательский smoke остаётся.
 - **Не заявлять полноту M2:** путь может быть заменён между проверкой и open/rename; недоверенные Windows junction/reparse points и hardlinks, concurrent writers, permission ACL и CSP runtime smoke проверяются отдельно. Без аппаратного интерфейса.
 
 
-### PR #26 — Guarded File Snapshots and Conflict Detection (Draft)
+### PR #26 — Guarded File Snapshots and Conflict Detection (merged, 18.11.2026)
 
 - Дескрипторные чтения CIOPRG/IONAME/JSON с 2/4/16 МиБ пределами, `symlink_metadata → File::metadata` сравнение ID (Unix dev/inode, Windows volume/index), проверка ID после чтения. Reparse point detection включая Windows junction.
 - JSON staged/backup из PR #24 сохраняется; перед финальным `rename` байты ещё раз сопоставляются с исходными; при конфликте — отказ без перезаписи изменённого JSON. Новое создание тоже запрещает silent overwrite при появлении файла во время staging.
 - Синтетические Rust-тесты: подмена между check/open, внешняя запись между backup/commit, конкурирующее создание, чтение/отказ linked parent, стабильные тесты оригинальных байтов.
 - **Остаётся:** race между последней сверкой и финальным rename, небезопасные изменения каталогов/ACL, Windows junction, hardlinks, interprocess serialization и atomic backup transaction. Ручной Windows smoke после CI.
+
+## 9. Актуальный рабочий backlog после PR #26
+
+**Зафиксированный порядок:** документация PR #27 → Windows runtime/negative checks (предложение #28) → targeted filesystem hardening (#29) → synthetic parser corpus (#30) → Native navigation/diagnostics (#31) → portable sidecar (#32) → evidence-based typed analysis (#33) → unified offline IDE (#34) → кандидат `0.6.x` (#35). Номера #28–#35 предварительные; этапы создаются по одному PR, после согласования области работ.
+
+Подробные зависимости, проверяемые результаты и ограничения — [implementation_plan.md](implementation_plan.md). Независимые тестовые gates — [verification_gates.md](verification_gates.md). Принятые решения D1–D9 — [engineering_decisions.md](engineering_decisions.md). **M11–M13 остаются BLOCKED** независимо от завершения этих PR.

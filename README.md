@@ -1,6 +1,6 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Сверка 18.11.2026:** инженерный OFFLINE/BENCH-прототип; актуальный проверенный baseline — `main` (`6b8434376affcc02bf6d651cbf8e0edd797ca430`), **PR #1–#24 merged**. PR #25 — отдельный Draft, **не в `main`**. [Актуальная матрица возможностей и ограничений](docs/project_status.md).
+**Сверка 18.11.2026:** проверенный `main` (`2092db1825880d251c87efcb7c331d78cb5e4d28`), **PR #1–#26 merged**; [CI на main — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Последняя опубликованная Windows-сборка — `rc.9` и **не** включает изменения PR #24–#26. [Актуальная матрица](docs/project_status.md).
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -23,7 +23,7 @@
 
 **Сохранение JSON:** PR #24 слит в `main`; используются staged file/rename и `.bak`, отдельные Windows MSVC tests прошли, но ручной Windows smoke пока не проводился. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
 
-**Усиление защиты (PR #25 merged; PR #26 Draft):** в рабочей ветке добавлена CSP (блокировка внешних загрузок/JS eval, локальный Tauri IPC) и предварительное отклонение символических ссылок в пути к файлам. [CSP и остающиеся риски](docs/csp_path_hardening.md). Тесты CI и Windows smoke являются отдельными условиями приёмки.
+**Усиление защиты (PR #25 и #26 merged):** CSP ограничивает внешние загрузки/JS eval, а файловые проверки выявляют часть symlink/reparse-подмен и конфликтов изменения JSON. [CSP](docs/csp_path_hardening.md) · [guarded reads и остаточные гонки](docs/guarded_io_review.md). [Windows MSVC/Tauri CI для PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), **ручной Windows smoke не подтверждён**; полная защита от TOCTOU не заявляется.
 
 **Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 
@@ -63,7 +63,8 @@ GitHub Actions — [MLAD validation](.github/workflows/validation.yml). Windows 
 
 ## Roadmap, доказательства и ограничения
 
-- [Текущий статус](docs/project_status.md), [дорожная карта](docs/roadmap.md), [архитектура](docs/architecture.md).
+- [Текущий статус](docs/project_status.md), [дорожная карта](docs/roadmap.md), [план следующих PR](docs/implementation_plan.md), [архитектура](docs/architecture.md).
+- [Критерии проверок и выпуска](docs/verification_gates.md), [реестр решений D1–D9](docs/engineering_decisions.md).
 - [Синтаксис native](docs/cioprg_lst_spec.md), [типизированные команды](docs/typed_opcode_grammar.md), [пять OEM команд](docs/oem_5_opcode_analysis.md), [матрица семантической верификации](docs/semantic_verification_matrix.md).
 - [Корпус оригинальных файлов](docs/controller_fixture_intake.md), [программа стендовых испытаний](docs/advanced_hardware_test_matrix.md).
 - [Каталог всех Markdown](docs/README.md), [процесс PR и выпусков](docs/development_workflow.md).
@@ -85,6 +86,6 @@ GitHub Actions — [MLAD validation](.github/workflows/validation.yml). Windows 
 MLAD — независимый проект, **не разработан и не одобрен Yaskawa**.
 
 
-### PR #26 — устойчивость чтения и защита от конкурирующего сохранения (Draft)
+### PR #26 — устойчивость чтения и защита от конкурирующего сохранения (merged)
 
 Новые чтения `CIOPRG.LST`, `IONAME.DAT` и JSON используют один дескриптор и сверяют идентичность файла до/после открытия и после чтения. Прямая reparse-ссылка в Windows отклоняется. Для JSON перед заменой проверяется, что исходное содержимое не изменилось с момента подготовки. **Полный TOCTOU, межпроцессная блокировка и атомарность пары backup+target остаются открытыми.** [Модель угроз и тесты](docs/guarded_io_review.md).
