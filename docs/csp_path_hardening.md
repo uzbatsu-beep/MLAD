@@ -51,3 +51,7 @@
 **Решение:** PR #25 устраняет `csp:null` и снижает класс рисков symlink-ancestor, но **M2 остаётся PARTIAL**, а robot writer и HSES/FTP запрещены.
 
 **Примечание к истории:** первая реализация — PR #25, в PR #26 добавлен guarded read и Windows reparse check. Это **не** снимает открытые file races и manual WebView2 validation. [Фактический статус](project_status.md) · [единые gates](verification_gates.md).
+
+## Текущее дополнение после PR #28–#29
+
+В `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) Windows reparse/junction tests, hardlink rejection, staged-file SHA-256, File ID snapshot and Windows ADS/UNC/device deny реализованы и [Windows CI PASS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Этот раздел **не переписывает исторический объём PR #25**: final check→rename, parent directory races, ACL, crash durability и ручной WebView2 CSP/IPC acceptance всё ещё открыты. [Обновлённый threat review](filesystem_security_pr29.md).
