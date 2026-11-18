@@ -148,7 +148,7 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 - До сих пор нет подтверждённого **полного** нативного файла, всех разделителей и System/User ownership для каждого firmware/application. `PART` является только меткой анализа, не доказательством возможности правки System Ladder.
 - `src-tauri/src/compiler/parser.rs` — **legacy parser** для старой JSON-модели. Он не должен заменять `lossless.rs` и не должен использоваться для нового native импорта.
-- `src-tauri/src/network/mod.rs` сохраняет неподтверждённые исторические заготовки HSES/FTP. Их вызов через интерфейс сейчас заблокирован Tauri-командами, но модуль требует будущего изолирования на уровне исходного кода. См. [HSES](hse_protocol.md).
+- В PR #13 файл `src-tauri/src/network/mod.rs` **удалён** и неподтверждённый сетевой runtime не подключён к Tauri; HSES/FTP/deploy остаются deny-only. В `src-tauri/Cargo.toml` всё ещё есть зависимость `suppaftp` для отдельного dependency review, но она **не** является доказательством наличия доступного robot upload. См. [HSES](hse_protocol.md), [Security](../SECURITY.md).
 - По выбору DX100/DX200/YRC1000 **в новых вкладках UI профиль уже доступен**, однако это не привязка к конкретной firmware/опциям/топологии роботизированной ячейки. Старый JSON-интерфейс и его совместимый валидатор не предназначены для аппаратной проверки.
 - Комбинированная семантика stateful инструкций, порядок scan, M-регистры, полная валидация файлов и OEM acceptance остаются непроверенными на реальных контроллерах.
 - Закрытие пробелов — [приёмка оригиналов](controller_fixture_intake.md) и [roadmap](roadmap.md), а не расширение неподтверждённых шаблонов.
@@ -162,3 +162,7 @@ The lossless parser now distinguishes syntactically valid \`END\` from subsequen
 ## PR #19 — типизированные кандидаты MOV/ADD/SUB/SHL/SHR
 
 Добавлен слой `TypedCandidate` отдельно от исполняемого `Instruction` и `UnsupportedInstruction`. Проверяются только лексические роли операндов и ограничения из документированных таблиц DX200/YRC1000 (не транслируются в полную семантику). Флаги, запись регистров, сканирование, реле и типы значения остаются неподтверждёнными. Для DX100 подтверждения форм данного этапа нет. [Таблица форм/источников/ограничений](typed_opcode_grammar.md).
+
+## Следующий этап проверки native grammar (после PR #29)
+
+[Roadmap v3](roadmap.md) и [предлагаемый parser corpus PR #31](implementation_plan.md) требуют синтетических edge cases для `//$M`, `PART/END`, пост-END данных, unknown/opaque и точных spans. Приватные реальные источники допускаются только по [fixture intake](controller_fixture_intake.md) и не публикуются. Никакая из этих работ не разрешает native writer.
