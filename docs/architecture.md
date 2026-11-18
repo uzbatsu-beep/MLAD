@@ -46,7 +46,7 @@ React / TypeScript / Tauri WebView
 | Локальные TMR/CNT/GSTR test steps | Детерминированные **ручные** шаги | Не реальный scan/IO |
 | HSES / FTP | Deny-only Tauri IPC | **OFFLINE / запрещено** |
 
-Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. Действующие проверки файлов не заменяют полноценный sandbox: **CSP сейчас `null`**; filesystem races/symlinks/TOCTOU, hardlinks, ограничения каталогов и атомарность JSON требуют независимого audit.
+Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. Действующие проверки файлов не заменяют полноценный sandbox: **CSP сейчас `null`**; PR #24 предлагает stage/rename JSON и backups, но filesystem races/symlinks/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего audit.
 
 ## 3. Три уровня интерпретации
 
@@ -65,7 +65,7 @@ Backend не предоставляет рабочей команды сохра
 
 ## 5. Открытые security/engineering долги
 
-1. CSP, filesystem symlink/TOCTOU и атомарное JSON сохранение.
+1. CSP и filesystem symlink/TOCTOU; PR #24 предлагает stage/rename JSON, но не полноценную транзакцию backup+target и не locked file handles.
 2. Реальные golden fixtures с provenance по DX100/DX200/YRC1000 и firmware.
 3. Полная native grammar, byte/word aliasing, System/User ownership.
 4. Взаимодействие флагов и условий EN при полном скане; крайние MOV byte=256, SHL/SHR n=0/16.
@@ -73,3 +73,8 @@ Backend не предоставляет рабочей команды сохра
 6. Third-party SBOM/notices, подпись Windows EXE и пользовательский smoke test.
 
 Открытые темы — в [roadmap](roadmap.md); OEM испытания — в [матрице](semantic_verification_matrix.md). Прохождение Rust/TypeScript/Windows CI само по себе не закрывает эти риски.
+
+
+## 6. PR #24 — offline JSON persistence (Draft, без слияния)
+
+Три IPC-метода записи JSON используют один Rust `draft_io::write_atomic` для временного файла с уникальным именем, `sync_all` и замены файла в той же папке. Читатели Graph/Advanced/legacy JSON ограничены 2 МиБ и отвергают прямые symlink. Резервная копия `*.bak` формируется отдельно и **не атомарна одновременно** с целевым JSON. Это **не** capability grant для записи CIOPRG.LST или IONAME.DAT, no FTP/HSES. См. [модель безопасности записи](json_persistence_safety.md).

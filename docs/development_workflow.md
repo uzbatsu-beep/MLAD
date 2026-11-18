@@ -69,3 +69,8 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 - Источники vendor: фиксировать семейство и точную ревизию руководства, не выводить из примера полную грамматику и права записи.
 
 См. [CONTRIBUTING.md](../CONTRIBUTING.md) и [контроллерные фикстуры](controller_fixture_intake.md).
+
+
+## 6. Проверка безопасного сохранения JSON (PR #24, Draft)
+
+Новый staged writer тестируется Rust-модулем `draft_io.rs`, а `test:security` дополнительно запрещает прямую запись JSON из Tauri handlers. Для приёмки нужны: новый/существующий черновик, предыдущая `*.bak`, oversized input, прямая symlink, ошибка создания/замены и проверка неизменности оригинальных `CIOPRG.LST`/`IONAME.DAT`. Rust CI на Linux **не доказывает** идентичное поведение замены на Windows; до выпуска нужен Windows smoke с закрытым WebView2 и открытым JSON-файлом. Действующие угрозы CSP, parent symlink/races и backup transaction остались за рамками этого PR.

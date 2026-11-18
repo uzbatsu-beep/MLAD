@@ -39,7 +39,7 @@
 |---|---|---|---|---|---|
 | M0 | Baseline PR #1–#21 | DONE | — | Выполнены текущие CI, code/docs синхронизированы | DONE: PR #1–#21 в main; основной CI SUCCESS |
 | M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
-| M2 | Безопасность и воспроизводимость | P0 | M0 | Изоляция HSES/FTP, filesystem hardening, CI safety gates; lockfile уже в main | PARTIAL: сеть удалена, npm/Cargo lock; CSP/TOCTOU/JSON остаются |
+| M2 | Безопасность и воспроизводимость | P0 | M0 | Сетевой runtime удалён, lockfiles и CI; PR #24 предлагает stage+rename+backup для JSON | PARTIAL: в PR #24 — атомарная замена draft JSON; CSP/TOCTOU/parent symlinks/transaction остаются |
 | M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
 | M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | PARTIAL: paging/search/diagnostics; расширенные cross-ref/UX открыты |
 | M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | PARTIAL: пять typed opcodes; иные команды unknown |
@@ -185,3 +185,12 @@
 **При появлении стенда:** пройти [матрицу испытаний](advanced_hardware_test_matrix.md), включая MOV byte=256, SHL/SHR n=0/16, EN/scan и флаги #51400/#51401/#51402 по каждому поколению. Только воспроизводимые OEM измерения повышают уровень confidence реальной семантики.
 
 **Организация:** каждый будущий этап в отдельном Draft PR, с тестами и согласованием владельца до слияния. Разделы с вариантами приоритетов выше сохранены как история обсуждения, а не текущая задача по первому запуску UI.
+
+
+### PR #24 — Atomic Offline JSON Draft Persistence (предложен; Draft)
+
+- Сохраняются только отдельные `*.graph.json`, `*.advanced.json`, legacy `*.json`; оригиналы `CIOPRG.LST` и `IONAME.DAT` всегда read-only.
+- Перед записью ограничение размера 2 МиБ; запись во вновь создаваемый файл в той же директории, `sync_all`, переименование/замена; предыдущая версия при перезаписи переносится в `*.bak` через отдельный staging/rename.
+- Защита от **прямых** symlink у JSON и backup; Rust-тесты на первоначальную запись, последовательные сохранения, отказ, oversized и symlink. Ошибка backup/rename не должна обрезать старый JSON.
+- **Остаётся M2 PARTIAL:** backup и target не образуют единую транзакцию; Windows replacement зависит от правил файловой системы/ACL, нет межпроцессной блокировки, не устранены гонки parent path, hardlinks и TOCTOU; CSP `null` без изменений. Следующий security PR должен рассматривать доступ по file handle, directory trust/locks и CSP отдельно.
+- Влияние на release: Windows binary `rc.9` не изменялся; нужен отдельный Windows acceptance smoke перед объявлением устойчивости поведения на Windows.

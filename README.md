@@ -21,6 +21,8 @@
 | JSON Graph Draft | SVG, AND/OR/NO/NC/OUT, Undo/Redo, двойной щелчок/F2 по адресам и офлайн TRUE/FALSE/UNKNOWN |
 | Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
 
+**Сохранение JSON (PR #24 в разработке, не в `main`):** предлагается запись через временный файл в той же папке, замена и backup; корректность Windows пока не проверена. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
+
 **Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 
 ## Быстрый старт разработчика
