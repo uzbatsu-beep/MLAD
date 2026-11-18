@@ -11,7 +11,7 @@ PR #25 проверял symlink компонентов пути до файло�
 Отдельный модуль `src-tauri/src/guarded_read.rs`:
 
 - Сначала отвергает обнаруженные родительские symlink/reparse и прямую ссылку.
-- Считывает метаданные, открывает файл один раз и сопоставляет идентичность из открытого дескриптора с проверенным путём. Unix — `dev+ino`; Windows — WinAPI `GetFileInformationByHandle` (volume serial + 64-bit file index) для нескольких `HANDLE`; без nightly Rust. Если WinAPI не возвращает идентификаторы, операция завершается отказом. В PR используется Win32 `FILE_FLAG_OPEN_REPARSE_POINT` и проверка флагов reparse на открытых handles.
+- Считывает метаданные и использует **один основной дескриптор для чтения**. На Windows дополнительно открывает контрольные дескрипторы с `FILE_FLAG_OPEN_REPARSE_POINT` до и после чтения; сравнивает их WinAPI File ID. Это уменьшает окно подмены, но не гарантирует полностью атомарный путь. Unix — `dev+ino`; Windows — WinAPI `GetFileInformationByHandle` (volume serial + 64-bit file index) для нескольких `HANDLE`; без nightly Rust. Если WinAPI не возвращает идентификаторы, операция завершается отказом. В PR используется Win32 `FILE_FLAG_OPEN_REPARSE_POINT` и проверка флагов reparse на открытых handles.
 - Ограничивает чтение ещё до выделения всего содержимого: JSON — 2 МиБ, `IONAME.DAT` — 4 МиБ, `CIOPRG.LST` — 16 МиБ.
 - После чтения повторно сверяет pathname и метаданные открытого дескриптора, а также длину и время последнего изменения.
 - Отклоняет все Windows `FILE_ATTRIBUTE_REPARSE_POINT`, включая junction (а не только `is_symlink()`).

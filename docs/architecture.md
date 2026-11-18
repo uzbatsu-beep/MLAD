@@ -87,4 +87,4 @@ Backend не предоставляет рабочей команды сохра
 
 ## 8. PR #26 — bounded identity-checked read and JSON conflict guard (Draft)
 
-`guarded_read::read_regular` читает файл через единственный дескриптор, предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.md).
+`guarded_read::read_regular` использует единый дескриптор для содержимого (на Windows — дополнительные контрольные дескрипторы), предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.md).
