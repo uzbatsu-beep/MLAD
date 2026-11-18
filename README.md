@@ -1,6 +1,6 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Сверка 18.11.2026:** проверенный `main` (`2092db1825880d251c87efcb7c331d78cb5e4d28`), **PR #1–#26 merged**; [CI на main — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Последняя опубликованная Windows-сборка — `rc.9` и **не** включает изменения PR #24–#26. [Актуальная матрица](docs/project_status.md).
+**Сверка 18.11.2026:** `main` `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, **PR #1–#27 merged**, [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). PR #28 — отдельный Draft с Windows acceptance/security regression, **не включён в `main`**. Последний опубликованный Windows pre-release — `rc.9` (без PR #24–#28). [Статус](docs/project_status.md).
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -52,7 +52,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-GitHub Actions — [MLAD validation](.github/workflows/validation.yml). Windows релиз проверяется отдельным [RC9 workflow](.github/workflows/windows-oem-reference-rc9.yml); прохождение CI **не** означает hardware acceptance, проверки пользователя в Windows или подтверждённой OEM-эквивалентности.
+GitHub Actions — [MLAD validation](.github/workflows/validation.yml). PR #28 предлагает [постоянный Windows regression workflow](.github/workflows/windows-security-acceptance.yml) и [ручной протокол Windows](docs/windows_acceptance_pr28.md), пока только в Draft. Windows rc.9 проверен [отдельным историческим workflow](.github/workflows/windows-oem-reference-rc9.yml). CI **не** означает проверку GUI на пользовательском Windows или OEM-эквивалентность.
 
 ## Начать работу
 

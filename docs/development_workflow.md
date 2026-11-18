@@ -1,6 +1,6 @@
 # Процесс разработки, тестирования и релизов MLAD
 
-**Актуализация:** 18.11.2026, `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`, PR #1–#26 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031); опубликованный [rc.9 Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155) собран до PR #24–#26. [Текущий статус](project_status.md).
+**Актуализация:** 18.11.2026; `main` `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, PR #1–#27 merged, [validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310); PR #28 в отдельном Draft. Windows rc.9 — исторический релиз до PR #24–#28. [Статус](project_status.md).
 
 ## 1. Git и изменение функций
 
@@ -91,3 +91,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## 10. Защита ветки main — организационный gate
 
 На момент проверки 18.11.2026 GitHub сообщает `main.protected=false`. Следовательно, правило «не сливать без согласования» пока является **процессным**, а не гарантированным репозиторным барьером. Владелец может отдельно настроить GitHub Ruleset / Branch Protection: обязательные `frontend-build` и `rust-tests`, актуальность проверок на head SHA, запрет прямых push в `main` для обычной разработки, требование review и отключение обхода/auto-merge, насколько допускает тариф и роли. **Настройки не изменены данным PR.** При включении правил сверить точные имена checks и исключить ложное блокирование служебных релизных workflow.
+
+## 11. PR #28 — повторяемые Windows regression tests и UserSmoke
+
+[Новый workflow](../.github/workflows/windows-security-acceptance.yml) выполняет автоматические Node/Rust Windows тесты, Tauri `--no-bundle` production сборку и выдаёт **временный unsigned non-release** artifact с SHA-256 и evidence. [PowerShell harness](../scripts/windows-acceptance.ps1) готовит/проверяет только синтетические `CIOPRG.LST`/`IONAME.DAT`. Отдельный [Windows manual acceptance protocol](windows_acceptance_pr28.md) фиксирует WIN-01…WIN-12; запуск GitHub Actions не заменяет ручной тест WebView2. Новые Windows negative tests не расширяют разрешения Tauri и не включают native write/HSES/FTP. [Verification gates](verification_gates.md).

@@ -1,9 +1,9 @@
 # MLAD — актуальное состояние проекта
 
 **Дата сверки:** 18 ноября 2026 года.  
-**Проверенный baseline:** GitHub `main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28`.  
-**Последний слитый PR:** [#26](https://github.com/uzbatsu-beep/MLAD/pull/26), все PR #1–#26 merged; открытых PR при сверке нет.  
-**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776) на указанном `main`, оба job `frontend-build` / `rust-tests` успешны. [Windows security CI PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031); ручной Windows smoke не проводился.
+**Проверенный baseline:** GitHub `main` @ `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`.  
+**Последний слитый PR:** [#27](https://github.com/uzbatsu-beep/MLAD/pull/27); PR #1–#27 merged. PR #28 — Draft в отдельной ветке, **не в main**.
+**Основной CI:** [MLAD validation — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310) на указанном `main`. [Windows PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), но user WebView2 smoke **NOT RUN**.
 **Последний опубликованный Windows pre-release:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); соответствующий [Windows workflow — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).  
 **Версия приложения в манифестах:** `0.5.0`; суффиксы `rc.9` применяются к release tag / Windows preview, а не означают релиз 1.0 или промышленную готовность.
 
@@ -109,3 +109,7 @@ Native CIOPRG/IONAME и JSON открываются с проверкой identi
 ## 11. Управление следующими этапами
 
 [Исполнимый план PR #27+](implementation_plan.md) · [матрица доказательности/приёмки](verification_gates.md) · [реестр решений D1–D9](engineering_decisions.md). Без отдельного согласия владельца не сливать будущие PR, не публиковать новые релизы и не включать HSES/native writer/deployment.
+
+## 12. PR #28 — Windows Acceptance & Security Regression (Draft, не в main)
+
+Отдельно разрабатываются [Windows workflow](../.github/workflows/windows-security-acceptance.yml), NTFS exclusive-lock/junction Rust tests, синтетический SHA-256 harness и [протокол Windows UserSmoke](windows_acceptance_pr28.md). На данный момент **не считать их частью текущего main**, пока PR не слит. После выполнения GitHub Actions отдельно фиксировать WindowsCI PASS/FAIL, а WebView2 UserSmoke — только по ручному тесту. Native writer, HSES/FTP, live I/O и аппаратный upload по-прежнему заблокированы.

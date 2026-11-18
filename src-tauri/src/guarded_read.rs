@@ -196,6 +196,28 @@ mod tests {
     }
     #[cfg(windows)]
     #[test]
+    fn windows_junction_parent_rejects_native_read_and_preserves_bytes(){
+        use std::process::Command;
+        let root=dir();
+        let real=root.join("normal");
+        fs::create_dir(&real).unwrap();
+        let original=real.join("CIOPRG.LST");
+        let data=b"synthetic offline sample\r\nEND\r\n";
+        fs::write(&original,data).unwrap();
+        let junction=root.join("junction");
+        let output=Command::new("cmd").args(["/C","mklink","/J"])
+            .arg(&junction).arg(&real).output().unwrap();
+        assert!(output.status.success(),"mklink /J failed: {}",
+            String::from_utf8_lossy(&output.stderr));
+        assert!(read_regular(&junction.join("CIOPRG.LST"),4096).is_err());
+        assert_eq!(fs::read(&original).unwrap(),data);
+        assert!(read_regular(&original,4096).is_ok());
+        fs::remove_dir(&junction).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[test]
     fn windows_regular_file_has_identifiers_and_no_reparse_flag(){
         let root=dir();let path=root.join("test.graph.json");
         fs::write(&path,b"synthetic").unwrap();

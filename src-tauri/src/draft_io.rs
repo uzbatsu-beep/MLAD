@@ -340,6 +340,56 @@ mod tests {
         assert!(!root.join("new.advanced.json.bak").exists());
         fs::remove_dir_all(root).unwrap();
     }
+    #[cfg(windows)]
+    #[test]
+    fn windows_exclusive_lock_refuses_write_without_truncation_or_temp_leak(){
+        use std::os::windows::fs::OpenOptionsExt;
+        let root=folder();
+        let path=root.join("exclusive.graph.json");
+        let previous=b"complete unchanged synthetic JSON";
+        fs::write(&path,previous).unwrap();
+        // share_mode(0): deny any second open while this handle is held.
+        let lock=OpenOptions::new().read(true).write(true).share_mode(0)
+            .open(&path).unwrap();
+        let outcome=write_atomic(&path,b"new JSON");
+        drop(lock);
+        assert!(outcome.is_err(),"exclusive NTFS handle must reject replacement");
+        assert_eq!(fs::read(&path).unwrap(),previous);
+        assert!(!root.join("exclusive.graph.json.bak").exists());
+        assert_eq!(fs::read_dir(&root).unwrap().count(),1,
+            "failed attempt must not leave staging files");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_junction_parent_never_writes_into_target_directory(){
+        use std::process::Command;
+        let root=folder();
+        let real=root.join("real");
+        fs::create_dir(&real).unwrap();
+        let native=real.join("CIOPRG.LST");
+        let draft=real.join("protected.graph.json");
+        fs::write(&native,b"synthetic native source bytes").unwrap();
+        fs::write(&draft,b"old JSON").unwrap();
+        let alias=root.join("junction");
+        // Junction creation needs no privilege to create a directory symlink.
+        let result=Command::new("cmd").args(["/C","mklink","/J"])
+            .arg(&alias).arg(&real).output().unwrap();
+        assert!(result.status.success(),"mklink /J failed: {}",
+            String::from_utf8_lossy(&result.stderr));
+        let through_junction=alias.join("protected.graph.json");
+        assert!(verify_parent_directory(&through_junction).is_err());
+        assert!(read_bounded(&through_junction).is_err());
+        assert!(write_atomic(&through_junction,b"overwritten").is_err());
+        assert_eq!(fs::read(&draft).unwrap(),b"old JSON");
+        assert_eq!(fs::read(&native).unwrap(),b"synthetic native source bytes");
+        assert!(!real.join("protected.graph.json.bak").exists());
+        // Remove only the reparse directory, never recursively follow it.
+        fs::remove_dir(&alias).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn neither_native_extension_is_accepted_by_json_writer(){
         let dir=folder();
