@@ -24,12 +24,64 @@ fn same_identity(a:&Metadata,b:&Metadata)->bool {
 }
 #[cfg(windows)]
 fn same_identity(a:&Metadata,b:&Metadata)->bool {
-    use std::os::windows::fs::MetadataExt;
-    match (a.volume_serial_number(),a.file_index(),
-           b.volume_serial_number(),b.file_index()) {
-        (Some(av),Some(ai),Some(bv),Some(bi))=>av==bv && ai==bi,
-        _=>false,
+    // MetadataExt::file_index()/volume_serial_number() are still nightly-only.
+    // These metadata comparisons are secondary checks, not a file identity.
+    a.len()==b.len() && a.modified().ok()==b.modified().ok()
+}
+
+#[cfg(windows)]
+fn win_open_no_reparse(path:&Path)->Result<std::fs::File,String> {
+    use std::os::windows::fs::OpenOptionsExt;
+    // A direct reparse point must be opened AS the point, not followed.
+    const FILE_FLAG_OPEN_REPARSE_POINT:u32=0x0020_0000;
+    let file=OpenOptions::new().read(true)
+        .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT).open(path)
+        .map_err(|e|format!("Ошибка Windows OPEN_REPARSE_POINT: {e}"))?;
+    let metadata=file.metadata().map_err(|e|format!("Ошибка Windows metadata: {e}"))?;
+    if is_indirection(&metadata)||!metadata.is_file() {
+        return Err("Windows reparse point или нестандартный файл запрещён".into());
     }
+    Ok(file)
+}
+#[cfg(windows)]
+fn win_file_id(file:&std::fs::File)->Result<(u32,u64),String>{
+    use std::ffi::c_void;
+    use std::mem::MaybeUninit;
+    use std::os::windows::io::AsRawHandle;
+    #[repr(C)]
+    struct WinFileTime { low:u32, high:u32 }
+    #[repr(C)]
+    struct WinFileInfo {
+        attributes:u32,
+        created:WinFileTime,
+        last_access:WinFileTime,
+        last_write:WinFileTime,
+        volume:u32,
+        size_high:u32,
+        size_low:u32,
+        links:u32,
+        index_high:u32,
+        index_low:u32,
+    }
+    #[link(name="kernel32")]
+    unsafe extern "system" {
+        fn GetFileInformationByHandle(
+            file:*mut c_void, info:*mut WinFileInfo
+        )->i32;
+    }
+    let mut result=MaybeUninit::<WinFileInfo>::uninit();
+    // SAFETY: The opened std::fs::File owns a valid Windows HANDLE.
+    // WinFileInfo layout exactly mirrors BY_HANDLE_FILE_INFORMATION (52 bytes).
+    // The OS writes all fields iff the call returns nonzero.
+    let ok=unsafe {
+        GetFileInformationByHandle(file.as_raw_handle(),result.as_mut_ptr())
+    };
+    if ok==0 {
+        return Err(format!("Windows File ID недоступен: {}",
+            std::io::Error::last_os_error()));
+    }
+    let info=unsafe{result.assume_init()};
+    Ok((info.volume,(u64::from(info.index_high)<<32)|u64::from(info.index_low)))
 }
 #[cfg(not(any(windows,unix)))]
 fn same_identity(_a:&Metadata,_b:&Metadata)->bool {false}
@@ -52,6 +104,11 @@ fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Ve
         return Err("Размер файла превышает разрешённый предел".into());
     }
     before_open();
+    #[cfg(windows)]
+    let before_win=win_open_no_reparse(path)?;
+    #[cfg(windows)]
+    let handle=win_open_no_reparse(path)?;
+    #[cfg(not(windows))]
     let handle=OpenOptions::new().read(true).open(path)
         .map_err(|e|format!("Ошибка открытия файла: {e}"))?;
     let opened=handle.metadata()
@@ -59,6 +116,10 @@ fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Ve
     if is_indirection(&opened)||!opened.is_file()||
        !same_identity(&before,&opened) {
         return Err("Файл изменился между проверкой и открытием".into());
+    }
+    #[cfg(windows)]
+    if win_file_id(&before_win)? != win_file_id(&handle)? {
+        return Err("Windows File ID изменился между двумя открытиями".into());
     }
     let mut bytes=Vec::new();
     (&handle).take((max+1) as u64).read_to_end(&mut bytes)
@@ -77,6 +138,12 @@ fn read_regular_inner(path:&Path,max:usize,before_open:impl FnOnce())->Result<Ve
        opened.len()!=after_handle.len()||
        opened.modified().ok()!=after_handle.modified().ok() {
         return Err("Файл заменён или изменён при чтении".into());
+    }
+    #[cfg(windows)] {
+        let after_win=win_open_no_reparse(path)?;
+        if win_file_id(&after_win)? != win_file_id(&handle)? {
+            return Err("Windows File ID изменился после чтения".into());
+        }
     }
     Ok(bytes)
 }
@@ -136,6 +203,8 @@ mod tests {
         let opened=fs::File::open(&path).unwrap().metadata().unwrap();
         assert!(same_identity(&before,&opened));
         assert!(!is_indirection(&before));
+        assert_eq!(win_file_id(&win_open_no_reparse(&path).unwrap()).unwrap(),
+                   win_file_id(&fs::File::open(&path).unwrap()).unwrap());
         assert_eq!(read_regular(&path,1024).unwrap(),b"synthetic");
         fs::remove_dir_all(root).unwrap();
     }
