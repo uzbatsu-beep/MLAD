@@ -11,7 +11,8 @@
 | Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
-| Безопасное сохранение JSON (PR #24, Draft) | [json_persistence_safety.md](json_persistence_safety.md) |
+| Безопасное сохранение JSON (PR #24 merged) | [json_persistence_safety.md](json_persistence_safety.md) |
+| CSP / родительские файловые пути (PR #25 Draft) | [csp_path_hardening.md](csp_path_hardening.md) |
 | Правила вкладов | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Сообщество и шаблоны Issues | [CONTRIBUTING.md](../CONTRIBUTING.md) / [Issue templates](../.github/ISSUE_TEMPLATE) |
 | Ответственное сообщение об уязвимостях | [SECURITY.md](../SECURITY.md) |

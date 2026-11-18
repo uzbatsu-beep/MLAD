@@ -1,6 +1,6 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Статус на 18.11.2026:** инженерный OFFLINE/BENCH-прототип; актуальная основная ветка — `main` (`39c5ead8d1b9ac63b49be607312dc8b3976549dd`), **PR #1–#21 merged**. [Актуальная матрица возможностей и ограничений](docs/project_status.md).
+**Сверка 18.11.2026:** инженерный OFFLINE/BENCH-прототип; актуальный проверенный baseline — `main` (`6b8434376affcc02bf6d651cbf8e0edd797ca430`), **PR #1–#24 merged**. PR #25 — отдельный Draft, **не в `main`**. [Актуальная матрица возможностей и ограничений](docs/project_status.md).
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -21,7 +21,9 @@
 | JSON Graph Draft | SVG, AND/OR/NO/NC/OUT, Undo/Redo, двойной щелчок/F2 по адресам и офлайн TRUE/FALSE/UNKNOWN |
 | Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
 
-**Сохранение JSON (PR #24 в разработке, не в `main`):** предлагается запись через временный файл в той же папке, замена и backup; корректность Windows пока не проверена. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
+**Сохранение JSON:** PR #24 слит в `main`; используются staged file/rename и `.bak`, отдельные Windows MSVC tests прошли, но ручной Windows smoke пока не проводился. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
+
+**Усиление защиты (PR #25, Draft):** в рабочей ветке добавлена CSP (блокировка внешних загрузок/JS eval, локальный Tauri IPC) и предварительное отклонение символических ссылок в пути к файлам. [CSP и остающиеся риски](docs/csp_path_hardening.md). Тесты CI и Windows smoke являются отдельными условиями приёмки.
 
 **Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 

@@ -1,6 +1,6 @@
 # MLAD — модель безопасности JSON сохранения (PR #24)
 
-**Дата:** 18.11.2026. **Статус:** кандидат к слиянию, не утверждённое исправление релиза Windows. Расширение M2, не изменение CIOPRG grammar.
+**Дата:** 18.11.2026. **Статус:** PR #24 merged в main 18.11.2026; Windows MSVC regression CI SUCCESS, но отдельный Windows binary с изменением ещё не опубликован. Расширение M2, не изменение CIOPRG grammar.
 
 ## Задача и причина
 
@@ -22,7 +22,7 @@
 3. На Windows `rename` при занятом/защищённом целевом файле может вернуть ошибку; задача — сохранить старый файл и сообщить об отказе, а не обещать бесшовную замену на любом томе.
 4. Нет шифрования JSON и отдельных гарантированных прав на каталоги, профили или резервные копии. Пользователь отвечает за права доступа к своей папке. Без Windows smoke, моделирования отключения питания и проверки NTFS нельзя обещать crash-consistent durable commit.
 5. Содержание legacy проекта проходит существующую модель валидации и ограничения формата, не модель native CIO.
-6. Никакой CSP-hardening в этом PR: `src-tauri/tauri.conf.json` сохраняет `csp: null`.
+6. PR #24 не менял CSP. PR #25 (Draft) предлагает CSP + предварительную проверку symlink-предков: [security review](csp_path_hardening.md). Это не обещает устранения TOCTOU и не включено в выпущенный rc.9.
 
 ## Приёмка
 
@@ -31,4 +31,4 @@
 - Windows user acceptance проверит два сохранения каждого JSON, содержимое `*.bak`, занятый файл, no overwrites of robot files, и возможность повторного открытия.
 - Отдельный security PR для true file-handle/dir-handle и CSP, межпроцессной блокировки/версий, atomic backup protocol, permission audit.
 
-**Статус M2 остаётся PARTIAL** даже при успешном Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
+**Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.

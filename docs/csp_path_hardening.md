@@ -1,0 +1,51 @@
+# MLAD — CSP и проверки безопасности файловых путей (PR #25)
+
+**Контекст:** проект OFFLINE/BENCH. Дата: 18.11.2026. **Статус:** Draft, не слито в main, не включено в опубликованный Windows rc.9.
+
+## Первичные основания
+
+- [Tauri 2 CSP](https://v2.tauri.app/security/csp/) — Tauri при сборке добавляет hash/nonce источники для локальных ресурсов, если CSP явно задана; при `csp:null` эта защита отключена.
+- [Tauri SecurityConfig](https://v2.tauri.app/reference/config/#securityconfig) — production `csp` и отдельный `devCsp`, по умолчанию dev наследует production.
+- [Tauri Vite Guide](https://v2.tauri.app/start/frontend/vite/) — локальный Vite сервер и HMR через WebSocket.
+
+## 1. Предлагаемая production CSP
+
+В `src-tauri/tauri.conf.json` строго определены `default-src` и `script-src: 'self'`, без `'unsafe-inline'`/`'unsafe-eval'` для JavaScript. `connect-src` допускает только приложение и Tauri IPC (`ipc: http://ipc.localhost`). `object-src`, `frame-src`, `worker-src`, `base-uri`, `form-action` блокируются. `img-src 'self' data:` и `font-src 'self'` не разрешают CDN и внешние изображения.
+
+**Осознанное исключение:** `style-src 'self' 'unsafe-inline'` необходимо существующим inline-style React и стартовому HTML. Это **не** разрешение inline JavaScript и **не** идеальный CSP; следующий UX/security этап может перевести стили в классы и убрать это исключение.
+
+## 2. Development CSP
+
+Отдельный `devCsp` добавляет локальный `http://localhost:5173` и `ws://localhost:5173` только для Vite/HMR; remote HTTP/WSS отсутствуют. Production policy не включает localhost:5173, не допускает создание произвольных сетевых запросов и сохраняет локальный Tauri IPC.
+
+## 3. Файловые пути: в чём усиление
+
+Функция `draft_io::verify_parent_directory(path)` до файловых операций:
+- Проверяет синтаксические `..` и отвергает выход за явно указанный путь.
+- Проверяет каждый **существующий** компонент каталога через `symlink_metadata`, отвергая symlink и отсутствие обычного каталога.
+- Встраивается в JSON `read_bounded/validate_file`, стадирование файлов, final rename, а также read-only CIOPRG и IONAME inspect и Open chooser.
+- CIOPRG дополнительно отклоняет **прямой symlink**; ранее `metadata` могла следовать за ним. В исходных файлах робототехники запись не появляется.
+
+Синтетические тесты: вложенные обычные каталоги, `../`, linked parent, linked native file, SHA/byte identity до и после отказа, запрет direct JSON symlink, старые JSON backup/regression tests.
+
+## 4. Что НЕ подтверждено и не гарантировано
+
+1. **TOCTOU всё ещё возможна:** последовательность `symlink_metadata → open/rename` не атомарна. Злоумышленник с доступом к каталогам может подменить компонент после проверки. Надёжное решение требует ОС-специфичных directory handle, `openat2/openat + O_NOFOLLOW` (POSIX), Windows File ID/reparse policy и ACL. Это отдельный PR.
+2. Windows junction/reparse points не гарантированно классифицируются как symlink всеми APIs; тесты Windows без повышенных прав не покрывают все варианты.
+3. Hardlinks, concurrent writers, атомарная пара backup+target, файловые ACL, crash durability и защита локального профиля **не** решены этим PR.
+4. CSP не препятствует злоупотреблениям через разрешённые команды Tauri IPC: нужны отдельные permission reviews и runtime-проверка, включая реальный Windows/WebView2 и все панели.
+5. Не заявлять, что \`npm run build\` (обычный Vite) внедряет CSP в web preview: приложение должно быть собрано как Tauri, а CSP нужно проверять в **реальном Tauri WebView**.
+6. Некоторые нормальные пользовательские пути с символической ссылкой или `..` теперь намеренно отвергаются; для просмотра используйте прямую копию в обычном каталоге.
+
+## 5. Критерии приёмки
+
+| Проверка | Автоматическая/ручная | Статус |
+| --- | --- | --- |
+| Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | До результата PR CI |
+| Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | До результата PR CI |
+| Windows Tauri build with compiled CSP | GitHub Windows workflow, не публикует релиз | До результата |
+| В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | NOT RUN |
+| Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Rust regression | До результата |
+| File-handle/no-follow, symlink race testing, policy для Windows junction | Отдельная задача | OPEN |
+
+**Решение:** PR #25 устраняет `csp:null` и снижает класс рисков symlink-ancestor, но **M2 остаётся PARTIAL**, а robot writer и HSES/FTP запрещены.
