@@ -1,6 +1,6 @@
 # MLAD — каталог технической документации
 
-**Актуально для `main` от 18.11.2026:** PR #1–#21 merged; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
+**Актуально для `main` от 18.11.2026:** PR #1–#26 merged, основной CI на `2092db18` успешен; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
 
 ## С чего начать
 
@@ -9,11 +9,14 @@
 | Назначение и быстрый старт | [README репозитория](../README.md) |
 | Полная сверенная функциональность, риски, прогресс | [project_status.md](project_status.md) |
 | Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
+| Исполнимый backlog PR #27+ и зависимости | [implementation_plan.md](implementation_plan.md) |
+| Матрица CI, Windows smoke, проверок и релизов | [verification_gates.md](verification_gates.md) |
+| Согласованные инженерные решения D1–D9 | [engineering_decisions.md](engineering_decisions.md) |
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
 | Безопасное сохранение JSON (PR #24 merged) | [json_persistence_safety.md](json_persistence_safety.md) |
 | CSP / родительские файловые пути (PR #25 merged) | [csp_path_hardening.md](csp_path_hardening.md) |
-| Идентичность открытого файла и конфликты сохранения (PR #26 Draft) | [guarded_io_review.md](guarded_io_review.md) |
+| Идентичность открытого файла и конфликты сохранения (PR #26 merged) | [guarded_io_review.md](guarded_io_review.md) |
 | Правила вкладов | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Сообщество и шаблоны Issues | [CONTRIBUTING.md](../CONTRIBUTING.md) / [Issue templates](../.github/ISSUE_TEMPLATE) |
 | Ответственное сообщение об уязвимостях | [SECURITY.md](../SECURITY.md) |
