@@ -87,3 +87,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## 9. Единый checklist новых PR
 
 При планировании следовать [implementation_plan.md](implementation_plan.md), после каждой функциональной доработки заполнять [verification_gates.md](verification_gates.md), согласованные запреты сверять с [engineering_decisions.md](engineering_decisions.md). Результаты CI привязывать к **точному head SHA**. Для документационного PR Windows/hardware — `NOT RUN (docs-only)`; для функционального Windows PR требуются тесты на Tauri runner, а перед пользовательским релизом — ручной smoke. Ни один этап не снимает запрет на HSES/FTP, native writer или deployment.
+
+## 10. Защита ветки main — организационный gate
+
+На момент проверки 18.11.2026 GitHub сообщает `main.protected=false`. Следовательно, правило «не сливать без согласования» пока является **процессным**, а не гарантированным репозиторным барьером. Владелец может отдельно настроить GitHub Ruleset / Branch Protection: обязательные `frontend-build` и `rust-tests`, актуальность проверок на head SHA, запрет прямых push в `main` для обычной разработки, требование review и отключение обхода/auto-merge, насколько допускает тариф и роли. **Настройки не изменены данным PR.** При включении правил сверить точные имена checks и исключить ложное блокирование служебных релизных workflow.
