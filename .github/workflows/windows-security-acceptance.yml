@@ -90,6 +90,7 @@ jobs:
             "hardlink_alias_to_native_source_or_json_backup_is_rejected",
             "staged_file_modified_after_flush_cannot_be_committed",
             "different_regular_handles_have_different_file_identity",
+            "windows_ads_unc_and_device_paths_are_rejected_before_filesystem_io",
             "windows_regular_file_has_identifiers_and_no_reparse_flag"
           )) {
             if (-not $all.Contains($name)) { throw "Missing Windows-specific test: $name" }
