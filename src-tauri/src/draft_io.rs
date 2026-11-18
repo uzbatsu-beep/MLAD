@@ -8,11 +8,50 @@
 //! of parent directories. Symlink/TOCTOU review remains open for future work.
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 pub const MAX_JSON_BYTES: usize = 2 * 1024 * 1024;
 
+/// Best-effort fail-closed check of every pre-existing ancestor, not only
+/// the final filename. Avoids accidentally following symlinked parent
+/// directories during normal offline IO. Not an atomic no-follow guarantee:
+/// an attacker controlling the filesystem can race between check/open/rename.
+/// See docs/path_security_review.md for unresolved directory-handle work.
+pub fn verify_parent_directory(path: &Path) -> Result<(), String> {
+    let parent=path.parent().filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(||Path::new("."));
+    let absolute=if parent.is_absolute() {
+        parent.to_path_buf()
+    } else {
+        std::env::current_dir()
+            .map_err(|e|format!("Не удалось получить текущий каталог: {e}"))?.join(parent)
+    };
+    let mut cursor=PathBuf::new();
+    for component in absolute.components() {
+        match component {
+            Component::Prefix(_) | Component::RootDir =>
+                cursor.push(component.as_os_str()),
+            Component::CurDir => {},
+            Component::ParentDir =>
+                return Err("Пути с .. запрещены при работе с файлами MLAD".into()),
+            Component::Normal(name) => {
+                cursor.push(name);
+                let meta=fs::symlink_metadata(&cursor)
+                    .map_err(|e|format!("Не удалось проверить каталог {}: {e}",cursor.display()))?;
+                if meta.file_type().is_symlink() {
+                    return Err("Символическая ссылка в родительском каталоге запрещена".into());
+                }
+                if !meta.is_dir() {
+                    return Err("Родительский путь не является каталогом".into());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn validate_file(path: &Path, allow_missing: bool) -> Result<bool, String> {
+    verify_parent_directory(path)?;
     match fs::symlink_metadata(path) {
         Ok(metadata) => {
             if metadata.file_type().is_symlink() {
@@ -49,6 +88,7 @@ struct StagedFile(PathBuf);
 
 impl StagedFile {
     fn create_near(destination:&Path, content:&[u8])->Result<Self,String> {
+        verify_parent_directory(destination)?;
         let basename=destination.file_name()
             .and_then(|s|s.to_str()).ok_or("Недопустимое имя JSON")?;
         let scratch=destination.with_file_name(format!(
@@ -65,6 +105,7 @@ impl StagedFile {
     }
 
     fn replace(mut self, destination:&Path)->Result<(),String> {
+        verify_parent_directory(destination)?;
         fs::rename(&self.0,destination)
             .map_err(|e|format!("Не удалось заменить JSON файлом из той же папки: {e}"))?;
         self.0=PathBuf::new();
@@ -220,6 +261,47 @@ mod tests {
             assert_eq!(after,b"prior complete JSON");
         }
         fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn nested_regular_directories_allow_normal_json_roundtrip(){
+        let dir=folder();let nested=dir.join("safe").join("project");
+        fs::create_dir_all(&nested).unwrap();
+        let path=nested.join("draft.graph.json");
+        write_atomic(&path,b"first").unwrap();
+        write_atomic(&path,b"second").unwrap();
+        assert_eq!(read_bounded(&path).unwrap(),b"second");
+        assert_eq!(fs::read(nested.join("draft.graph.json.bak")).unwrap(),b"first");
+        fs::remove_dir_all(dir).unwrap();
+    }
+    #[test]
+    fn relative_parent_traversal_rejected_before_any_write(){
+        let dir=folder();let parent=dir.join("safe");
+        fs::create_dir(&parent).unwrap();
+        let tricky=parent.join("..").join("escaped.graph.json");
+        assert!(write_atomic(&tricky,b"data").is_err());
+        assert!(!dir.join("escaped.graph.json").exists());
+        assert!(read_bounded(&tricky).is_err());
+        fs::remove_dir_all(dir).unwrap();
+    }
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_parent_directory_cannot_redirect_json_into_native_folder(){
+        use std::os::unix::fs::symlink;
+        let root=folder();let real=root.join("native_files");
+        fs::create_dir(&real).unwrap();
+        let native=real.join("CIOPRG.LST");
+        fs::write(&native,b"original robot data").unwrap();
+        let draft=real.join("draft.graph.json");
+        fs::write(&draft,b"untouched").unwrap();
+        let alias=root.join("linked_dir");
+        symlink(&real,&alias).unwrap();
+        let forged=alias.join("draft.graph.json");
+        assert!(write_atomic(&forged,b"forged").is_err());
+        assert!(read_bounded(&forged).is_err());
+        assert_eq!(fs::read(&draft).unwrap(),b"untouched");
+        assert_eq!(fs::read(&native).unwrap(),b"original robot data");
+        assert!(!real.join("draft.graph.json.bak").exists());
+        fs::remove_dir_all(root).unwrap();
     }
     #[test]
     fn neither_native_extension_is_accepted_by_json_writer(){
