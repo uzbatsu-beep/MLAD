@@ -1,6 +1,6 @@
 # Участие в разработке MLAD
 
-> **Статус MLAD на 18.11.2026:** PR #1–#26 merged, Windows `rc.9` опубликован (до PR #24–#26), [основной CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](docs/project_status.md).
+> **Состояние 18.11.2026:** PR #1–#29 merged в `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) SUCCESS. Последний публичный Windows релиз — rc.9 (до #24–#29), а WebView2 UserSmoke/OEMBench — `NOT RUN`. [Project status](docs/project_status.md).
 
 Работа с исходниками MLAD требует разделять **описанные Yaskawa инструкции** и **непроверенные детали нативного файла/протокола**. Любой PR должен сохранять запрет записи в контроллер без независимого разрешённого workflow.
 
@@ -63,3 +63,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## Применимость тестов и статус PR
 
 Для каждого PR указывать фактически пройденные CI, SHA и `NOT RUN`, а не подразумевать выполнение Windows UserSmoke или OEM Bench. Статусы `ManualDerived`, `SyntheticTested`, `WindowsCI`, `OEMBenchVerified` и `Authorized` независимы; [единая матрица](docs/verification_gates.md). Принятые ограничения D1–D9: [engineering_decisions.md](docs/engineering_decisions.md). Изменение этих решений и публикация release требуют отдельного согласия владельца.
+
+## Разработка после PR #29
+
+[Roadmap v3](docs/roadmap.md) и [backlog PR #30–#37](docs/implementation_plan.md) разделяют синтетические parser fixtures, Native Workspace navigation, переносимые annotations/sidecar, typed grammar и static analysis. Каждый PR должен указывать физический source span, уровень доказательности, negative cases, не модифицировать `CIOPRG.LST`/`IONAME.DAT` и не добавлять network/native writer разрешений. При работе с JSON учитывать [File ID/hardlink/staging guards](docs/filesystem_security_pr29.md), но **не** считать TOCTOU/ACL/backup transaction закрытыми. Для Rust/Tauri изменений обязателен Windows workflow; для docs-only PR достаточно основного CI. Владелец отдельно утверждает merge и release.
