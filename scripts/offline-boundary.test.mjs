@@ -97,6 +97,8 @@ test("PR29 JSON persistence rejects hardlinks and same-content file swaps", () =
   assert.match(guarded,/meta\.nlink\(\) != 1/);
   assert.match(guarded,/links != 1/);
   assert.match(storage,/read_bounded_snapshot\(path\)/);
+  assert.match(storage,/fn reject_windows_special_path/);
+  assert.match(storage,/reject_windows_special_path\(path\)\?/);
   assert.match(storage,/crate::guarded_read::verify_single_link\(path\)/);
   assert.match(storage,/identity!=self\.identity/);
   assert.match(storage,/Sha256::digest/);
