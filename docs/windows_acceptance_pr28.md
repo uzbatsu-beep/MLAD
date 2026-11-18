@@ -97,6 +97,10 @@ pwsh -NoProfile -File .\windows-acceptance.ps1 -Mode Verify -FixtureRoot $fixtur
 
 [Verification gates](verification_gates.md) · [Implementation plan](implementation_plan.md) · [Threat review](guarded_io_review.md).
 
-## 7. Дополнение PR #29 (Draft)
+## 7. Дополнение после merged PR #29
 
-Новый [filesystem review](filesystem_security_pr29.md) предусматривает отдельные тесты same-content target swap, hardlink alias и staged-file corruption. Это будущая проверка Rust/Windows CI, но она не заменяет ни один WIN-01…WIN-12. Для Windows UserSmoke по-прежнему нужен ручной протокол на конкретном EXE и SHA.
+[Filesystem review PR #29](filesystem_security_pr29.md) уже включён в `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`; [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) проверил same-content target swap, hardlink alias, staged-file integrity и Windows ADS/UNC/device rejection. Это **автоматические** проверки, они не заменяют ни один WIN-01…WIN-12. Для Windows UserSmoke по-прежнему нужен ручной протокол на конкретном EXE и SHA.
+
+## 8. Приёмка Windows после PR #29
+
+Следующая тестовая сборка для UserSmoke должна ссылаться **на конкретный main/tag SHA и SHA256SUMS**, а не на rc.9. Для обновлённого filesystem кода дополнительно проверять корректный отказ при повреждённом JSON, NTFS reparse/junction, проблемах доступности каталога и альтернативных путях; **не** экспериментировать с файлами реального контроллера. Успешный Windows CI подтверждён, но отдельный ручной `UserSmoke` остаётся `NOT RUN` до заполненного протокола.
