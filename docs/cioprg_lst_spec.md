@@ -1,6 +1,6 @@
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](project_status.md).
+> **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
 
 **Status (18.11.2026, after merged PR #21):** документируемая **частичная** спецификация; реализованы read-only lossless/semantic/advanced source inspection. **NOT** a complete verified file grammar, native writer or certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
