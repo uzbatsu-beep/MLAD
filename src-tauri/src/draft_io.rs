@@ -13,12 +13,37 @@ use sha2::{Digest, Sha256};
 
 pub const MAX_JSON_BYTES: usize = 2 * 1024 * 1024;
 
+/// Windows paths with ADS, UNC, device namespaces or drive-relative syntax
+/// are outside the verified local-file contract. A colon in a normal
+/// component can select an alternate data stream while bypassing suffix
+/// rules. Reject *before* probing the filesystem.
+#[cfg(windows)]
+fn reject_windows_special_path(path:&Path)->Result<(),String> {
+    use std::path::Prefix;
+    for component in path.components() {
+        match component {
+            Component::Prefix(prefix)=>{
+                match prefix.kind() {
+                    Prefix::Disk(_) if path.has_root() => {},
+                    _ => return Err("UNC, device, verbatim и drive-relative пути не поддерживаются".into()),
+                }
+            }
+            Component::Normal(part) if part.to_string_lossy().contains(':') =>
+                return Err("Windows alternate data stream (ADS) в пути запрещён".into()),
+            _=>{}
+        }
+    }
+    Ok(())
+}
+
 /// Best-effort fail-closed check of every pre-existing ancestor, not only
 /// the final filename. Avoids accidentally following symlinked parent
 /// directories during normal offline IO. Not an atomic no-follow guarantee:
 /// an attacker controlling the filesystem can race between check/open/rename.
 /// See docs/path_security_review.md for unresolved directory-handle work.
 pub fn verify_parent_directory(path: &Path) -> Result<(), String> {
+    #[cfg(windows)]
+    reject_windows_special_path(path)?;
     let parent=path.parent().filter(|p| !p.as_os_str().is_empty())
         .unwrap_or_else(||Path::new("."));
     let absolute=if parent.is_absolute() {
@@ -421,6 +446,24 @@ mod tests {
         // Remove only the reparse directory, never recursively follow it.
         fs::remove_dir(&alias).unwrap();
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_ads_unc_and_device_paths_are_rejected_before_filesystem_io(){
+        let ads=Path::new(r"C:\mlad-fixture\CIOPRG.LST:hidden.graph.json");
+        assert!(verify_parent_directory(ads).unwrap_err().contains("ADS"));
+        let nested_ads=Path::new(r"C:\mlad-fixture:stream\draft.graph.json");
+        assert!(verify_parent_directory(nested_ads).unwrap_err().contains("ADS"));
+        for unsafe_path in [
+            r"\\server\share\draft.graph.json",
+            r"\\.\PhysicalDrive0",
+            r"\\?\C:\mlad-fixture\draft.graph.json",
+            r"C:drive-relative.graph.json",
+        ] {
+            assert!(verify_parent_directory(Path::new(unsafe_path)).is_err(),
+                "unsafe Windows path accepted: {unsafe_path}");
+        }
     }
 
     #[test]
