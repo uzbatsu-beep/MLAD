@@ -3,6 +3,7 @@
 
 pub mod compiler;
 mod draft_io;
+mod guarded_read;
 // Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
