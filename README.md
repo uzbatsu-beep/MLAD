@@ -1,6 +1,6 @@
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Сверка 18.11.2026:** проверенный `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). PR #29 — отдельный **Draft** (не в `main`). Последний опубликованный Windows pre-release — rc.9, **не** включает PR #24–#29. [Матрица](docs/project_status.md).
+**Сверка 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [roadmap v3](docs/roadmap.md), [полный статус](docs/project_status.md); ручной WebView2/OEM bench **NOT RUN**.
 
 **Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
@@ -21,11 +21,7 @@
 | JSON Graph Draft | SVG, AND/OR/NO/NC/OUT, Undo/Redo, двойной щелчок/F2 по адресам и офлайн TRUE/FALSE/UNKNOWN |
 | Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
 
-**Сохранение JSON:** PR #24 слит в `main`; используются staged file/rename и `.bak`, отдельные Windows MSVC tests прошли, но ручной Windows smoke пока не проводился. Нативные файлы роботов остаются read-only. [Детали и ограничения](docs/json_persistence_safety.md).
-
-**Новый PR #29 (Draft):** сравнение File ID/inode наряду с JSON-байтами, отказ для hardlink target/backup, проверка идентичности и SHA-256 staged JSON перед rename; сохраняются окна TOCTOU, ACL/permissions и отсутствие атомарной транзакции backup+target. [Подробный аудит](docs/filesystem_security_pr29.md).
-
-**Усиление защиты (PR #25 и #26 merged):** CSP ограничивает внешние загрузки/JS eval, а файловые проверки выявляют часть symlink/reparse-подмен и конфликтов изменения JSON. [CSP](docs/csp_path_hardening.md) · [guarded reads и остаточные гонки](docs/guarded_io_review.md). [Windows MSVC/Tauri CI для PR #26 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), **ручной Windows smoke не подтверждён**; полная защита от TOCTOU не заявляется.
+**Сохранение и защита JSON (PR #24–#29 merged):** staged write + `*.bak`, ограниченное чтение, конфликт по байтам **и** File ID, отказ для hardlinks, проверка временного файла по SHA-256, отказ Windows ADS/UNC/device, production CSP. Это **не** транзакция backup+target и **не** полное решение TOCTOU/ACL/crash recovery. [Security review](docs/filesystem_security_pr29.md), [verification gates](docs/verification_gates.md). Ручной Windows UserSmoke — **NOT RUN**.
 
 **Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
 
@@ -54,7 +50,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-GitHub Actions — [MLAD validation](.github/workflows/validation.yml). PR #28 предлагает [постоянный Windows regression workflow](.github/workflows/windows-security-acceptance.yml) и [ручной протокол Windows](docs/windows_acceptance_pr28.md), пока только в Draft. Windows rc.9 проверен [отдельным историческим workflow](.github/workflows/windows-oem-reference-rc9.yml). CI **не** означает проверку GUI на пользовательском Windows или OEM-эквивалентность.
+GitHub Actions: [MLAD validation](.github/workflows/validation.yml) и постоянно действующий [Windows Acceptance & Security Regression](.github/workflows/windows-security-acceptance.yml). [Ручной протокол WIN-01…WIN-12](docs/windows_acceptance_pr28.md) ещё не закрыт. Windows rc.9 проверен [историческим release workflow](.github/workflows/windows-oem-reference-rc9.yml); после PR #29 опубликован только временный unsigned non-release EXE. CI **не** означает прохождение пользовательского GUI/WebView2 smoke или OEM-эквивалентность.
 
 ## Начать работу
 
@@ -88,6 +84,6 @@ GitHub Actions — [MLAD validation](.github/workflows/validation.yml). PR #28 �
 MLAD — независимый проект, **не разработан и не одобрен Yaskawa**.
 
 
-### PR #26 — устойчивость чтения и защита от конкурирующего сохранения (merged)
+## Дальнейшая разработка
 
-Новые чтения `CIOPRG.LST`, `IONAME.DAT` и JSON используют один дескриптор и сверяют идентичность файла до/после открытия и после чтения. Прямая reparse-ссылка в Windows отклоняется. Для JSON перед заменой проверяется, что исходное содержимое не изменилось с момента подготовки. **Полный TOCTOU, межпроцессная блокировка и атомарность пары backup+target остаются открытыми.** [Модель угроз и тесты](docs/guarded_io_review.md).
+**Следующий цикл:** [PR #30 — документация](docs/implementation_plan.md), далее предложены синтетические parser fixtures, улучшение Native Workspace, versioned sidecar `*.mlad.json`, typed syntax, source-linked static analysis, Unified Offline IDE и условный Windows 0.6.x preview. Отдельные PR с тестами и **без автоматического merge**. [Дорожная карта v3](docs/roadmap.md) · [подробный backlog](docs/implementation_plan.md) · [принятые инженерные решения](docs/engineering_decisions.md).
