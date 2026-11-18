@@ -1,6 +1,6 @@
 # Участие в разработке MLAD
 
-> **Статус MLAD на 18.11.2026:** PR #1–#21 merged, Windows `rc.9` опубликован, основной CI SUCCESS. Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](docs/project_status.md).
+> **Статус MLAD на 18.11.2026:** PR #1–#26 merged, Windows `rc.9` опубликован (до PR #24–#26), [основной CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Эта спецификация описывает только свой подтверждённый уровень, не промышленную готовность. [Полная сверка](docs/project_status.md).
 
 Работа с исходниками MLAD требует разделять **описанные Yaskawa инструкции** и **непроверенные детали нативного файла/протокола**. Любой PR должен сохранять запрет записи в контроллер без независимого разрешённого workflow.
 
@@ -8,7 +8,7 @@
 
 1. Прочитать [README](README.md), [архитектуру](docs/architecture.md) и [реестр Yaskawa источников](docs/source_registry.md).
 2. Сверить текущий `main`, последний CI и открытые PR. Не считать актуальным статус из старой переписки или release note.
-3. Выбрать одну цель PR; готовить код, тесты и обновление соответствующего документа одновременно.
+3. Выбрать одну цель PR; готовить код, тесты и обновление соответствующего документа одновременно. Для планирования: [implementation_plan.md](docs/implementation_plan.md); для доказательств: [verification_gates.md](docs/verification_gates.md).
 4. Не проводить слияние без прямого согласования владельца проекта.
 
 ## Правила PR
@@ -59,3 +59,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 Матрица аппаратных тестов: [advanced_hardware_test_matrix.md](docs/advanced_hardware_test_matrix.md).  
 Процесс: [development_workflow.md](docs/development_workflow.md).  
 Первичные файлы: [controller_fixture_intake.md](docs/controller_fixture_intake.md).
+
+## Применимость тестов и статус PR
+
+Для каждого PR указывать фактически пройденные CI, SHA и `NOT RUN`, а не подразумевать выполнение Windows UserSmoke или OEM Bench. Статусы `ManualDerived`, `SyntheticTested`, `WindowsCI`, `OEMBenchVerified` и `Authorized` независимы; [единая матрица](docs/verification_gates.md). Принятые ограничения D1–D9: [engineering_decisions.md](docs/engineering_decisions.md). Изменение этих решений и публикация release требуют отдельного согласия владельца.
