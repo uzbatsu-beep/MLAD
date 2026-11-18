@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](implementation_plan_v2_archive.ru.md) · [English](implementation_plan_v2_archive.en.md) · [Original / Исходный текст](implementation_plan_v2_archive.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 > **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.md), [implementation plan](implementation_plan.md), [project status](project_status.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
 
 ---

@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](cioprg_lossless_parser.ru.md) · [English](cioprg_lossless_parser.en.md) · [Original / Исходный текст](cioprg_lossless_parser.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
 > **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.

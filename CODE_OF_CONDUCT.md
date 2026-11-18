@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](CODE_OF_CONDUCT.ru.md) · [English](CODE_OF_CONDUCT.en.md) · [Original / Исходный текст](CODE_OF_CONDUCT.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Кодекс взаимодействия участников MLAD
 
 **Дата:** 18.11.2026. Применяется к GitHub Issues, Pull Requests, Discussions, code review и иным площадкам, где участники представляют MLAD.

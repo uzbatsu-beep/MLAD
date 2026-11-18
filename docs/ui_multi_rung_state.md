@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](ui_multi_rung_state.ru.md) · [English](ui_multi_rung_state.en.md) · [Original / Исходный текст](ui_multi_rung_state.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 
 > **Статус и применимость:** документ фиксирует OFFLINE tri-state и UI-поведение PR #7/#8/#16/#17. Общий `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и уровни проверок отражены в [project_status.md](project_status.md). Этот UI **не** является live I/O или источником физической safety-индикации.

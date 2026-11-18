@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](PULL_REQUEST_TEMPLATE.ru.md) · [English](PULL_REQUEST_TEMPLATE.en.md) · [Original / Исходный текст](PULL_REQUEST_TEMPLATE.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 ## Что изменено
 
 <!-- Одна техническая цель PR; укажите ссылки на задачи и документы. -->

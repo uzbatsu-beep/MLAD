@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](ladder_spec.ru.md) · [English](ladder_spec.en.md) · [Original / Исходный текст](ladder_spec.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Ladder / CIOPRG.LST — архив предварительной спецификации
 
 > **Исторический документ (навигационная отметка 18.11.2026):** нижеследующие выводы сохраняют дату первоначальной проверки, а не подменяют текущую реализацию. PR #1–#21 merged, Windows rc.9 опубликован. [Текущее состояние MLAD](project_status.md).

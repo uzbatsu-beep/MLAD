@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](advanced_blocks.ru.md) · [English](advanced_blocks.en.md) · [Original / Исходный текст](advanced_blocks.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Yaskawa Advanced CIO Instructions — PR #5, актуализация после PR #21
 
 > **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.

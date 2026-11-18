@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](csp_path_hardening.ru.md) · [English](csp_path_hardening.en.md) · [Original / Исходный текст](csp_path_hardening.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — CSP и проверки безопасности файловых путей (PR #25)
 
 **Контекст:** проект OFFLINE/BENCH. Дата: 18.11.2026. **Статус:** PR #25 merged в main 18.11.2026; Windows CI SUCCESS, но опубликованный rc.9 не содержит CSP.

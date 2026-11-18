@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](ACCESSIBILITY.ru.md) · [English](ACCESSIBILITY.en.md) · [Original / Исходный текст](ACCESSIBILITY.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Доступность интерфейса MLAD
 
 **Состояние на 18.11.2026:** инженерный прототип на Tauri/WebView2 (Windows x64), React и SVG. Независимый аудит доступности **не проводился**; соответствие WCAG 2.2 AA **не заявляется**.

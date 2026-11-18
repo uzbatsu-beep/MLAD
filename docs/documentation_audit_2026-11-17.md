@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](documentation_audit_2026-11-17.ru.md) · [English](documentation_audit_2026-11-17.en.md) · [Original / Исходный текст](documentation_audit_2026-11-17.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Результаты аудита документации MLAD — 17 ноября 2026
 
 > **Исторический документ (навигационная отметка 18.11.2026):** нижеследующие выводы сохраняют дату первоначальной проверки, а не подменяют текущую реализацию. PR #1–#21 merged, Windows rc.9 опубликован. [Текущее состояние MLAD](project_status.md).
