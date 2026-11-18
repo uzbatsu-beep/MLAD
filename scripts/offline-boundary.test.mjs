@@ -30,7 +30,7 @@ test("all JSON save entrypoints use staged replacement, not truncating direct wr
   assert.match(persist,/create_new\(true\)/);
   assert.match(persist,/handle\.write_all\(content\)/);
   assert.match(persist,/handle\.sync_all\(\)/);
-  assert.match(persist,/fs::rename\(&self\.0,destination\)/);
+  assert.match(persist,/fs::rename\(&self\.path,destination\)/);
   assert.match(persist,/fn direct_symlink_target_and_backup_are_rejected/);
   assert.doesNotMatch(rust,/tokio::fs::write\(path,/);
   assert.doesNotMatch(rust,/std::fs::write\(&file_path,/);
@@ -111,7 +111,7 @@ test("PR26 native and JSON reads use one handle with filesystem identity checks"
   const drafts=readFileSync("src-tauri/src/draft_io.rs","utf8");
   assert.match(rust,/mod guarded_read;/);
   assert.equal((rust.match(/guarded_read::read_regular\(&selected,/g)||[]).length,2);
-  assert.match(drafts,/guarded_read::read_regular\(path,MAX_JSON_BYTES\)/);
+  assert.match(drafts,/guarded_read::read_regular_with_identity\(path,MAX_JSON_BYTES\)/);
   assert.match(safe,/GetFileInformationByHandle/);
   assert.match(safe,/FILE_FLAG_OPEN_REPARSE_POINT/);
   assert.match(safe,/win_file_id\(&before_win\)/);
