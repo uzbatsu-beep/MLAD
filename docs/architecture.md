@@ -46,7 +46,7 @@ React / TypeScript / Tauri WebView
 | Локальные TMR/CNT/GSTR test steps | Детерминированные **ручные** шаги | Не реальный scan/IO |
 | HSES / FTP | Deny-only Tauri IPC | **OFFLINE / запрещено** |
 
-Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 Draft** предлагает production CSP и проверки предков путей; CSP **в rc.9 ещё отсутствует**, а filesystem races/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего аудита.
+Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 merged** реализует production CSP и проверки предков путей; CSP **в опубликованном rc.9 ещё отсутствует**, а filesystem races/TOCTOU, hardlinks, ограничения каталогов и гарантии Windows требуют дальнейшего аудита.
 
 ## 3. Три уровня интерпретации
 
@@ -83,3 +83,8 @@ Backend не предоставляет рабочей команды сохра
 ## 7. PR #25 — CSP and linked path rejection (Draft)
 
 Настройка `app.security.csp` ограничивает external loads в packaged WebView; `devCsp` отдельно позволяет только Vite localhost HMR. Inline CSS/React styles требуют исключения `style-src 'unsafe-inline'`; JS остаётся без `unsafe-inline` и `unsafe-eval`. Для файлов `draft_io::verify_parent_directory` предварительно выявляет symlink ancestors/ParentDir, но не удерживает дескриптор директории от изменения. [Подробные ограничения](csp_path_hardening.md).
+
+
+## 8. PR #26 — bounded identity-checked read and JSON conflict guard (Draft)
+
+`guarded_read::read_regular` читает файл через единственный дескриптор, предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.md).

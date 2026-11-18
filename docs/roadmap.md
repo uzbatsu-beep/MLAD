@@ -196,9 +196,17 @@
 - Влияние на release: Windows binary `rc.9` не изменялся; нужен отдельный Windows acceptance smoke перед объявлением устойчивости поведения на Windows.
 
 
-### PR #25 — Tauri CSP и parent-path safety (Draft; ещё не слит)
+### PR #25 — Tauri CSP и parent-path safety (merged, 18.11.2026)
 
 - CSP production: запрет удалённых scripts/connect, `unsafe-eval`, объектов, iframes, worker; разрешён только локальный `'self'` и `ipc: http://ipc.localhost`. `style-src 'unsafe-inline'` временно необходим существующему React/inline CSS. Vite dev CSP отдельно ограничен localhost:5173 + WebSocket для HMR.
 - Файловые операции: отклонение явно обнаруженных symlink в родительских каталогах, `..` и direct symlink у native CIOPRG/IONAME. JSON read/write продолжают staging из PR #24, но проверяют всех текущих предков.
 - Rust-тесты: обычные вложенные пути, symlink-parent, symlink-native, traversal, побайтовая сохранность исходника; Node security tests валидируют CSP/код. Windows MSVC и сборка Tauri требуют отдельного успешного CI.
 - **Не заявлять полноту M2:** путь может быть заменён между проверкой и open/rename; недоверенные Windows junction/reparse points и hardlinks, concurrent writers, permission ACL и CSP runtime smoke проверяются отдельно. Без аппаратного интерфейса.
+
+
+### PR #26 — Guarded File Snapshots and Conflict Detection (Draft)
+
+- Дескрипторные чтения CIOPRG/IONAME/JSON с 2/4/16 МиБ пределами, `symlink_metadata → File::metadata` сравнение ID (Unix dev/inode, Windows volume/index), проверка ID после чтения. Reparse point detection включая Windows junction.
+- JSON staged/backup из PR #24 сохраняется; перед финальным `rename` байты ещё раз сопоставляются с исходными; при конфликте — отказ без перезаписи изменённого JSON. Новое создание тоже запрещает silent overwrite при появлении файла во время staging.
+- Синтетические Rust-тесты: подмена между check/open, внешняя запись между backup/commit, конкурирующее создание, чтение/отказ linked parent, стабильные тесты оригинальных байтов.
+- **Остаётся:** race между последней сверкой и финальным rename, небезопасные изменения каталогов/ACL, Windows junction, hardlinks, interprocess serialization и atomic backup transaction. Ручной Windows smoke после CI.

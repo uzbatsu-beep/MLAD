@@ -32,3 +32,8 @@
 - Отдельный security PR для true file-handle/dir-handle и CSP, межпроцессной блокировки/версий, atomic backup protocol, permission audit.
 
 **Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
+
+
+## PR #26 (Draft): конкурентное редактирование
+
+Перед финальным обновлением JSON сравнивается с snapshot старой версии; появление другого файла при первичном сохранении также вызывает отказ. Стадирование/backup из PR #24 сохраняется. **Не гарантируется** исключение races после последней проверки и транзакция backup+target. [Исследование](guarded_io_review.md).
