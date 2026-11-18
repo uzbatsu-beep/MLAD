@@ -1,6 +1,6 @@
 # MLAD — каталог технической документации
 
-**Актуально для `main` от 18.11.2026:** PR #1–#26 merged, основной CI на `2092db18` успешен; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
+**Актуально для `main` от 18.11.2026:** PR #1–#27 merged, [основной CI на `bdb443eb` успешен](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310); PR #28 — Draft; текущий Windows pre-release — `v0.5.0-rc.9-oem-reference`. Полная матрица: [project_status.md](project_status.md). Архивные документы намеренно сохраняют своё исходное датированное содержание, а приведённый здесь индекс указывает текущий статус.
 
 ## С чего начать
 
@@ -11,6 +11,7 @@
 | Этапы M0–M13 и критерии завершения | [roadmap.md](roadmap.md) |
 | Исполнимый backlog PR #27+ и зависимости | [implementation_plan.md](implementation_plan.md) |
 | Матрица CI, Windows smoke, проверок и релизов | [verification_gates.md](verification_gates.md) |
+| Windows Acceptance & Security Regression (PR #28 Draft) | [windows_acceptance_pr28.md](windows_acceptance_pr28.md) |
 | Согласованные инженерные решения D1–D9 | [engineering_decisions.md](engineering_decisions.md) |
 | Компоненты и разрешения доступа | [architecture.md](architecture.md) |
 | Процесс разработки, CI, Windows Preview | [development_workflow.md](development_workflow.md) |
