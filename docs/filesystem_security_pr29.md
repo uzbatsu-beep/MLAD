@@ -18,9 +18,10 @@
 | Скрытый JSON hard link на исходный `CIOPRG.LST` или другой файл | Обычный `metadata.is_file` не различал alias | `verify_single_link` требует link count ровно 1 для существующих JSON target и `.bak`, иначе fail-closed | `hardlink_alias_to_native_source_or_json_backup_is_rejected` |
 | Замена/модификация staged `.tmp` до rename | Создавался через `create_new`, выполнялся `sync_all`, но не повторная сверка | `StagedFile` хранит FileIdentity открытого staged handle и SHA-256 из ожидаемого контента; перед rename повторно читает staged файл и сравнивает identity + checksum | `staged_file_modified_after_flush_cannot_be_committed` |
 | Windows предварительная IPC-проверка | `reject_existing_symlink` проверяла только `is_symlink` | Использует `is_indirection` (все обнаруженные reparse attributes), далее основной writer снова проверяет и ancestor и target | Windows CI + security source contract |
+| Windows ADS/UNC/device path обходы | `*.graph.json` мог быть частью NTFS alternate stream после двоеточия или Windows path попадал на UNC/`\\.\\`/verbatim namespace | `verify_parent_directory` отвергает `:` в нормальных компонентах пути, UNC/device/verbatim и drive-relative префиксы; разрешён обычный локальный абсолютный `C:\\...` или относительный путь | `windows_ads_unc_and_device_paths_are_rejected_before_filesystem_io` + Windows CI |
 | Проверка path с junction и блокировкой | PR #28 | Сохраняются тесты PR #28 на NTFS с реальным `mklink /J` и эксклюзивной блокировкой | Linux/Windows CI, без претензии на полную atomicity |
 
-**Техническая форма:** `FileIdentity` формируется из `File::metadata` на Unix, из WinAPI `GetFileInformationByHandle` на Windows. Для Windows кроме volume/file index читается `nNumberOfLinks` из того же `BY_HANDLE_FILE_INFORMATION`. Любая ошибка получения надёжной идентичности/числа ссылок приводит к отказу, а не к продолжению записи. Новых `Cargo`/npm зависимостей не добавлено, lockfiles не менялись.
+**Техническая форма:** `FileIdentity` формируется из `File::metadata` на Unix, из WinAPI `GetFileInformationByHandle` на Windows. Для Windows кроме volume/file index читается `nNumberOfLinks` из того же `BY_HANDLE_FILE_INFORMATION`. Любая ошибка получения надёжной идентичности/числа ссылок приводит к отказу, а не к продолжению записи. Новых `Cargo`/npm зависимостей не добавлено, lockfiles не менялись. Windows UNC, extended-length/verbatim и device/ADS пути намеренно не поддерживаются: для работы выбирать **локальную обычную копию файла**.
 
 ## 3. Остаточные риски: статус OPEN
 
@@ -31,7 +32,7 @@
 | ACL/owner/attributes при замене JSON | Staged file наследует ACL каталога; `rename` может изменить DACL/owner/атрибуты по сравнению с исходным target, даже при успешной записи. ACL не копируются | Windows ACL inheritance/security descriptor policy, explicit DACL review and privilege model; проверить на реальной тестовой машине |
 | Одновременные writer-процессы | Сравнение snapshot предотвращает выявленные изменения, но два писателя могут пройти проверку одновременно | Version token из UI, process lock, ОС-специфичный conditional replacement; не считать поддержку multi-writer закрытой |
 | Backup + target | Два отдельных rename, `*.bak` может обновиться при ошибке target; power loss может затронуть только часть операции | Журналируемый commit protocol с recovery/FS sync + crash-test; исключить заявления «полностью атомарно» |
-| Краш, отключение питания, SMB / ReFS / UNC | Тесты на обычной файловой системе не подтверждают crash durability, remote FS identity и семантику `rename` | Условия FS support и fault injection на отдельном стенде; возможно ограничение на local NTFS |
+| Краш, отключение питания, SMB / ReFS / UNC | Тесты не подтверждают crash durability и remote FS identity; прямой UNC отклоняется новым guard, но иные remote/mounted случаи требуют отдельной оценки | Зафиксировать условия local NTFS, fault injection, recovery protocol |
 | Реальные клиентские файлы | В Git/CI только синтетические данные | Приватный corpus и независимая OEM проверка, см. [правила приёма исходников](controller_fixture_intake.md) |
 
 ## 4. Acceptance matrix
