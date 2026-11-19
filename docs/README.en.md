@@ -95,4 +95,4 @@ Historical release notes and dated audits are preserved, including their origina
 
 ## Evidence discipline
 
-`Documented` / `ManualDerived` is **not** the same as `SyntheticTested`, `OEMBenchVerified`, or `Authorized`. A read-only GUI does **not** imply permission to export native code or upload it to a robot. Each new capability requires a traceable manufacturer source, negative tests, controller-family scope, safety assessment and a current, explicit evidence status.
+`Documented/ManualDerived` is **not** the same as `SyntheticTested`, `OEMBenchVerified`, or `Authorized`. A read-only GUI does **not** imply permission to export native code or upload it to a robot. Each new capability requires a traceable manufacturer source, negative tests, controller-family scope, safety assessment and a current, explicit evidence status.
