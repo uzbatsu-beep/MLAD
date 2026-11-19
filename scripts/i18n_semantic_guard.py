@@ -70,12 +70,13 @@ DRAFT_MARKERS = (
 
 
 def canonical_body(localized_text: str) -> str:
-    # The header is navigation/provenance; the actual localized document
-    # starts at its first ATX H1 heading.
-    match = re.search(r"(?m)^#\s+", localized_text)
-    if not match:
-        raise ValueError("missing document H1")
-    prose = localized_text[match.start():]
+    # The editorial header ends at the first blank line. Some historical
+    # archive sources start with a warning blockquote BEFORE their H1 heading;
+    # do not strip those meaningful paragraphs.
+    prefix = "<!-- MLAD-I18N:EDITORIAL:"
+    if not localized_text.startswith(prefix) or "\\n\\n" not in localized_text:
+        raise ValueError("missing editorial navigation block")
+    prose = localized_text.split("\\n\\n", 1)[1]
     # Undo RU companion link routing, while preserving all other bytes.
     return re.sub(
         r"(\]\((?!https?:|//|#)[^)\s]+?)\.ru\.md(\))",
