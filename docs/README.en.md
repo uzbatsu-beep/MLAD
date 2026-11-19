@@ -1,6 +1,8 @@
 <!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against docs/README.md -->
 > **Language / Язык:** [English](README.en.md) · [Русский](README.ru.md) · [Original](README.md)
 >
+> **Safety/evidence baseline:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. HSES/FTP, native writing, live I/O and robot deployment remain **BLOCKED**. `WindowsCI=PASS` does **not** mean `UserSmoke=PASS` or `OEMBenchVerified`; both manual acceptance and OEM bench testing are **NOT RUN** absent independently documented results.
+
 > **Translation policy:** source documents and OEM manuals remain authoritative. Machine-generated companions that have not been editorially reviewed must not be treated as validated engineering or safety specifications.
 
 # MLAD — Technical Documentation Index
