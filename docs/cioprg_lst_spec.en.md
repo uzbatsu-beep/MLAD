@@ -5,7 +5,7 @@
 
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-> **Status and applicability:** this document covers the constrained implementation subset and evidence available by PR #21; it does **not** imply that all project development stopped at PR #21. See [project status](project_status.en.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and independent CI/UserSmoke/OEM evidence levels. This specification authorizes **neither** native writing, HSES nor real scan execution.
+> **Status and applicability:** this document covers the constrained implementation subset and evidence available by PR #21; it does **not** imply that all project development stopped at PR #21. See the current `main` [project status](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and independent CI/UserSmoke/OEM evidence levels. This specification authorizes **neither** native writing, HSES nor real scan execution.
 
 **Status (18 November 2026, after merged PR #21):** a **partial** documented specification; read-only lossless/semantic/advanced source inspection is implemented. This is **NOT** a complete verified native-file grammar, a native writer or a certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
@@ -153,10 +153,10 @@ Opening an original `CIOPRG.LST` **does not** mean its full contents can be impo
 
 - No complete OEM-verified native file covering all separators and System/User ownership boundaries across firmware/application configurations. `PART` is an analysis label **not** proof that System Ladder can be edited.
 - `src-tauri/src/compiler/parser.rs` is the **legacy parser** for an older JSON model. It must **not** replace `lossless.rs` or be used as the new native importer.
-- PR #13 **removed** `src-tauri/src/network/mod.rs`; the unverified network runtime is no longer compiled into Tauri. HSES/FTP/deployment remain deny-only. The `suppaftp` dependency still appears in `src-tauri/Cargo.toml` for separate dependency review, but **does not** prove that robot upload is available. See [HSES](hse_protocol.en.en.md) and [Security](../SECURITY.en.en.md).
+- PR #13 **removed** `src-tauri/src/network/mod.rs`; the unverified network runtime is no longer compiled into Tauri. HSES/FTP/deployment remain deny-only. The `suppaftp` dependency still appears in `src-tauri/Cargo.toml` for separate dependency review, but **does not** prove that robot upload is available. See [HSES](hse_protocol.en.md) and [Security](../SECURITY.en.md).
 - The newer UI tabs have DX100/DX200/YRC1000 profile selection, but this is **not** an exact firmware/options/workcell-topology binding. The legacy JSON interface and validator cannot be treated as hardware certification.
 - Combined semantics of stateful instructions, scan sequence, M-register effects, complete native-file validation and OEM acceptance remain unverified on actual controllers.
-- Closing these gaps requires [authorized native file intake](controller_fixture_intake.en.en.md) and the [roadmap](roadmap.en.en.md), **not** inventing additional unverified templates.
+- Closing these gaps requires [authorized native file intake](controller_fixture_intake.en.md) and the [roadmap](roadmap.en.md), **not** inventing additional unverified templates.
 
 **Native export, protected-area editing and connecting to a production controller remain prohibited.**
 
@@ -166,8 +166,8 @@ The lossless parser now distinguishes syntactically valid \`END\` from subsequen
 
 ## PR #19 — TypedCandidate forms for MOV/ADD/SUB/SHL/SHR
 
-The `TypedCandidate` layer is distinct from executable `Instruction` and `UnsupportedInstruction`. It validates lexical operand roles and the constraints in documented DX200/YRC1000 tables, **not** full execution semantics. Flags, register writes, scan behavior and physical relay changes remain unverified. At this stage DX100-specific forms of these five instructions have not been established independently. See the [forms, sources and limitations](typed_opcode_grammar.en.en.md).
+The `TypedCandidate` layer is distinct from executable `Instruction` and `UnsupportedInstruction`. It validates lexical operand roles and the constraints in documented DX200/YRC1000 tables, **not** full execution semantics. Flags, register writes, scan behavior and physical relay changes remain unverified. At this stage DX100-specific forms of these five instructions have not been established independently. See the [forms, sources and limitations](typed_opcode_grammar.en.md).
 
 ## Next native-grammar verification phase (after PR #29)
 
-[Roadmap v3](roadmap.en.en.md) and the [proposed parser corpus PR #31](implementation_plan.en.en.md) require synthetic edge cases for `//$M`, `PART/END`, post-END data, unknown/opaque spans and exact source ranges. Actual private exports must only be handled through authorized [fixture intake](controller_fixture_intake.en.en.md) and must not be published. None of this enables a native writer.
+[Roadmap v3](roadmap.en.md) and the [proposed parser corpus PR #31](implementation_plan.en.md) require synthetic edge cases for `//$M`, `PART/END`, post-END data, unknown/opaque spans and exact source ranges. Actual private exports must only be handled through authorized [fixture intake](controller_fixture_intake.en.md) and must not be published. None of this enables a native writer.
