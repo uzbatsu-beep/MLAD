@@ -1,65 +1,65 @@
-<!-- Generated en companion for docs/oem_5_opcode_analysis.md; review required. -->
-> **English** · [Русский](oem_5_opcode_analysis.ru.md) · [English](oem_5_opcode_analysis.en.md) · [Original / Оригинал](oem_5_opcode_analysis.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against oem_5_opcode_analysis.md -->
+> **Language / Язык:** [English](oem_5_opcode_analysis.en.md) · [Русский](oem_5_opcode_analysis.ru.md) · [Original](oem_5_opcode_analysis.md)
+>
+> **Evidence:** A translation of MLAD's documented reference analysis. `ManualDerived` is **not** controller-executed behavior. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; OEMBench **NOT RUN**.
 
-# PR #21 MOV, ADD, SUB, SHL, SHR: Yaskawa Concurrent I/O Study
+# PR #21 — MOV, ADD, SUB, SHL, SHR: Yaskawa Concurrent I/O reference analysis
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> **Status and scope:** this document records the constrained forms and evidence available by PR #21; it does **not** imply the project stopped at PR #21. The current `main` status after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and separate CI/UserSmoke/OEM levels are in [project status](project_status.en.md). No permission for a native writer, HSES or actual scan execution follows from this analysis.
 
-** Status 18.11.2026:** PR #21 merged, Windows rc.9 published; documentary model, specific YRC1000/DX100/DX200 Not checked at the stand. Not a simulator or a native compiler.
+**Status on 18 November 2026:** PR #21 merged and Windows rc.9 published. This is a manual-derived reference model. **None of the relevant DX100, DX200 or YRC1000 firmware/controller combinations were independently bench tested.** It must not be described as a full simulator or native compiler.
 
-## Primary sources and access restrictions
+## Primary sources and access limitations
 
-1. [YRC1000 Concurrent I/O R12, OEM index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), document 178648-1CD. Direct PDF OEM download fails (HTTP 403); full-text tables are verified by [reproduction YRC1000 manual](https://manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual) §12.2.17 ADD (pp. 12-18), §12.2.18 SUB (12-19), §12.2.24 MOV (12-25), §12.2.29 SHL (12-30), §12.2.30 SHR (12-31), §12.3 (12-36).
-2. [DX100 Concurrent I/O, RE-CKI-A453, Rev.0 / 155491-1CD, PDF](https://gab.wallawalla.edu/~ralph.stirling/classes/engr480/docs/Motoman/dx100_concurrent_io_155491-1CD.0.pdf): the relevant sections of §12.2/§12.3 confirm a similar general model. Specific controllers and firmware are not checked.
-3. DX200 RE-CKI-A465: Remains an independent documentary gate, not to endure the rules of generations silently. For comparison of forms see [previous study](typed_opcode_grammar.en.md).
+1. [YRC1000 Concurrent I/O R12, official OEM index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), document 178648-1CD. Direct OEM PDF retrieval was unsuccessful (HTTP 403); full-text tables were compared against a [reproduction of the YRC1000 manual](https://manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual): §12.2.17 ADD (p.12-18), §12.2.18 SUB (p.12-19), §12.2.24 MOV (p.12-25), §12.2.29 SHL (p.12-30), §12.2.30 SHR (p.12-31), §12.3 (p.12-36).
+2. [DX100 Concurrent I/O, RE-CKI-A453, Rev.0 / 155491-1CD, PDF](https://gab.wallawalla.edu/~ralph.stirling/classes/engr480/docs/Motoman/dx100_concurrent_io_155491-1CD.0.pdf): corresponding sections §12.2/§12.3 describe a similar general model. Specific controllers and firmware have not been tested.
+3. DX200 RE-CKI-A465 remains a **separate documentary verification gate**; never silently assume equivalence across generations. See the [preceding operand-form analysis](typed_opcode_grammar.en.md).
 
-Marking: **Manual** - direct indication in the manual; **Derived** - calculated consequence of the documented formula; **Unknown** - no unambiguous information; **Bench** - control check (not yet).
+Evidence labels: **Manual** = directly stated in a manual; **Derived** = mathematical result derived from a documented formula; **Unknown** = insufficient or ambiguous evidence; **Bench** = actual controller verification (**none available yet**).
 
-## Five-team table
+## Five-instruction reference matrix
 
-| Opcode | ON condition/result (Manual) | Carry / Zero / Error (Manual) | Unknown |
+| Opcode | Enabled operation / result (Manual) | Carry / Zero / Error (Manual) | Unknown or unresolved |
 | --- | --- | --- | --- |
-| MOV S,D | At EN=ON, the value of S is transferred to D; D = M000–M599 / byte / word, S = M000–M999 / 0–65535 / byte / word | Carry changes when transmitted to byte; the threshold text is greater than 256 (BCD). Zero/Error is not used (0). | Behavior at exactly 256; precise truncation byte |
-| ADD S1,S2,D | D=(S1+S2) mod 65536; S1/S2 is unsigned 16-bit from M or 0..65535; D = M000. . M599 | Carry=1 for ≥65536; Zero=1 for D=0; Error not used (0) | EN and the flow of flags in full scan |
-| SUB S1,S2,D | D=(S1−S2) mod 65536; similar roles | Carry=1 if S1<S2; Zero=1 if D=0; Error not used (0) | Appointment/scan conflicts |
-| SHL S,n,D | Shift 16-bit S to the left, n=0..16, zero input from the bottom | Carry is ousted by MSB. Zero/Error not used (0) | Carry n=0/16, byte result |
-| SHR S,n,D | Shift 16-bit S to the right, n=0..16, insert zeros from top | Carry is a displaced LSB. Zero/Error not used (0) | Carry n=0/16, byte result |
+| MOV S,D | With EN=ON, S is transferred to D. D: M000–M599 / byte / word; S: M000–M999 / 0–65535 / byte / word | Carry changes when moving to a byte; the manual wording is "more than 256 (BCD)". Zero/Error are unused (0) | Exact behavior **at 256** and byte truncation |
+| ADD S1,S2,D | `D=(S1+S2) mod 65536`; S1/S2 are unsigned 16-bit M values or 0..65535; D: M000..M599 | Carry=1 when the sum is **≥65536**; Zero=1 if D=0; Error unused (0) | Interacting EN conditions and flag flow during the complete scan |
+| SUB S1,S2,D | `D=(S1−S2) mod 65536`; corresponding operand roles | Carry=1 when **S1<S2**; Zero=1 when D=0; Error unused (0) | Multiple destinations and scan ordering |
+| SHL S,n,D | Shift 16-bit S left by n=0..16, inserting zeros at the lower end | Carry is the shifted-out **MSB**; Zero/Error unused (0) | Carry for n=0/16; byte destination details |
+| SHR S,n,D | Shift 16-bit S right by n=0..16, inserting zeros at the upper end | Carry is the shifted-out **LSB**; Zero/Error unused (0) | Carry for n=0/16; byte destination details |
 
-### Performance/flags in scan
+### Execution and flags during a controller scan
 
-§12.3 YRC1000: **#51400 Carry, #51401 Zero, #51402 Error** Before performing the Ladder of each scan, the flags are cleared; the instruction affecting the flag updates the result with a true EN, with a false EN, cleans the corresponding flag; another instruction that does not affect the flag does not change it.
+According to YRC1000 §12.3, flag addresses are **#51400 Carry, #51401 Zero, #51402 Error**. The manual describes clearing flags before the Ladder scan; a flag-affecting instruction updates its corresponding flag for a true EN and clears that flag for a false EN. An instruction that does **not** affect a given flag leaves it unchanged.
 
-SHL/SHR at EN=ON is executed **every scan**; for single action, management recommends using PLS/PLF in condition. For all five ON is a mandatory condition of execution. The conditions of the real chain and the order of execution of several MLAD commands are not yet confirmed.
+With EN=ON, SHL/SHR execute **on every scan**; for a single-shot effect, the manual recommends PLS/PLF in the enable condition. All five instructions require their ON condition for execution. MLAD does **not** yet verify the real rung conditions or ordering of multiple instructions.
 
-It would be a mistake to ban reassignments in M globally: §12.2 allows multiple assignments of arithmetic instruction registers, but prohibits multiple access to current TMR/CNT registers. Duplication of specific relays also has limitations.
+A blanket ban on repeated M-register destinations would be incorrect: §12.2 allows repeated assignments to registers by arithmetic instructions, but restricts repeated use of the current-value registers of TMR/CNT. Individual relay destinations also have restrictions.
 
-### Critical boundary cases
+### Critical edge cases
 
-- MOV→byte at S=256. The words “more than 256 (BCD)” do not automatically allow the general PLC heuristic “>255”. The model returns Unknown for byte values from 256; verification of the actual truncation and flag is postponed.
-- SHL/SHR at n=0: mathematical result S, but Carry is not determined by the model (no repressed bit). At n=16: 16-bit result is 0, but Carry and byte specificity remain Unknown. Misuse of Rust `wrapping_shl(16)` This would turn the shift into a 0 shift, so the branch 16 is treated separately.
-- EN=OFF: result `NotExecuted`flags in a separate model left behind `Unresolved`. §12.3 describes clearing in the scan, but there is no complete model of how the instructions interact.
-- Separately, byte/word aliasing, a specific firmware version, and a repeat M-assignment conflict are not solved.
+- **MOV→byte with S=256.** The phrase "more than 256 (BCD)" does **not** justify silently applying generic PLC behavior at `>255`. The reference model returns **Unknown for byte values from 256**; actual truncation and Carry behavior remain bench work.
+- **SHL/SHR at n=0:** mathematically the result is S, but Carry remains unresolved since no bit is displaced. **At n=16:** the 16-bit result is zero, while Carry and byte-specific behavior remain Unknown. Calling Rust `wrapping_shl(16)` without a separate branch would incorrectly reduce the shift to zero; the reference code handles 16 explicitly.
+- **EN=OFF:** the result is `NotExecuted`, and isolated reference flags remain `Unresolved`. Section §12.3 describes per-scan flag clearing, but a complete model of instruction interactions does not exist.
+- Byte/word aliasing, firmware-specific behavior and multiple M-register destination conflicts require independent resolution.
 
-## Autonomous implementation
+## Offline reference implementation
 
-`src-tauri/src/compiler/reference_semantics.rs` isolated pure function `evaluate_reference(ReferenceInput)`. Doesn't read. `CIOPRG.LST`It does not run Ladder and is not connected to Tauri IPC. All results tagged. `ManualDerived`, `Unresolved` either `NotExecuted`. Flags. `controller_execution_verified=false`, `scan_chain_verified=false`, `native_write_allowed=false` regardless of the source data.
+`src-tauri/src/compiler/reference_semantics.rs` contains the isolated, pure `evaluate_reference(ReferenceInput)` function. It does **not** read `CIOPRG.LST`, execute Ladder logic or connect to Tauri IPC. Outputs are labelled `ManualDerived`, `Unresolved` or `NotExecuted`. Regardless of input, `controller_execution_verified=false`, `scan_chain_verified=false`, `native_write_allowed=false`.
 
-Tests: six classes of arithmetic carry/borrow/zero, a complete search of 65536 ADD/SUB values with second operand 1, MOV byte 255/256/257, SHL/SHR 0/1/16/17, EN On/Off/Unknown, inappropriate purpose. No real robot programs are included in the tests.
+Tests cover six carry/borrow/zero arithmetic classes, an exhaustive 65,536-input ADD/SUB sweep with the other operand set to 1, MOV byte at 255/256/257, SHL/SHR at 0/1/16/17, EN On/Off/Unknown and invalid destinations. **No actual robot programs** are included in the tests.
 
-In Native Workspace, the handbook of the selected command shows the format, rules, limitations, and unknown areas. **Do not* shows the "actually calculated" result of a real CIO string.
+Native Workspace presents the reference forms, documented rules, limitations and unknown areas for a selected instruction. It does **not** display a supposedly "actually computed" value for a native CIO source line.
 
-## Poster plan for the future
+## Future OEM bench plan
 
-| Test ID | Verification | Confirmation |
+| Test ID | Scenario | Evidence to establish |
 | --- | --- | --- |
-| EN-01 | EN = 0/1 for all five instructions | Absence of D at EN=0, behavior at EN=1 |
-| SCAN-01 | Several consecutive instructions affecting flags | Reset/rewrite #51400/#51401/#51402 as part of the scan |
-| ADD-01 | 0+0; 65535+0; 65535+1; 65535+65535 | Carry/Zero и wrap |
-| SUB-01 | 0−0; 1−1; 0−1; 100−101 | Borrow и wrap |
-| MOV-01 | 255, 256, 257, 65535 byte and word | Exact Carry boundary / truncation |
-| SHIFT-01 | n = 0.1,8,15,16 for both directions | Last repressed bit, byte/word mode |
-| GEN-01 | DX100, DX200, YRC1000: firmware/options/manual | Generational Differences and Independent OEM Confirmation |
+| EN-01 | EN=0/1 for all five instructions | No D write with EN=0 and correct operation with EN=1 |
+| SCAN-01 | Consecutive flag-affecting instructions | Clearing/overwriting #51400/#51401/#51402 within a scan |
+| ADD-01 | 0+0; 65535+0; 65535+1; 65535+65535 | Carry/Zero and modulo wrap |
+| SUB-01 | 0−0; 1−1; 0−1; 100−101 | Borrow and modulo wrap |
+| MOV-01 | 255, 256, 257, 65535 in byte and word | Exact Carry threshold and truncation |
+| SHIFT-01 | n=0,1,8,15,16 in both directions | Last shifted-out bit and byte/word behavior |
+| GEN-01 | DX100, DX200, YRC1000 firmware/options/manual | Generation differences and independent OEM evidence |
 
-Tests only on an isolated stand with the permission of the equipment owner. The application does not contain loading into the robot, FTP/HSES and a native writer. The result of the control check is not yet available.
+These tests require an **owner-authorized, isolated rig**. MLAD contains no robot deployment, FTP/HSES control or native writer. **No controller bench result is available at this stage.**
