@@ -1,62 +1,62 @@
-<!-- Generated en companion for SECURITY.md; review required. -->
-> **English** · [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Original / Оригинал](SECURITY.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against SECURITY.md -->
+> **Language / Язык:** [English](SECURITY.en.md) · [Русский](SECURITY.ru.md) · [Original](SECURITY.md)
+>
+> **Safety:** This policy is not a manufacturer certification, penetration-test report or permission to operate equipment. When the translation and the original disagree, the original and the applicable OEM documents take precedence.
 
-# Security Policy MLAD (Security Policy)
+# MLAD Security Policy
 
-**Effective date:** 18.11.2026. **Scope:** MLAD open repository and its published engineering preview builds.
+**Effective date:** 18 November 2026. **Scope:** the public MLAD repository and its published engineering preview builds.
 
-> MLAD is an experimental OFFLINE/BENCH analysis tool for Yaskawa Concurrent I/O. **Do not use as a proven compiler, security device, robot operation tool or live I/O source.** No mode permits uploading or deploying programs to a robot controller or modifying the original CIOPRG.LST/IONAME.DAT.
+> MLAD is an experimental **OFFLINE/BENCH** tool for analyzing Yaskawa Concurrent I/O. **Do not use it as a validated compiler, a safety device, a robot operating tool or a source of live I/O signals.** No mode permits uploading a program to a robot or modifying original `CIOPRG.LST` or `IONAME.DAT` files.
 
-## Supported versions and corrections
+## Supported versions and security fixes
 
 | Component | Policy |
 | --- | --- |
-| Current `main` | Communications and corrections are accepted; timing of response and issuance of corrections is not guaranteed |
-| Last Windows pre-release (as of policy date): `v0.5.0-rc.9-oem-reference`) | Messages accepted; experimental version, **not certified as safe for equipment** |
-| Old RCs and individual archive branches | Not supported as separate lines of correction; it is recommended to check the defect with the current one. `main` |
+| Current `main` | Reports and fixes are accepted; response and release times are not guaranteed |
+| Latest Windows prerelease at the policy date (`v0.5.0-rc.9-oem-reference`) | Reports are accepted; this is an experimental version and **is not certified safe for industrial equipment** |
+| Older release candidates and historical branches | Not maintained as independent security-fix lines; compare defects against current `main` |
 
-This table **is not a service promise by SLA**. Check the status of a specific version [GitHub Releases](https://github.com/uzbatsu-beep/MLAD/releases) и [project-matrix](docs/project_status.en.md).
+This table **does not constitute a service-level agreement (SLA)**. Check version-specific status in [GitHub Releases](https://github.com/uzbatsu-beep/MLAD/releases) and the [current project status](docs/project_status.en.md).
 
-## How to report vulnerability
+## Reporting a security vulnerability
 
-**Do not create a public Issue with technical details of an unresolved vulnerability. **
+**Do not create a public issue containing technical details of an unpatched vulnerability.**
 
-1. Open the **Security** repository tab and check if the **Report a vulnerability* button is available. If available, please send a description via **GitHub private vulnerability reporting**. Possibility depends on the settings of the repository and is not guaranteed by the presence of one only. `SECURITY.md`.
-2. If the feature is unavailable, create a regular public Issue without the details of the vulnerability**, only with a request to the attendant to determine a secure private channel for coordination. **Do not attach PoCs, paths, tokens, file content, network configurations, or a playback exploit. Then use the agreed closed channel.
-3. If the breach relates to abuse on the GitHub platform itself, use the **Report** GitHub mechanisms; they do not replace the technical channel for the MLAD vulnerabilities.
+1. Open the repository's **Security** tab and check whether **Report a vulnerability** is available. If so, use **GitHub private vulnerability reporting**. Availability depends on repository settings; publishing `SECURITY.md` alone does not enable it.
+2. If private reporting is not available, create a **public issue without vulnerability details**, asking the maintainer to establish a safe private communication channel. **Do not attach** proof-of-concept exploit code, sensitive paths, tokens, file contents, network configurations or exploit reproduction steps. Provide those only through an agreed private channel.
+3. For abuse that concerns the GitHub platform itself, use GitHub's **Report** facilities. Platform abuse reporting is not a substitute for coordinated disclosure of an MLAD vulnerability.
 
-**The email address of the escort has not been invented or published; the presence of a private channel is checked separately.** Instructions for enabling private vulnerability reporting: [GitHub Docs](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository).
+**No security-contact email address has been invented or published.** The availability of a private reporting route must be checked separately. GitHub documentation: [Configure private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository).
 
-With a closed message, it is useful to describe: the MLAD/commit version, operating system, expected and actual security boundary, minimum **synthetic** playback, degree of influence and affected files/components. Do not attach real robot files.
+For a private report, include the MLAD version/commit, operating system, expected and observed security boundary, a minimal **synthetic** reproduction, impact, and affected files/components. **Do not attach real robot programs.**
 
 ## Confidentiality of industrial data
 
-**Not allowed on GitHub Issues/PR/Actions/Committees:**
+**Do not publish the following in GitHub issues, PRs, Actions artifacts/logs or commits without the right to disclose them:**
 
-- real `CIOPRG.LST`, `IONAME.DAT`Backups of system software, I/O cards and parameters of production robots without the right to disclose;
-- real IP addresses, network topologies, credentials, access keys, session tokens and logs with them;
-- personal/commercial data of the organization and information that allows you to restore the operational chain without the permission of the owner.
+- Actual `CIOPRG.LST` or `IONAME.DAT` files, controller system backups, I/O maps and production robot parameters.
+- Real IP addresses, network topology, credentials, access keys, session tokens or logs containing them.
+- Personal or commercial information, or details that could allow a third party to reconstruct production sequences, unless the owner has explicitly authorized disclosure.
 
-Before publishing, replace any data with self-created synthetic examples**. Simply deleting a business name does not guarantee the depersonalization of logic and addresses. The real source hash, file path, node name, and firmware version can also reveal context; publish them only with permission.
+Before publishing a reproduction, use **newly created synthetic data**. Merely removing a company name does not necessarily anonymize the logic or addresses. Hashes of real files, paths, hostnames and firmware revisions can also disclose context; publish them only when permitted.
 
-## Limits of trust of the project
+## Project trust boundaries
 
-- `CIOPRG.LST` и `IONAME.DAT` JSON drafts are a separate format. Original files cannot be modified or reassembled as native programs.
-- FTP/HSES, monitoring, live I/O, deploy and recording commands to the robot ** disabled**.
-- `TRUE/FALSE/UNKNOWN` In local models - live controller signals.
-- `MOV/ADD/SUB/SHL/SHR`: `TypedCandidate`, static references and `ManualDerived` **Not equal to performance on a particular system.
-- In the current `main` PR #25#26 added CSP/path guard/identity-checked reads PR #28 — Windows NTFS security CI, PR #29 Comparison of File ID+bytes, rejection of hardlinks/ADS/UNC/device paths and staged SHA-256 checks. **Open:** Final. `check→rename` TOCTOU, ancestor races, Windows ACL, transaction `backup+target`Power-loss durability and manual WindowsWebView2 smoke. CI**not** is an independent pentest. [threat model](docs/filesystem_security_pr29.en.md).
+- `CIOPRG.LST` and `IONAME.DAT` are **read-only** inputs; JSON drafts are a separate format. Original files must not be modified or reassembled into claimed OEM-native programs.
+- FTP/HSES, monitoring, live I/O, robot deployment and robot write commands are **disabled (BLOCKED)**.
+- Local `TRUE/FALSE/UNKNOWN` test states are **not live controller signals**.
+- The `MOV/ADD/SUB/SHL/SHR` `TypedCandidate` forms, static references and `ManualDerived` examples **do not establish how a particular robot executes these operations**.
+- PR #25–#26 introduced CSP, path checking and guarded reads; PR #28 added Windows NTFS security CI; PR #29 added byte-and-File-ID comparisons, rejection of hardlinks and Windows ADS/UNC/device paths, and staged-file SHA-256 verification. **Still open:** the final `check→rename` TOCTOU window, parent-directory races, Windows ACL handling, atomicity of the `backup+target` pair, power-loss durability, and independent Windows/WebView2 user testing. Passing CI is **not** an independent penetration test. See the [filesystem threat model](docs/filesystem_security_pr29.en.md).
 
-Check the experimental software only autonomously on copies, **without connecting to existing industrial equipment**. Do not investigate vulnerabilities on someone else’s controller, enterprise, or network without explicit permission.
+Use the experimental application **offline, on copies, without connecting it to operational industrial equipment**. Do not test vulnerabilities against somebody else's controller, plant or network without explicit permission.
 
-## Work on correction
+## Handling and disclosing fixes
 
-The accompanying person evaluates the message, determines the impact and agrees on the correct disclosure. The publication of the patch, Advisory/CVE, the timing and the decision to release the version are taken separately. **Automatic publication of parts before correction is not expected.** Rust/TypeScript/CI checks and hardware verification are different levels of confirmation.
+The maintainer evaluates reports, assesses impact and coordinates appropriate disclosure. A patch release, security advisory/CVE, timeline and new-version publication require separate decisions. **There is no assumption that vulnerability details will be published automatically before a fix.** Rust, TypeScript and CI tests do not replace independent OEM or hardware validation.
 
-[CONTRIBUTING.md](CONTRIBUTING.en.md) · [Architecture](docs/architecture.en.md) · [Current status](docs/project_status.en.md)
+[CONTRIBUTING](CONTRIBUTING.en.md) · [Architecture](docs/architecture.en.md) · [Current status](docs/project_status.en.md)
 
-## Technical control point (18.11.2026)
+## Technical baseline (18 November 2026)
 
-Proven. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` merged [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) on this SHA. That ******** confirms an independent WebView2 Smoke, file racing protection, OEM bench or native writer admission. [Verification gates](docs/verification_gates.en.md) · [Roadmap v3](docs/roadmap.en.md).
+Verified `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` after [PR #29 merged](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) apply to that SHA. These results **do not** establish successful manual WebView2 testing, elimination of all filesystem races, OEM bench equivalence or permission for native controller writes. [Verification gates](docs/verification_gates.en.md) · [Roadmap v3](docs/roadmap.en.md).
