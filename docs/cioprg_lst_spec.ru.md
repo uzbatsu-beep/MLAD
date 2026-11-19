@@ -97,11 +97,11 @@ group_operator = "AND-STR" | "OR-STR" ;
 ```text
 ControllerProfile(DX100 | DX200 | YRC1000, firmware, application, I/O options)
   └─ FileSnapshot(raw bytes, source digest, encoding, line endings)
-    ├─ RawSections (immutable unless explicitly confirmed User Ladder)
-    ├─ RawLines (offsets, original tokens, whitespace and endings)
-    ├─ ParsedSyntax (instruction kind + typed operands + source spans)
-    ├─ SemanticGraph (series/parallel branches, rung boundaries)
-    └─ Diagnostics (severity, controller, evidence, line, column)
+      ├─ RawSections (immutable unless explicitly confirmed User Ladder)
+      ├─ RawLines (offsets, original tokens, whitespace and endings)
+      ├─ ParsedSyntax (instruction kind + typed operands + source spans)
+      ├─ SemanticGraph (series/parallel branches, rung boundaries)
+      └─ Diagnostics (severity, controller, evidence, line, column)
 ```
 
 Предусмотрены два этапа: lossless-лексер (может распознать, но **никогда не удаляет** неизвестное) и семантический анализатор по выбранному семейству. Простого `Vec<Rung> { instructions: Vec<Instruction> }` недостаточно для сохранения всех ветвей, инструкций и метаданных.
