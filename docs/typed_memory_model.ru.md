@@ -1,5 +1,5 @@
 <!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against typed_memory_model.md -->
-> **Язык / Language:** [Русский](typed_memory_model.ru.md) · [English](typed_memory_model.en.md) · [Original / Исходник](typed_memory_model.md)
+> **Язык / Language:** [Русский](typed_memory_model.ru.md) · [English](typed_memory_model.en.md) · [Original / Оригинал](typed_memory_model.md)
 >
 > **Область:** сверены диапазоны и правила в исходном документе. Это не самостоятельная проверка руководств Yaskawa, прошивок или физической конфигурации робота. `CIOPRG.LST`/`IONAME.DAT` — только чтение; HSES/FTP, native writer и deployment — **BLOCKED**; OEMBench — **NOT RUN**.
 
