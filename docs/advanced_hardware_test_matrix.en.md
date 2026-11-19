@@ -1,7 +1,7 @@
 <!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against advanced_hardware_test_matrix.md -->
 > **Language / Язык:** [English](advanced_hardware_test_matrix.en.md) · [Русский](advanced_hardware_test_matrix.ru.md) · [Original](advanced_hardware_test_matrix.md)
 >
-> **Safety/evidence:** This is a **not-yet-executed OEM bench test matrix**. Expected values are *manual-model predictions*, not measured DX100/DX200/YRC1000 outputs. `OEMBench=NOT RUN`; HSES/FTP, native CIO export and deployment **BLOCKED**.
+> **Safety/evidence:** This is a **not-yet-executed OEM bench test matrix**: original `CIOPRG.LST` and `IONAME.DAT` must remain read-only. Expected values are *manual-model predictions*, not measured DX100/DX200/YRC1000 outputs. `OEMBench=NOT RUN`; HSES/FTP, native CIO export and deployment **BLOCKED**.
 
 # MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
