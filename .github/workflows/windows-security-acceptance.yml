@@ -1,34 +1,10 @@
 name: MLAD Windows Acceptance & Security Regression
 
+# Called by the always-running MLAD validation workflow after the scope job
+# decides which checks apply. Manual dispatch stays available for lab checks.
+# Do not add PR/push path filters here; the ci-gate must see its result.
 on:
-  pull_request:
-    branches: [main]
-    # Documentation/i18n scripts are validated by the always-running Linux
-    # frontend-build job. They do not require a multi-minute Windows EXE.
-    paths:
-      - "src-tauri/**"
-      - "src/**"
-      - "scripts/offline-boundary.test.mjs"
-      - "scripts/native-workspace.test.mjs"
-      - "scripts/windows-security-contract.test.mjs"
-      - "scripts/windows-acceptance.ps1"
-      - "package.json"
-      - "package-lock.json"
-      - "LICENSE"
-      - ".github/workflows/windows-security-acceptance.yml"
-  push:
-    branches: [main]
-    paths:
-      - "src-tauri/**"
-      - "src/**"
-      - "scripts/offline-boundary.test.mjs"
-      - "scripts/native-workspace.test.mjs"
-      - "scripts/windows-security-contract.test.mjs"
-      - "scripts/windows-acceptance.ps1"
-      - "package.json"
-      - "package-lock.json"
-      - "LICENSE"
-      - ".github/workflows/windows-security-acceptance.yml"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
