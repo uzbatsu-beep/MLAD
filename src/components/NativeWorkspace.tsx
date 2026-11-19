@@ -317,6 +317,7 @@ export function NativeWorkspace() {
   const [sourceFilterBusy,setSourceFilterBusy]=useState(false);
   const nativeRequestEpoch=useRef(0);
   const activeSourceLineRef=useRef<HTMLButtonElement|null>(null);
+  const selectedDiagnosticsRef=useRef<HTMLDivElement|null>(null);
   const [filter,setFilter]=useState<"all"|"Error"|"Warning">("all");
   const [groupedDiagnostics,setGroupedDiagnostics]=useState(true);
   const [json,setJson]=useState("");
@@ -372,6 +373,13 @@ export function NativeWorkspace() {
     ].filter(x=>filter==="all"||x.severity===filter).sort((a,b)=>a.line-b.line);
   },[report,filter]);
   const diagnosticGroups=useMemo(()=>groupDiagnostics(diags),[diags]);
+  const selectedLineDiagnostics=useMemo(()=>{
+    if(!report||selectedLine===null)return [];
+    return [
+      ...report.diagnostics.map(d=>({severity:d.severity,line:d.line,code:d.code,message:d.message})),
+      ...report.semantic.diagnostics.map(d=>({severity:d.level,line:d.line,code:d.code,message:d.message})),
+    ].filter(d=>d.line===selectedLine).slice(0,20);
+  },[report,selectedLine]);
 
   async function openSource(selectedPath:string=path){
     const epoch=++nativeRequestEpoch.current;
@@ -763,6 +771,10 @@ export function NativeWorkspace() {
                 onClick={()=>{setSelectedBlockLine(selectedRelatedBlock.line);setTab("blocks");}}>
                 К блоку L{selectedRelatedBlock.line} ↗
               </button>}
+              {selectedLine!==null&&<button type="button" style={btn}
+                onClick={()=>selectedDiagnosticsRef.current?.scrollIntoView({block:"nearest",behavior:"smooth"})}>
+                Диагностика L{selectedLine} ({selectedLineDiagnostics.length}) ↗
+              </button>}
               {pageBusy&&<span>Чтение страницы…</span>}
             </div>
             <div style={{flex:1,minHeight:0,overflow:"auto",fontFamily:"Consolas,monospace",
@@ -927,6 +939,21 @@ export function NativeWorkspace() {
         </section>
         <aside style={{...sideStyle,borderRight:0,borderLeft:"1px solid #405263"}}
           aria-label="Диагностика и поиск">
+          {selectedLine!==null&&<div ref={selectedDiagnosticsRef}
+            aria-label="Диагностика выбранной строки"
+            style={{marginBottom:12,padding:9,border:"1px solid #577276",borderRadius:5,background:"#19323a"}}>
+            <strong>Диагностика L{selectedLine} ({selectedLineDiagnostics.length})</strong>
+            {selectedLineDiagnostics.map((d,i)=><div key={i} style={{fontSize:11,marginTop:5}}>
+              <b style={{color:d.severity==="Error"?"#f4a8ad":"#e4bd80"}}>{d.code}</b>
+              <div>{d.message}</div>
+            </div>)}
+            {!selectedLineDiagnostics.length&&<small>
+              В доступном preview диагностики для строки нет; полная фильтрация неизвестных конструкций доступна ниже.
+            </small>}
+            {(report.diagnostics.length>=500||report.semantic.diagnostics_truncated)&&<small>
+              Список диагностики ограничен, отсутствие сообщения не означает подтверждение синтаксиса.
+            </small>}
+          </div>}
           <section aria-label="Типизированные инструкции" style={{
             marginBottom:12,padding:9,border:"1px solid #46617d",borderRadius:5,
             background:"#1b2a3a",fontSize:12,
