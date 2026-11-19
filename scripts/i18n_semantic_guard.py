@@ -173,6 +173,20 @@ def main() -> None:
                 if not any(marker in text for marker in DRAFT_MARKERS):
                     failures.append(f"{target}: unreviewed machine draft lacks warning")
 
+    # Match the published per-file review matrix, not just aggregate counts.
+    coverage = (ROOT / "docs/translation_coverage.md").read_text(encoding="utf-8")
+    for src in found:
+        name = src.as_posix()
+        row = next((line for line in coverage.splitlines()
+                    if line.startswith(f"| [{name}](")), None)
+        ru_state = "SourceAligned" if name in SOURCE_ALIGNED_RU else (
+            "EditorialPass" if name in EDITORIAL_RU else "MachineDraft")
+        en_state = "EditorialPass" if name in EDITORIAL_EN else "MachineDraft"
+        if row is None or not row.rstrip().endswith(
+            f"| {ru_state} | {en_state} |"
+        ):
+            failures.append(f"{name}: translation_coverage.md quality row is missing or stale")
+
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
     if (count_ru, count_ru_editorial, count_en, drafts) != (27, 6, 14, 59):
