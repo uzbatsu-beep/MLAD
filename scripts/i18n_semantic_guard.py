@@ -45,7 +45,7 @@ SOURCE_ALIGNED_RU = {
     "docs/controller_fixture_intake.md",
 }
 
-EDITORIAL_EN = {"README.md", "docs/README.md", "SECURITY.md", "docs/engineering_decisions.md", "docs/roadmap.md"}
+EDITORIAL_EN = {"README.md", "docs/README.md", "SECURITY.md", "docs/engineering_decisions.md", "docs/roadmap.md", "docs/verification_gates.md"}
 
 EN_RELEASE_NEGATION = re.compile(
     r"(?:does\s+not\s+(?:include|contain)|(?:not|never)\s+included)"
@@ -133,7 +133,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_en, drafts) != (27, 5, 74):
+    if (count_ru, count_en, drafts) != (27, 6, 73):
         failures.append(f"incorrect review totals: ru={count_ru}, en={count_en}, drafts={drafts}")
 
     if failures:
