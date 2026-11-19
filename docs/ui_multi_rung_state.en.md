@@ -1,13 +1,13 @@
-<!-- Generated en companion for docs/ui_multi_rung_state.md; review required. -->
-> **English** · [Русский](ui_multi_rung_state.ru.md) · [English](ui_multi_rung_state.en.md) · [Original / Оригинал](ui_multi_rung_state.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against ui_multi_rung_state.md -->
+> **Language / Язык:** [English](ui_multi_rung_state.en.md) · [Русский](ui_multi_rung_state.ru.md) · [Original](ui_multi_rung_state.md)
+>
+> **Evidence:** Green/red/gray are manually controlled **OFFLINE** truth values, **not** energized wires, measured I/O, interlock or safety status. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; independent UserSmoke/OEMBench **NOT RUN**.
 
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 
-> **Status and applicability:** document captures OFFLINE tri-state and UI behavior PR #7/#8/#16/#17. Common. `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and the levels of inspection are reflected in [project_status.md](project_status.en.md). This UI is a live I/O or physical safety indicator.
+> **Status and applicability:** this document records OFFLINE tri-state display and UI behavior from PR #7/#8/#16/#17. For the status of `main` after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent validation levels, see [project_status.md](project_status.en.md). **This UI is NOT live I/O and NOT a physical safety-status indicator.**
 
-**Status (18.11.2026):** PR #7/#8 merged; PR #16/#17 added native multi-rung and independent scale. The document describes primarily **OFFLINE** visual states, not live I/O.
+**Status (18 November 2026):** PR #7/#8 merged; PR #16/#17 added native multiple-rung viewing and independent zoom. This document covers **OFFLINE** display states, **not** live I/O.
 
 ## User-reported issues (Windows Bench v0.5.0-rc.1)
 
@@ -86,9 +86,9 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 Windows GUI smoke tests are **not** part of static CI. PR #7/PR #8 preview artifacts are historical GitHub Actions artifacts with limited retention; use a current Windows build to repeat manual acceptance. UI screenshots and user feedback establish visibility of chains and blocks but do **not** establish controller behavior.
 
 
-## After PR #8How to choose and edit
+## After PR #8: selecting and editing
 
-- **One click selects the contact/block; the color of the state is determined separately, not by highlighting.
-- **Double click / F2** to the address in the JSON draft opens inline input; Enter saves, Esc cancels. You cannot edit the original scheme. `CIOPRG.LST`.
-- In Advanced blocks, a change in address/specification removes the previous manual sample; it returns to UNKNOWN rather than showing in outdated green.
-- Detailed scenarios: [inline_address_editing.md](inline_address_editing.en.md).
+- **Single click** selects a contact or block; selection highlighting is separate from the state color.
+- **Double-click / F2** on an address in a **JSON draft** opens inline editing; Enter commits the draft change, Esc cancels. The original `CIOPRG.LST` is never editable.
+- In Advanced blocks, editing an address or preset invalidates the previous manually calculated sample and returns the block to UNKNOWN, rather than leaving a stale green indication.
+- See [inline_address_editing.md](inline_address_editing.en.md) for detailed interactions.
