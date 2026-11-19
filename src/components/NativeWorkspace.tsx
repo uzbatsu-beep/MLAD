@@ -376,7 +376,8 @@ export function NativeWorkspace() {
   async function openSource(selectedPath:string=path){
     const epoch=++nativeRequestEpoch.current;
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
-    setSourceFilterResult(null);
+    setSourceFilterResult(null);setSourceFilterBusy(false);
+    setSearchBusy(false);setPageBusy(false);
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
       if(epoch!==nativeRequestEpoch.current)return;
@@ -683,23 +684,33 @@ export function NativeWorkspace() {
           <p style={{fontSize:11,color:"#d2b484"}}>
             PART — только текстовая метка, не право записи в System/User
           </p>
-          {report.sections.map((s,i)=><button key={i} type="button" style={itemStyle}
+          {report.sections.slice(0,160).map((s,i)=><button key={i} type="button" style={itemStyle}
             title={s.label+" · строка "+s.line} onClick={()=>void showLine(s.line)}>
             {s.category==="Part"?"▸ ":"· "}{s.label} <small>L{s.line}</small>
           </button>)}
+          {report.sections.length>160&&<small style={{color:"#e4bd80"}}>
+            Показано 160 меток из {report.sections.length}; полный исходник доступен по номеру строки.
+          </small>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <strong>Логические цепи ({report.semantic.rung_count})</strong>
-          {report.semantic.rungs.map(r=><button type="button" key={r.number} style={itemStyle}
-            onClick={()=>{setRung(r.number);setTab("diagram");}}>
+          {report.semantic.rungs.map(r=><button type="button" key={r.number}
+            style={{...itemStyle,background:rung===r.number?"#294c4c":"transparent"}}
+            aria-current={rung===r.number?"true":undefined}
+            onClick={()=>{setRung(r.number);setSelectedLine(r.first_line);setTab("diagram");}}>
             R{r.number} · OUT {relayText(r.output)}
           </button>)}
           {report.semantic.rungs_truncated&&<small>Список цепей ограничен</small>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <strong>Функциональные блоки</strong>
-          {report.advanced.blocks.map(b=><button type="button" style={itemStyle} key={b.line}
-            onClick={()=>{setTab("blocks");setSelectedLine(b.line);}}>
+          {report.advanced.blocks.map(b=><button type="button"
+            style={{...itemStyle,background:selectedBlockLine===b.line?"#294c4c":"transparent"}}
+            aria-current={selectedBlockLine===b.line?"true":undefined} key={b.line}
+            onClick={()=>{setSelectedBlockLine(b.line);setTab("blocks");setSelectedLine(b.line);}}>
             {b.kind} · L{b.line}
           </button>)}
+          {report.advanced.blocks_truncated&&<small style={{color:"#e4bd80"}}>
+            Список блоков ограничен предпросмотром; остальные доступны в исходном тексте.
+          </small>}
         </aside>
         <section aria-label="Рабочее поле CIOPRG" style={{
           display:"flex",flexDirection:"column",minWidth:0,minHeight:0,background:"#0f1923",
@@ -712,7 +723,7 @@ export function NativeWorkspace() {
               {tabButton("ioname","Имена I/O"+(ioname?" ("+ioname.entries.length+")":""))}
             </div>
             {tab==="diagram"&&<div role="group" aria-label="Масштаб Ladder" className="native-context-actions">
-              <strong>Все цепи ({visibleRungs.length})</strong>
+              <strong>Все цепи ({report.semantic.rung_count}) · выбрана R{rung}</strong>
               <button type="button" style={btn} aria-label="Уменьшить масштаб Ladder"
                 onClick={()=>setZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
               <span aria-live="polite">{Math.round(zoom*100)}%</span>
@@ -721,7 +732,7 @@ export function NativeWorkspace() {
               <button type="button" style={btn} onClick={()=>setZoom(1)}>100%</button>
             </div>}
             {tab==="blocks"&&<div role="group" aria-label="Масштаб TMR CNT GSTR" className="native-context-actions">
-              <strong>Все блоки ({report.advanced.blocks.length})</strong>
+              <strong>Все блоки ({report.advanced.blocks.length}) · выбран L{selectedBlockLine??"—"}</strong>
               <button type="button" style={btn} aria-label="Уменьшить масштаб блоков"
                 onClick={()=>setBlockZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
               <span aria-live="polite">{Math.round(blockZoom*100)}%</span>
@@ -744,11 +755,33 @@ export function NativeWorkspace() {
                 style={{...field,width:80}} placeholder="Строка"/>
               <button type="button" style={btn} onClick={()=>void showLine(Number(goto))}
                 disabled={pageBusy}>Перейти</button>
+              {selectedRung&&<button type="button" style={btn}
+                onClick={()=>{setRung(selectedRung.number);setTab("diagram");}}>
+                К цепи R{selectedRung.number} ↗
+              </button>}
+              {selectedRelatedBlock&&<button type="button" style={btn}
+                onClick={()=>{setSelectedBlockLine(selectedRelatedBlock.line);setTab("blocks");}}>
+                К блоку L{selectedRelatedBlock.line} ↗
+              </button>}
               {pageBusy&&<span>Чтение страницы…</span>}
             </div>
             <div style={{flex:1,minHeight:0,overflow:"auto",fontFamily:"Consolas,monospace",
               fontSize:12,lineHeight:1.7,padding:"8px 12px"}}>
-              {pageLines.map(l=><button type="button" key={l.line} onClick={()=>setSelectedLine(l.line)}
+              {pageLines.map(l=><button type="button" key={l.line}
+                ref={element=>{if(selectedLine===l.line)activeSourceLineRef.current=element;}}
+                aria-current={selectedLine===l.line?"true":undefined}
+                onClick={()=>setSelectedLine(l.line)}
+                onKeyDown={event=>{
+                  const next=event.key==="ArrowDown"?l.line+1:
+                    event.key==="ArrowUp"?l.line-1:
+                    event.key==="PageDown"?l.line+PAGE_SIZE:
+                    event.key==="PageUp"?l.line-PAGE_SIZE:
+                    event.key==="Home"?1:event.key==="End"?report.line_count:null;
+                  if(next!==null){
+                    event.preventDefault();
+                    void showLine(Math.max(1,Math.min(report.line_count,next)));
+                  }
+                }}
                 title={"Byte offset: "+l.body_span.start+"–"+l.body_span.end}
                 style={{display:"flex",gap:10,whiteSpace:"pre",width:"max-content",minWidth:"100%",
                   textAlign:"left",font:"inherit",padding:"0 4px",border:0,cursor:"pointer",
@@ -763,12 +796,13 @@ export function NativeWorkspace() {
               </button>)}
             </div>
             <div style={{fontSize:11,color:"#a9c0cb",padding:"5px 12px",borderTop:"1px solid #35485b"}}>
-              Полный исходник по страницам · нет операций редактирования или сохранения
+              Стрелки ↑/↓ · PageUp/PageDown · Home/End · полный исходник по страницам · только чтение
             </div>
           </>}
           {tab==="diagram"&&<div style={{overflow:"auto",flex:1,padding:15}}>
             <p style={{color:"#e4bd80",fontSize:12}}>
-              Все цепи, доступные в ограниченном Semantic AST. Неизвестные команды не преобразуются в предполагаемую схему.
+              Только выбранная цепь из ограниченного Semantic AST — крупные документы не рендерятся целиком.
+              Неизвестные команды не преобразуются в предполагаемую схему.
               Двойной щелчок по заголовку цепи или адресам изменяет только локальный комментарий.
             </p>
             {visibleRungs.map(({rung:current,expr,error})=>{
@@ -813,7 +847,7 @@ export function NativeWorkspace() {
             <p style={{color:"#e4bd80",fontSize:12}}>
               Визуализируются только подтверждённые простые топологии. Остальные доступны в исходнике.
             </p>
-            {report.advanced.blocks.map(b=>{
+            {(activeBlock?[activeBlock]:[]).map(b=>{
               const overlay=toReadOnlyAdvanced(b);
               return <div style={{...panel,marginBottom:12}} key={b.line}>
                 <div style={{display:"flex",gap:10,alignItems:"center",
@@ -829,6 +863,7 @@ export function NativeWorkspace() {
               </div>;
             })}
             {!report.advanced.blocks.length&&<p>Поддерживаемые блоки не найдены.</p>}
+            {report.advanced.blocks.length>0&&!activeBlock&&<p>Выберите блок в дереве слева.</p>}
             {report.advanced.blocks_truncated&&<p>Предпросмотр блоков ограничен.</p>}
           </div>}
           {tab==="ioname"&&<div style={{flex:1,overflow:"auto",padding:15}}>
