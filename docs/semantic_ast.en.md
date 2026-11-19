@@ -1,11 +1,11 @@
-<!-- Generated en companion for docs/semantic_ast.md; review required. -->
-> **English** · [Русский](semantic_ast.ru.md) · [English](semantic_ast.en.md) · [Original / Оригинал](semantic_ast.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against semantic_ast.md -->
+> **Language / Язык:** [English](semantic_ast.en.md) · [Русский](semantic_ast.ru.md) · [Original](semantic_ast.md)
+>
+> **Evidence:** Static analysis of a **limited Boolean subset**, not the actual controller scan. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
-# Semantic AST & Ladder Logic Analyzer — PR #3updating after PR #21
+# Semantic AST & Ladder Logic Analyzer — PR #3, updated after PR #21
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not give permission to a native writer, HSES or perform a scan from the specification described herein.
+> **Status and applicability:** this document covers the limited implementation subset and evidence available by PR #21, **not** the final development stage of MLAD. See [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM evidence levels. This is **not** permission for a native writer, HSES or real controller scan execution.
 
 **Scope (18.11.2026):** DX100, DX200, YRC1000 Concurrent I/O, **offline read-only** analysis of documented boolean mnemonics. This is **not** a controller emulator, full CIO compiler, hardware authorization tool, or proof of a valid editable User Ladder program.
 
@@ -127,12 +127,12 @@ This evaluates **the condition alone**, not the robot's scan order, output owner
 
 The new `src-tauri/src/compiler/semantic/tests.rs` includes representative examples for series/parallel expressions, negated contacts, nested stacks, missing STR, unbalanced branches, double coils across PART boundaries, invalid writes, self/mutual feedback, unknown-opcode barriers, grouped output overlaps, cross-reference spans, three-valued evaluation, resource guards and immutable original bytes.
 
-PR #3 already drained `main`. With further changes in the analyzer, Rust regression tests, frontend checks and separate approval of the new PR are required. Old text on merger authorization PR #3 It's no longer relevant.
+PR #3 has already been merged into `main`. Subsequent analyzer changes require Rust regression tests, frontend checks and a **separate owner approval for each PR**. The old PR #3 merge-authorization wording is no longer applicable.
 
 
 ## 9. Evolution after PR #3
 
-- **PR #5** added a separate `advanced_source.rs`, which shows limited typical TMR/CNT/GSTR/GOUT sequences. **Boolean AST is not a full-fledged interpreter of stateful instructions.**
-- **PR #7** added offline lighting of all chains manually `TRUE/FALSE/UNKNOWN` It's not a telemetry or a real scan calculation.
-- **PR #8** Added address editing to **JSON diagrams**, but not in the original `CIOPRG.LST`.
-- Continuation requires [original](controller_fixture_intake.en.md)An independent OEM editor and more complete semantics. See. [architecture](architecture.en.md).
+- **PR #5** added `advanced_source.rs` for narrow, typical TMR/CNT/GSTR/GOUT sequences. The Boolean AST **did not become a complete interpreter for stateful instructions**.
+- **PR #7** added OFFLINE highlighting for all rungs based on manually supplied `TRUE/FALSE/UNKNOWN` values. This is **not** telemetry or real controller scan computation.
+- **PR #8** enabled operand-address editing in **JSON diagrams only**, **not** the original `CIOPRG.LST`.
+- Further work requires [authorized original files](controller_fixture_intake.en.md), an independent OEM Ladder Editor and more complete semantics. See [architecture](architecture.en.md).
