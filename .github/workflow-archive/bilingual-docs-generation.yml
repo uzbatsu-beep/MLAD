@@ -1,0 +1,79 @@
+name: MLAD — Offline bilingual RU/EN documentation generation
+
+on:
+  push:
+    branches: [docs/pr31-bilingual-ru-en]
+    paths:
+      - scripts/i18n_translate.py
+      - scripts/i18n_assemble.py
+      - scripts/i18n_verify.py
+      - .github/workflows/bilingual-docs-generation.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mlad-i18n-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  translate:
+    name: Translate shard ${{ matrix.shard }} of 4 (offline RU/EN)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install open-source offline translation engine (no document upload)
+        run: python -m pip install --disable-pip-version-check argostranslate==1.11.0
+      - name: Translate source Markdown preserving code fences and links
+        run: python scripts/i18n_translate.py --shard ${{ matrix.shard }} --total 4 --output _i18n_staging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bilingual-shard-${{ matrix.shard }}
+          path: _i18n_staging/
+          retention-days: 2
+          if-no-files-found: error
+          include-hidden-files: true
+
+  assemble:
+    name: Assemble bilingual files and validate source fidelity
+    needs: translate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bilingual-shard-*
+          path: _i18n_staging/
+          merge-multiple: true
+      - name: Assemble localized Markdown and add language navigation
+        run: python scripts/i18n_assemble.py
+      - name: Reject incomplete pairs or modified fenced code blocks
+        run: python scripts/i18n_verify.py
+      - name: Verify all local Markdown links
+        run: npm run docs:check
+      - name: Commit translated Markdown to documentation branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          find . -type f -name '*.md' ! -path './_i18n_staging/*' ! -path './node_modules/*' -print0 | xargs -0 git add --
+          if git diff --cached --quiet; then
+            echo "No Markdown differences generated"
+          else
+            git commit -m "docs(i18n): generate RU and EN companions for all source Markdown"
+            git push origin HEAD:docs/pr31-bilingual-ru-en
+          fi
