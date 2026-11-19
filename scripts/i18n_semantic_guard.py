@@ -45,7 +45,36 @@ SOURCE_ALIGNED_RU = {
     "docs/controller_fixture_intake.md",
 }
 
-EDITORIAL_EN = {"README.md", "docs/README.md", "SECURITY.md", "docs/engineering_decisions.md", "docs/roadmap.md", "docs/verification_gates.md"}
+EDITORIAL_RU = {
+    "docs/cioprg_lst_spec.md",
+    "docs/typed_memory_model.md",
+    "docs/advanced_blocks.md",
+    "docs/advanced_hardware_test_matrix.md",
+    "docs/typed_opcode_grammar.md",
+    "docs/cioprg_lossless_parser.md",
+}
+EDITORIAL_EN = {
+    "README.md", "docs/README.md", "SECURITY.md",
+    "docs/engineering_decisions.md", "docs/roadmap.md",
+    "docs/verification_gates.md",
+    "docs/cioprg_lst_spec.md", "docs/typed_memory_model.md",
+    "docs/advanced_blocks.md", "docs/advanced_hardware_test_matrix.md",
+    "docs/typed_opcode_grammar.md", "docs/cioprg_lossless_parser.md",
+    "docs/oem_5_opcode_analysis.md", "docs/semantic_verification_matrix.md",
+}
+
+# Terms that may never be weakened by editorial translations. The set is
+# intentionally small and documentation-specific, not an OEM approval.
+CRITICAL_REVIEW_MARKERS = {
+    "docs/cioprg_lst_spec.md": ("//$M", "System", "User", "PART", "END"),
+    "docs/typed_memory_model.md": ("#82010", "#87010", "#25010", "#37010", "M000–M999"),
+    "docs/advanced_blocks.md": ("TMR", "CNT", "GSTR", "GOUT", "100"),
+    "docs/advanced_hardware_test_matrix.md": ("T-01", "C-01", "B-01", "N-01", "OEMBench"),
+    "docs/typed_opcode_grammar.md": ("TypedCandidate", "syntax_valid=true", "semantics_verified=false"),
+    "docs/cioprg_lossless_parser.md": ("SHA-256", "//$M", "System", "User", "false"),
+    "docs/oem_5_opcode_analysis.md": ("MOV", "ADD", "SUB", "SHL", "SHR", "256"),
+    "docs/semantic_verification_matrix.md": ("ManualDerived", "TypedCandidate", "semantics_verified=false"),
+}
 
 EN_RELEASE_NEGATION = re.compile(
     r"(?:does\s+not\s+(?:include|contain)|(?:not|never)\s+included)"
@@ -89,6 +118,7 @@ def canonical_body(localized_text: str, original: str) -> str:
 def main() -> None:
     failures = []
     count_ru = 0
+    count_ru_editorial = 0
     count_en = 0
     drafts = 0
     found = sources()
@@ -114,6 +144,15 @@ def main() -> None:
                         failures.append(f"{target}: source-aligned Russian content diverged")
                 except ValueError as err:
                     failures.append(f"{target}: {err}")
+            elif src.as_posix() in EDITORIAL_RU and lang == "ru":
+                count_ru_editorial += 1
+                if "MLAD-I18N:EDITORIAL" not in text:
+                    failures.append(f"{target}: missing Russian editorial provenance")
+                if any(tag not in text for tag in ("CIOPRG.LST", "BLOCKED", "NOT RUN")):
+                    failures.append(f"{target}: missing mandatory native/safety boundary")
+                for expected in CRITICAL_REVIEW_MARKERS.get(src.as_posix(), ()):
+                    if expected not in text:
+                        failures.append(f"{target}: missing critical source token {expected!r}")
             elif src.as_posix() in EDITORIAL_EN and lang == "en":
                 count_en += 1
                 if "MLAD-I18N:EDITORIAL" not in text:
@@ -126,6 +165,9 @@ def main() -> None:
                     failures.append(f"{target}: immutable source identifiers missing")
                 if any(bad in text for bad in UNSAFE_EN):
                     failures.append(f"{target}: known damaged English technical phrase present")
+                for expected in CRITICAL_REVIEW_MARKERS.get(src.as_posix(), ()):
+                    if expected not in text:
+                        failures.append(f"{target}: missing critical source token {expected!r}")
             else:
                 drafts += 1
                 if not any(marker in text for marker in DRAFT_MARKERS):
@@ -133,8 +175,8 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_en, drafts) != (27, 6, 73):
-        failures.append(f"incorrect review totals: ru={count_ru}, en={count_en}, drafts={drafts}")
+    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 6, 14, 59):
+        failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:
         for problem in failures:
@@ -143,7 +185,8 @@ def main() -> None:
 
     print(
         f"I18N semantic guard OK: {len(found)} source docs / {len(found)*2} companions; "
-        f"{count_ru} Russian source-aligned, {count_en} English editorial, "
+        f"{count_ru} Russian source-aligned, {count_ru_editorial} Russian editorial, "
+        f"{count_en} English editorial, "
         f"{drafts} explicitly unreviewed machine drafts."
     )
     print("Structural/semantic guard != bilingual engineering validation or OEM certification.")
