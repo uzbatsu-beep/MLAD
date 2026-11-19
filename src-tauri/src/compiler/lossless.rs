@@ -92,6 +92,77 @@ pub enum LineKind {
     PostEndOpaque,
 }
 
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum SyntaxClass {
+    // Shape of source text only; NEVER controller execution verification.
+    Recognized,
+    TypedCandidate,
+    Unsupported,
+    Malformed,
+    Opaque,
+    PostEndData,
+    Structural,
+}
+impl SyntaxClass {
+    pub fn of(kind: &LineKind) -> Self {
+        match kind {
+            LineKind::Instruction(inst) if inst.syntax_valid => Self::Recognized,
+            LineKind::Instruction(_) => Self::Malformed,
+            LineKind::TypedCandidate { instruction, .. } if instruction.syntax_valid => Self::TypedCandidate,
+            LineKind::TypedCandidate { .. } => Self::Malformed,
+            LineKind::UnsupportedInstruction { .. } => Self::Unsupported,
+            LineKind::Opaque | LineKind::PostEndOpaque => Self::Opaque,
+            LineKind::PostEndSection { .. } | LineKind::PostEndData => Self::PostEndData,
+            LineKind::MHeaderRow { valid: false, .. } => Self::Malformed,
+            LineKind::Empty | LineKind::Comment | LineKind::Directive |
+                LineKind::MHeaderRow { valid: true, .. } => Self::Structural,
+        }
+    }
+}
+
+/// Exactly one class per physical line; NOT OEM grammar coverage.
+#[derive(Debug, Clone, Serialize)]
+pub struct SyntaxCoverage {
+    pub total_lines: usize,
+    pub recognized: usize,
+    pub typed_candidate: usize,
+    pub unsupported: usize,
+    pub malformed: usize,
+    pub opaque: usize,
+    pub post_end_data: usize,
+    pub structural: usize,
+    pub all_source_lines_counted: bool,
+    pub semantics_verified: bool,
+}
+impl SyntaxCoverage {
+    pub fn from_lines(lines: &[SourceLine]) -> Self {
+        let mut result = Self {
+            total_lines: lines.len(),
+            recognized: 0, typed_candidate: 0, unsupported: 0,
+            malformed: 0, opaque: 0, post_end_data: 0, structural: 0,
+            all_source_lines_counted: true, semantics_verified: false,
+        };
+        for line in lines {
+            match SyntaxClass::of(&line.kind) {
+                SyntaxClass::Recognized => result.recognized += 1,
+                SyntaxClass::TypedCandidate => result.typed_candidate += 1,
+                SyntaxClass::Unsupported => result.unsupported += 1,
+                SyntaxClass::Malformed => result.malformed += 1,
+                SyntaxClass::Opaque => result.opaque += 1,
+                SyntaxClass::PostEndData => result.post_end_data += 1,
+                SyntaxClass::Structural => result.structural += 1,
+            }
+        }
+        debug_assert_eq!(
+            result.recognized + result.typed_candidate + result.unsupported +
+            result.malformed + result.opaque + result.post_end_data + result.structural,
+            result.total_lines
+        );
+        result
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct SourceLine {
     /// One-based line number, stable within this snapshot.
@@ -126,6 +197,7 @@ pub struct LosslessDocument {
 #[derive(Debug, Clone, Serialize)]
 pub struct LinePreview {
     pub line: usize,
+    pub syntax_class: SyntaxClass,
     pub ending: LineEnding,
     pub body_span: ByteSpan,
     pub kind: LineKind,
@@ -140,6 +212,7 @@ pub struct InspectionReport {
     pub byte_length: usize,
     pub source_sha256: String,
     pub line_count: usize,
+    pub syntax_coverage: SyntaxCoverage,
     pub recognized_instructions: usize,
     pub typed_candidate_count: usize,
     pub typed_valid_forms: usize,
@@ -170,6 +243,7 @@ impl LosslessDocument {
     pub fn line_preview_range(&self, start_line: usize, limit: usize) -> Vec<LinePreview> {
         self.lines.iter().skip(start_line.saturating_sub(1)).take(limit).map(|l| LinePreview {
             line: l.number,
+            syntax_class: SyntaxClass::of(&l.kind),
             ending: l.ending,
             body_span: l.body_span,
             kind: l.kind.clone(),
@@ -217,6 +291,7 @@ impl LosslessDocument {
             byte_length: self.raw.len(),
             source_sha256: self.source_sha256.clone(),
             line_count: self.lines.len(),
+            syntax_coverage: SyntaxCoverage::from_lines(&self.lines),
             recognized_instructions,
             typed_candidate_count,
             typed_valid_forms,
