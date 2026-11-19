@@ -3,27 +3,41 @@ name: MLAD Windows Acceptance & Security Regression
 on:
   pull_request:
     branches: [main]
+    # Documentation/i18n scripts are validated by the always-running Linux
+    # frontend-build job. They do not require a multi-minute Windows EXE.
     paths:
       - "src-tauri/**"
       - "src/**"
-      - "scripts/**"
+      - "scripts/offline-boundary.test.mjs"
+      - "scripts/native-workspace.test.mjs"
+      - "scripts/windows-security-contract.test.mjs"
+      - "scripts/windows-acceptance.ps1"
       - "package.json"
       - "package-lock.json"
+      - "LICENSE"
       - ".github/workflows/windows-security-acceptance.yml"
-      - "docs/windows_acceptance_pr28.md"
   push:
     branches: [main]
     paths:
       - "src-tauri/**"
       - "src/**"
-      - "scripts/**"
+      - "scripts/offline-boundary.test.mjs"
+      - "scripts/native-workspace.test.mjs"
+      - "scripts/windows-security-contract.test.mjs"
+      - "scripts/windows-acceptance.ps1"
       - "package.json"
       - "package-lock.json"
+      - "LICENSE"
       - ".github/workflows/windows-security-acceptance.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# Cancel an obsolete PR check but never cancel unrelated PRs or main pushes.
+concurrency:
+  group: windows-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   windows-security:
@@ -69,8 +83,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Native workspace tests failed" }
           npm run docs:check
           if ($LASTEXITCODE -ne 0) { throw "Markdown checks failed" }
-          npm run build
-          if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
+          # Do not run npm run build here: Tauri beforeBuildCommand runs it
+          # once during the production EXE build below; Linux CI checks it too.
 
       - name: All Rust tests on actual Windows NTFS
         run: cargo test --manifest-path src-tauri/Cargo.toml --locked
