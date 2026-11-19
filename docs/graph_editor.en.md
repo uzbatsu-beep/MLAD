@@ -46,7 +46,7 @@ Neither `PART 1` / `PART 2` markers nor a successful semantic graph imply that *
 - `kind=and` means series contacts; `kind=or` means parallel branches. A contact is NO or NC.
 - Each expression is a *binary tree*, not a raw flat `Vec<Instruction>`.
 - Stable unique IDs support selecting a contact and editing the expression without accidental changes elsewhere.
-- Controls: add rung, remove rung (confirmation), select contact, insert AND/OR branch, toggle NC, edit address/coil/comment, delete contact (promote sibling), undo and redo. Zoom and scroll support large diagrams.
+- Controls: add rung, remove rung (confirmation), select contact, insert AND/OR branch, toggle NC, edit address/coil/comment, delete contact (promote sibling), undo and redo (Undo/Redo). Zoom and scroll support large diagrams.
 - The frontend `src/ladder/graphModel.ts` contains pure immutable updates, AST conversion and a bounded, deterministic SVG layout. The renderer `src/components/LadderCircuit.tsx` displays electrical-style series and parallel wiring and a coil. Since PR #7 it shows all rungs together and colors contacts/coils by explicit `TRUE/FALSE/UNKNOWN` offline test values, **without live power-state claims**. Since PR #8 editable JSON diagrams support **double-click/F2** on contact/OUT addresses, Enter to save and Esc to cancel. The original `CIOPRG.LST` Inspector never receives edit callbacks.
 - An optional, clearly labelled **offline three-valued condition calculator** tests user-entered 0/1/unknown contacts; it does not simulate controller scan state, motion, robot safety or timers.
 - A Graph Workspace stays mounted when switching to the legacy tab, so unsaved changes are not lost by tab navigation.
