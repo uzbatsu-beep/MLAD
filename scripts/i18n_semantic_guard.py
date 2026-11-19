@@ -95,6 +95,18 @@ CRITICAL_REVIEW_MARKERS = {
     "docs/json_persistence_safety.md": ("draft_io::write_atomic", "create_new(true)", "sync_all", "rename", "File ID", "TOCTOU", "*.bak"),
 }
 
+# High-impact negative claims that cannot be recovered by preserving tokens
+# alone: each is checked for reviewed language/source pairs.
+CRITICAL_PROHIBITIONS = {
+    ("docs/graph_editor.md", "en"): ("JSON drafts only", "does not authorize native export"),
+    ("docs/graph_editor.md", "ru"): ("только JSON-черновик", "не разрешает"),
+    ("docs/ui_multi_rung_state.md", "en"): ("NOT live I/O", "not telemetry"),
+    ("docs/ui_multi_rung_state.md", "ru"): ("не является live I/O", "не телеметрия"),
+    ("docs/inline_address_editing.md", "en"): ("only in JSON drafts", "no access"),
+    ("docs/inline_address_editing.md", "ru"): ("только в JSON-черновиках", "не даёт доступа"),
+    ("docs/json_persistence_safety.md", "en"): ("No single atomic transaction", "still not guaranteed"),
+}
+
 EN_RELEASE_NEGATION = re.compile(
     r"(?:does\s+not\s+(?:include|contain)|(?:not|never)\s+included)"
     r".{0,35}PR\s*#24[–-]#29",
@@ -154,6 +166,9 @@ def main() -> None:
                 failures.append(f"{target}: missing companion")
                 continue
             text = full_path.read_text(encoding="utf-8")
+            for prohibition in CRITICAL_PROHIBITIONS.get((src.as_posix(), lang), ()):
+                if prohibition.casefold() not in text.casefold():
+                    failures.append(f"{target}: critical safety negation missing {prohibition!r}")
             if src.as_posix() in SOURCE_ALIGNED_RU and lang == "ru":
                 count_ru += 1
                 if "MLAD-I18N:EDITORIAL" not in text:
