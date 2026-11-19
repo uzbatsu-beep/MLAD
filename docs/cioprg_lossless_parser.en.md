@@ -1,13 +1,13 @@
-<!-- Generated en companion for docs/cioprg_lossless_parser.md; review required. -->
-> **English** · [Русский](cioprg_lossless_parser.ru.md) · [English](cioprg_lossless_parser.en.md) · [Original / Оригинал](cioprg_lossless_parser.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against cioprg_lossless_parser.md -->
+> **Language / Язык:** [English](cioprg_lossless_parser.en.md) · [Русский](cioprg_lossless_parser.ru.md) · [Original](cioprg_lossless_parser.md)
+>
+> **Boundary:** Exact-byte source inspection is **not** a verified native compiler. `CIOPRG.LST`/`IONAME.DAT` read-only, HSES/FTP/native writer/deployment **BLOCKED**, OEMBench **NOT RUN**.
 
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> **Status and applicability:** this is the constrained parser implementation and evidence available by PR #21; it **does not** mean that the whole project stopped at PR #21. For `main` after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM levels see [project status](project_status.en.md). This document authorizes **no** native writer, HSES or real controller scan execution.
 
-**Status after merged PR #21 (18.11.2026):** read-only inspection parser, vendor-compatible full-file recompiler **NOT implemented**. Controller models: DX100, DX200, YRC1000.
+**Status after merged PR #21 (18 November 2026):** a read-only inspection parser exists; a manufacturer-compatible complete native-file recompiler is **NOT implemented**. Controller profiles: DX100, DX200, YRC1000.
 
 ## Goals achieved
 
@@ -24,7 +24,7 @@ The parser maintains a complete sequence of lines with:
 - separate diagnostics for unsupported mnemonics and invalid operands;
 - an inspection summary with bounded UI preview and diagnostics.
 
-The `cmd_inspect_cioprg` Tauri command accepts a local `.LST` path and **explicit controller profile**, reads at most 16 MiB and returns a preview and diagnostics. It has **no write, edit, compile, HSES or FTP action**. The UI provides a read-only inspector under CIOPRG.LST”. The original `cmd_load_project` continues to reject `.LST` files: it returns the old editor-only JSON model, which cannot represent all source constructs.
+The `cmd_inspect_cioprg` Tauri command accepts a local `.LST` path and **explicit controller profile**, reads at most 16 MiB and returns a preview and diagnostics. It has **no write, edit, compile, HSES or FTP action**. The UI exposes the read-only "Inspect CIOPRG.LST" view. The original `cmd_load_project` continues to reject `.LST` files: it returns the old editor-only JSON model, which cannot represent all source constructs.
 
 ## Lexical recognition only
 
@@ -35,9 +35,9 @@ The `cmd_inspect_cioprg` Tauri command accepts a local `.LST` path and **explici
 | `//...` or `/...` | Directive | exact section semantics unverified |
 | `//$M` + 8 rows | Known header marker + row overlays | each row expected 10 integer text fields; never normalize values |
 | `STR`, `STR-NOT`, `AND`, `AND-NOT`, `OR`, `OR-NOT`, `OUT` | Typed bit-operand instruction | expects canonical `#XXXXX` with family-specific address validation |
-| `AND-STR`, `OR-STR` | Recognized structural opcode | zero operands; **lexer does not build execution graph; separate `semantic.rs` processes a confirmed Boolean subset* * |
-| `TMR`, `CNT` | Typed destination/source overlay | destination `Mxxx`, source `Mxxx` or unsigned decimal; **lexer does not prove stateful semantics; `advanced.rs` Contains only local test models** |
-| `GSTR`, `GOUT` | Typed byte-group operand | conservative checking of pairs and addresses in `advanced_source.rs`Full vendor behavior still requires fixtures |
+| `AND-STR`, `OR-STR` | Recognized structural opcode | zero operands; **the lexer itself does not construct an execution graph; `semantic.rs` handles only the supported Boolean subset** |
+| `TMR`, `CNT` | Typed destination/source overlay | destination `Mxxx`, source `Mxxx` or unsigned decimal; **lexical recognition does not establish stateful behavior; `advanced.rs` contains only local test models** |
+| `GSTR`, `GOUT` | Typed byte-group operand | conservative pairing/address checks in `advanced_source.rs`; complete manufacturer behavior still requires fixtures |
 | Everything else | Unsupported / opaque | warn, retain bytes and spans; never delete |
 
 The `//$M` header corresponds to eight groups of ten values from M550..M559 down to M480..M489, with application-specific meanings. Parsing a row into ten numbers **does not** authorize modifying that row.
@@ -61,7 +61,8 @@ Unit tests under `src-tauri/src/compiler/lossless/tests.rs` verify:
 5. Controller-dependent address classification and invalid bit indexes.
 6. Unknown instructions, directives and comments are never silently discarded.
 7. Preview truncation and never-editable status.
-8. Deterministic byte fuzzing for 256 different arbitrary inputs.\n9. SHA-256 known-answer verification and change detection.
+8. Deterministic byte fuzzing for 256 different arbitrary inputs.
+9. SHA-256 known-answer verification and change detection.
 
 ### Remaining acceptance criteria
 
@@ -76,9 +77,9 @@ Manufacturer evidence:
 - [PR #1 source registry](source_registry.en.md)
 
 
-## Connection with the new architecture
+## Integration with the newer architecture
 
-- Next level `semantic.rs` builds Boolean expressions, recognizes part `PART/END` It warns of stateful blocks. He's a fucking substitute. `copy_original()`.
-- `advanced_source.rs` can show **narrow** typical TMR/CNT/GSTR/GOUT sequences; an unknown topology does not turn into a valid native chain.
-- `GraphWorkspace` и `AdvancedBlocksPanel` Independent JSON editors; double click from PR #8 **Never makes the original LST editable.*
-- Golden fixture и OEM round-trip: [controller_fixture_intake.md](controller_fixture_intake.en.md); systemic constraints: [cioprg_lst_spec.md](cioprg_lst_spec.en.md).
+- The `semantic.rs` layer builds Boolean expressions, partially identifies `PART/END` and warns about stateful instructions. It **does not** replace `copy_original()`.
+- `advanced_source.rs` can display **narrow, recognized** sequences of TMR/CNT/GSTR/GOUT; unsupported topologies are not fabricated into valid native rungs.
+- `GraphWorkspace` and `AdvancedBlocksPanel` are independent JSON editors; PR #8 double-click behavior **never** makes the original LST editable.
+- Golden fixtures and OEM roundtrip: [controller fixture intake](controller_fixture_intake.en.md). System-level file limitations: [CIOPRG.LST specification](cioprg_lst_spec.en.md).

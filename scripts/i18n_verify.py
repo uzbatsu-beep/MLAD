@@ -3,7 +3,7 @@
 from __future__ import annotations
 import re, sys
 from i18n_translate import ROOT, sources, localized, strip_nav
-INLINE=re.compile(r"`+[^`\n]+`+")
+INLINE=re.compile(r"(?<!\\)`+[^`\n]+(?<!\\)`+")
 TITLE=re.compile(r"(?m)^[ \t]*#{1,6}[ \t]+")
 def code_fences(content):
     lines=content.splitlines(keepends=True)

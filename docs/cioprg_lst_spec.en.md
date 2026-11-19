@@ -1,13 +1,13 @@
-<!-- Generated en companion for docs/cioprg_lst_spec.md; review required. -->
-> **English** · [Русский](cioprg_lst_spec.ru.md) · [English](cioprg_lst_spec.en.md) · [Original / Оригинал](cioprg_lst_spec.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against cioprg_lst_spec.md -->
+> **Language / Язык:** [English](cioprg_lst_spec.en.md) · [Русский](cioprg_lst_spec.ru.md) · [Original](cioprg_lst_spec.md)
+>
+> **Evidence:** Language review against the MLAD source, **not** independent OEM controller verification. Native `CIOPRG.LST`/`IONAME.DAT` stay read-only; HSES/FTP/native writer/deployment remain **BLOCKED**; OEMBench **NOT RUN**.
 
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> **Status and applicability:** this document covers the constrained implementation subset and evidence available by PR #21; it does **not** imply that all project development stopped at PR #21. See the current `main` [project status](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and independent CI/UserSmoke/OEM evidence levels. This specification authorizes **neither** native writing, HSES nor real scan execution.
 
-**Status (18.11.2026, after merged PR #21):** documented **partial** specification; read-only lossless/semantic/advanced source inspection implemented. **NOT** a complete verified file grammar, native writer or certified controller compiler.
+**Status (18 November 2026, after merged PR #21):** a **partial** documented specification; read-only lossless/semantic/advanced source inspection is implemented. This is **NOT** a complete verified native-file grammar, a native writer or a certified controller compiler.
 **Scope:** the offline CIO program file and mnemonic syntax; **not** INFORM `.JBI`, HSES packets or YRC1000micro.
 **Safety:** inspect/view of user-supplied `.LST` is available in a bounded read-only workflow; modified regeneration and controller deployment remain **disabled** until real-controller fixtures, protected boundaries, instruction semantics and vendor round-trip verification are established.
 
@@ -135,39 +135,39 @@ Two-stage parsing is required: lossless lexer (may recognize but **never delete*
 
 **Data needed for a *fully verified* file grammar**: anonymized controller-exported `CIOPRG.LST` for each of DX100, DX200 and YRC1000, with original controller model, firmware, application type and Ladder Editor syntax-check outcome. Do not invent examples of complete headers or assert controller-ready compilation until these fixtures exist.
 
-## 7. The completed subset after PR #8
+## 7. Implemented subset after PR #8
 
-| Component | Current level | Status |
+| Component | Current implemented subset | Evidence/limitation |
 |---|---|---|
-| `src-tauri/src/compiler/lossless.rs` | Byte-byte conservation, initial SHA-256spans and typed lexical overlay | **Watch mode**; unknown syntax is saved without editing |
-| `src-tauri/src/compiler/semantic.rs` | Boolean branches STR/AND/OR, NOT, AND-STR/OR-STR, OUT; diagnosis and graph | Partial AST; stateful instructions are barriers |
-| `src-tauri/src/compiler/advanced_source.rs` | Recognition of only simple sample TMR/CNT and GSTR/GOUT pairs | Read-only inventory, **not** reconstruction of all logic |
-| `src-tauri/src/compiler/graph_draft.rs` | `*.graph.json` and address verification by controller | Separate JSON; not native file |
-| `src-tauri/src/compiler/advanced.rs` | `*.advanced.json`Timer/counter/group models and diagnostics | Local models, not hardware scan |
-| `src/components/SvgOperandInput.tsx` | Double-click/F2 Entering an operand on **JSON** diagrams | Not applicable to Inspector `CIOPRG.LST` |
-| `src-tauri/src/main.rs` | Viewing `.LST`, editing by JSON; commands HSES/FTP refuse back | **Controller doesn't change ** |
+| `src-tauri/src/compiler/lossless.rs` | Byte-preserving import, original SHA-256, source spans and typed lexical overlay | **Read-only inspection works**; unknown material remains unchanged |
+| `src-tauri/src/compiler/semantic.rs` | STR/AND/OR, NOT, AND-STR/OR-STR, OUT Boolean branches, diagnostics and graph | Partial AST; stateful instructions are barriers |
+| `src-tauri/src/compiler/advanced_source.rs` | Simple TMR/CNT samples and GSTR/GOUT pairs | Read-only inventory, **not** complete logic reconstruction |
+| `src-tauri/src/compiler/graph_draft.rs` | `*.graph.json` and controller-aware address validation | Separate JSON, not native controller program |
+| `src-tauri/src/compiler/advanced.rs` | `*.advanced.json`, local timer/counter/group models and diagnostics | Local models, not a hardware scan |
+| `src/components/SvgOperandInput.tsx` | Double-click/F2 operand editing in **JSON** diagrams | Does not edit Inspector `CIOPRG.LST` |
+| `src-tauri/src/main.rs` | `.LST` inspection, JSON editing; HSES/FTP commands refuse requests | **No controller modification** |
 
-Viewing the original `CIOPRG.LST` **not* means the ability to upload its contents to a variable graphical model: these are different entities with different completeness of representation.
+Opening an original `CIOPRG.LST` **does not** mean its full contents can be imported into the editable graphical model. These are separate representations with different coverage.
 
-## 8. Untested and technical debt
+## 8. Unverified features and technical debt
 
-- There is still no confirmed **full* native file, all separators and System/User ownership for each firmware/application. `PART` It is only a mark of analysis, not proof of the possibility of editing System Ladder.
-- `src-tauri/src/compiler/parser.rs` **legacy parser** for the old JSON model. It shouldn't replace `lossless.rs` It should not be used for new imports.
-- В PR #13 file `src-tauri/src/network/mod.rs` **Deleted and unconfirmed network runtime is not connected to Tauri HSES/FTP/deploy remain deny-only. In `src-tauri/Cargo.toml` It's still addictive. `suppaftp` for a separate dependency review, but it **not* is proof of available robot upload. See. [HSES](hse_protocol.en.md), [Security](../SECURITY.en.md).
-- By choice. DX100/DX200/YRC1000 **In the new UI tabs, the profile is already available**, but this is not binding to a specific firmware/options/topology of a robotic cell. The old JSON interface and its compatible validator are not designed for hardware verification.
-- The combined semantics of stateful instructions, scan order, M-registers, full file validation, and OEM acceptance remain untested on real controllers.
-- Closing the gaps. [acceptance](controller_fixture_intake.en.md) и [roadmap](roadmap.en.md)It is not an extension of unconfirmed patterns.
+- No complete OEM-verified native file covering all separators and System/User ownership boundaries across firmware/application configurations. `PART` is an analysis label **not** proof that System Ladder can be edited.
+- `src-tauri/src/compiler/parser.rs` is the **legacy parser** for an older JSON model. It must **not** replace `lossless.rs` or be used as the new native importer.
+- PR #13 **removed** `src-tauri/src/network/mod.rs`; the unverified network runtime is no longer compiled into Tauri. HSES/FTP/deployment remain deny-only. The `suppaftp` dependency still appears in `src-tauri/Cargo.toml` for separate dependency review, but **does not** prove that robot upload is available. See [HSES](hse_protocol.en.md) and [Security](../SECURITY.en.md).
+- The newer UI tabs have DX100/DX200/YRC1000 profile selection, but this is **not** an exact firmware/options/workcell-topology binding. The legacy JSON interface and validator cannot be treated as hardware certification.
+- Combined semantics of stateful instructions, scan sequence, M-register effects, complete native-file validation and OEM acceptance remain unverified on actual controllers.
+- Closing these gaps requires [authorized native file intake](controller_fixture_intake.en.md) and the [roadmap](roadmap.en.md), **not** inventing additional unverified templates.
 
-**Native export, editing of protected areas and connecting the controller to work are still prohibited. **
+**Native export, protected-area editing and connecting to a production controller remain prohibited.**
 
 ## Read-only post-END data classification (PR #18 merged)
 
 The lossless parser now distinguishes syntactically valid \`END\` from subsequent **observed** \`//ALARMN\` and \`//MESSAGEN\` data markers. Subsequent text is preserved as non-executable, display-only \`PostEndSection\`, \`PostEndData\` or \`PostEndOpaque\` rather than inventing extra Ladder instructions. See [post-END classification and test limitations](post_end_data.en.md). This is a structural observation and **not** confirmation of a universal OEM grammar.
 
-## PR #19 Typed candidates MOV/ADD/SUB/SHL/SHR
+## PR #19 — TypedCandidate forms for MOV/ADD/SUB/SHL/SHR
 
-Added layer `TypedCandidate` separately `Instruction` и `UnsupportedInstruction`. Only lexical roles of operands and limitations from documented tables are checked. DX200/YRC1000 (Not translated into full semantics). Flags, register recording, scans, relays and value types remain unconfirmed. For DX100 There is no confirmation of the forms of this stage. [Table of forms/sources/limitations](typed_opcode_grammar.en.md).
+The `TypedCandidate` layer is distinct from executable `Instruction` and `UnsupportedInstruction`. It validates lexical operand roles and the constraints in documented DX200/YRC1000 tables, **not** full execution semantics. Flags, register writes, scan behavior and physical relay changes remain unverified. At this stage DX100-specific forms of these five instructions have not been established independently. See the [forms, sources and limitations](typed_opcode_grammar.en.md).
 
-## The next step of checking the native grammar (after PR #29)
+## Next native-grammar verification phase (after PR #29)
 
-[Roadmap v3](roadmap.en.md) и [parser corpus PR #31](implementation_plan.en.md) synthetic edge cases are required for `//$M`, `PART/END`Post-END data, unknown/opaque and exact spans. Private real sources are allowed only by [fixture intake](controller_fixture_intake.en.md) and not published. None of these works permit native writers.
+[Roadmap v3](roadmap.en.md) and the [proposed parser corpus PR #31](implementation_plan.en.md) require synthetic edge cases for `//$M`, `PART/END`, post-END data, unknown/opaque spans and exact source ranges. Actual private exports must only be handled through authorized [fixture intake](controller_fixture_intake.en.md) and must not be published. None of this enables a native writer.

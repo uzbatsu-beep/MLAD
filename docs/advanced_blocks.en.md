@@ -1,11 +1,11 @@
-<!-- Generated en companion for docs/advanced_blocks.md; review required. -->
-> **English** · [Русский](advanced_blocks.ru.md) · [English](advanced_blocks.en.md) · [Original / Оригинал](advanced_blocks.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against advanced_blocks.md -->
+> **Language / Язык:** [English](advanced_blocks.en.md) · [Русский](advanced_blocks.ru.md) · [Original](advanced_blocks.md)
+>
+> **Safety/evidence:** Documentation-derived offline models, not observed robot behavior. Native `CIOPRG.LST`/`IONAME.DAT` are read-only. HSES/FTP, native writer and deployment remain **BLOCKED**; OEMBench **NOT RUN**.
 
-# Yaskawa Advanced CIO Instructions — PR #5updating after PR #21
+# Yaskawa Advanced CIO Instructions — PR #5, updated after PR #21
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> **Status and applicability:** this describes the constrained implementation subset and evidence available by PR #21. It **does not** mean MLAD development stopped with PR #21. See [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) for separate CI/UserSmoke/OEM evidence. The document does **not** authorize native writing, HSES or real controller scan execution.
 
 **Status (18.11.2026):** manufacturer-referenced *typed offline blocks* + basic deterministic test models + read-only native source recognition; current UI displays **all** blocks and supports JSON-only inline address editing. **NOT a native compiler, hardware-test approval, or full firmware emulator.**
 
@@ -124,15 +124,15 @@ A full **unexecuted test-case/acceptance matrix** for DX100/DX200/YRC1000 is pro
 6. Collect anonymized vendor-native `CIOPRG.LST` examples from all three controllers, with firmware and source file hashes; add golden fixtures and independent Ladder Editor comparison before enabling any native writer.
 7. Repeat on each exact hardware/firmware/application combination required for deployment.
 
-** In the current `main` later PR #8 There is still no authorized controller operation, hardware authorization, remote upload, or full native CIOPRG compiler. See. [test-fill](advanced_hardware_test_matrix.en.md) и [processing of real exports](controller_fixture_intake.en.md).
+**Even after PR #8, current `main` has no** authorized controller operation, hardware authorization, remote upload or complete native CIOPRG compiler. See the [bench test matrix](advanced_hardware_test_matrix.en.md) and [handling of actual exports](controller_fixture_intake.en.md).
 
 
-## UI Status and Data Requirements After PR #8
+## UI state and data contracts after PR #8
 
-- **TMR/CNT:** Current/preset and C/R/Q are visible on the work field, the OFFLINE result is UNKNOWN before the manual step. The calculated Q cannot be displayed as the observed physical output.
-- **GSTR/GOUT:** see independent bits b7..b0 after manual byte test; do not impersonate live feedback.
-- **Inline:** double-click/F2 opens pre-checked input`M000..M559`byte `#XXXX0`prefix `0..65535`/`M000..M999`). After the change, Rust rechecks the model DX100/DX200/YRC1000A successful frontend syntax check does not replace a profile.
-- **Complicated COUNT/RESET:** edit the AND/OR tree through the expression editor; double-clicking should not silently simplify it to single contact.
-- File. `CIOPRG.LST` The inspector always opens without a command. `onEditField`Even if the same SVG component can show editable blocks.
+- **TMR/CNT:** current/preset and C/R/Q appear in the workspace. The OFFLINE result is UNKNOWN until an explicit manual step. Never display computed Q as a measured physical output.
+- **GSTR/GOUT:** individual b7..b0 bits are shown after a manual byte test, **not** as live feedback.
+- **Inline:** double-click/F2 invokes an editor with preliminary checks (`M000..M559`, `#XXXX0` byte operand, preset `0..65535`/`M000..M999`). After editing, Rust validates the model for DX100/DX200/YRC1000; successful frontend syntax validation does not substitute for the selected controller profile.
+- **Complex COUNT/RESET conditions:** edit the AND/OR condition tree in the expression editor; double-click must not silently reduce it to a single contact.
+- The Native Workspace `CIOPRG.LST` Inspector never receives an `onEditField` callback, even when the same SVG component is capable of displaying editable draft blocks.
 
-Details: [inline_address_editing.md](inline_address_editing.en.md), [ui_multi_rung_state.md](ui_multi_rung_state.en.md).
+See [inline address editing](inline_address_editing.en.md) and [multi-rung state](ui_multi_rung_state.en.md).
