@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync,existsSync} from "node:fs";
 import test from "node:test";
+import {createHash} from "node:crypto";
 const app=readFileSync("src/App.tsx","utf8");
 const native=readFileSync("src/components/NativeWorkspace.tsx","utf8");
 test("Native CIOPRG is the primary and default work area",()=>{
@@ -150,4 +151,35 @@ test("OEM manual source panel never claims runtime verification",()=>{
   assert.match(rust,/controller_execution_verified:false/);
   assert.match(rust,/native_write_allowed:false/);
   assert.doesNotMatch(rust,/tauri::command|cmd_deploy_to_robot|TcpStream|UdpSocket/);
+});
+
+test("synthetic CIOPRG manifest hashes and provenance are consistent",()=>{
+  const corpus=JSON.parse(readFileSync(
+    "src-tauri/src/compiler/lossless/fixtures/synthetic_cases.json","utf8"));
+  assert.equal(corpus.schema_version,1);
+  assert.equal(corpus.origin,"SYNTHETIC");
+  assert.ok(corpus.cases.length>=12);
+  assert.equal(new Set(corpus.cases.map(c=>c.id)).size,corpus.cases.length);
+  for(const f of corpus.cases){
+    assert.match(f.id,/^F\d+$/);
+    assert.match(f.source_hex,/^(?:[0-9a-f]{2})*$/);
+    const bytes=Buffer.from(f.source_hex,"hex");
+    assert.equal(bytes.toString("hex"),f.source_hex);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"),f.sha256,f.id);
+    assert.ok(["DX100","DX200","YRC1000"].includes(f.controller));
+    assert.ok(Array.isArray(f.expected_classes));
+  }
+});
+test("Native Workspace displays syntax-only counts and exact source byte offsets",()=>{
+  const rust=readFileSync("src-tauri/src/compiler/lossless.rs","utf8");
+  assert.match(rust,/pub struct SyntaxCoverage/);
+  assert.match(rust,/all_source_lines_counted: true/);
+  assert.match(rust,/semantics_verified: false/);
+  assert.match(rust,/syntax_class: SyntaxClass::of\(&l.kind\)/);
+  assert.match(native,/syntax_coverage: SyntaxCoverage/);
+  assert.match(native,/Покрытие синтаксиса/);
+  assert.match(native,/l\.body_span\.start/);
+  assert.match(native,/l\.body_span\.end/);
+  assert.doesNotMatch(native,/title=\{"Byte offset: "\+l\.line\}/);
+  assert.match(native,/Только синтаксис; исполнение OEM не проверено/);
 });
