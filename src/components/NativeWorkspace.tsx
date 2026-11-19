@@ -954,6 +954,78 @@ export function NativeWorkspace() {
               Список диагностики ограничен, отсутствие сообщения не означает подтверждение синтаксиса.
             </small>}
           </div>}
+          <section aria-label="Фильтр исходного CIOPRG" style={{
+            marginBottom:12,padding:9,border:"1px solid #456078",borderRadius:5,
+            background:"#1c2d3b",fontSize:12,
+          }}>
+            <strong>Фильтрация всего CIOPRG · до 200 000 строк</strong>
+            <p style={{fontSize:11,color:"#dabc88",lineHeight:1.5}}>
+              По физическому исходнику, не по выполняемой логике. Результаты по 100 строк,
+              снимок привязан к SHA-256; неизвестное содержимое не скрывается.
+            </p>
+            <form onSubmit={event=>{event.preventDefault();void filterFullSource(0);}}
+              style={{display:"grid",gap:6}}>
+              <label style={{display:"grid",gap:3}}>
+                Класс синтаксиса
+                <select aria-label="Фильтр класса синтаксиса" value={sourceClass} disabled={sourceFilterBusy}
+                  onChange={event=>{
+                    setSourceClass(event.target.value as ""|SyntaxClass);
+                    setSourceFilterResult(null);
+                  }} style={{...field,width:"100%",boxSizing:"border-box"}}>
+                  <option value="">Все классы</option>
+                  <option value="Recognized">Recognized</option>
+                  <option value="TypedCandidate">TypedCandidate</option>
+                  <option value="Unsupported">Unsupported</option>
+                  <option value="Malformed">Malformed</option>
+                  <option value="Opaque">Opaque</option>
+                  <option value="PostEndData">PostEndData</option>
+                  <option value="Structural">Structural</option>
+                </select>
+              </label>
+              <label style={{display:"grid",gap:3}}>
+                Opcode (точное ASCII-имя)
+                <input aria-label="Фильтр opcode" value={sourceOpcode} maxLength={20} disabled={sourceFilterBusy}
+                  onChange={event=>{setSourceOpcode(event.target.value);setSourceFilterResult(null);}}
+                  placeholder="STR / OUT / MOV / TMR" style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <label style={{display:"grid",gap:3}}>
+                Адрес (текстовый токен)
+                <input aria-label="Фильтр адреса" value={sourceAddress} maxLength={6} disabled={sourceFilterBusy}
+                  onChange={event=>{setSourceAddress(event.target.value);setSourceFilterResult(null);}}
+                  placeholder="#70010 / M010" style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <button type="submit" style={btn} disabled={sourceFilterBusy||pageBusy}>
+                {sourceFilterBusy?"Фильтрация…":"Применить фильтр"}
+              </button>
+            </form>
+            {sourceFilterResult&&<div style={{marginTop:8}} aria-live="polite">
+              <div style={{fontSize:11,color:"#acc9d6"}}>
+                Совпадений {sourceFilterResult.total_matches}; показано
+                {" "}{sourceFilterResult.hits.length===0?0:sourceFilterResult.offset+1}–
+                {sourceFilterResult.offset+sourceFilterResult.hits.length}
+              </div>
+              <div style={{display:"flex",gap:7,marginTop:5,marginBottom:5}}>
+                <button type="button" style={btn}
+                  disabled={sourceFilterBusy||sourceFilterResult.offset===0}
+                  onClick={()=>void filterFullSource(Math.max(0,sourceFilterResult.offset-100))}>
+                  ← 100
+                </button>
+                <button type="button" style={btn}
+                  disabled={sourceFilterBusy||sourceFilterResult.next_offset===null}
+                  onClick={()=>void filterFullSource(sourceFilterResult.next_offset!)}>
+                  100 →
+                </button>
+              </div>
+              <div style={{maxHeight:190,overflowY:"auto"}}>
+                {sourceFilterResult.hits.map(hit=><button type="button" key={hit.line}
+                  style={itemStyle} title={"Byte offset: "+hit.byte_offset}
+                  onClick={()=>void showLine(hit.line)}>
+                  L{hit.line} · {hit.syntax_class} · {hit.preview}
+                </button>)}
+              </div>
+              {!sourceFilterResult.hits.length&&<small>Совпадения отсутствуют на этой странице.</small>}
+            </div>}
+          </section>
           <section aria-label="Типизированные инструкции" style={{
             marginBottom:12,padding:9,border:"1px solid #46617d",borderRadius:5,
             background:"#1b2a3a",fontSize:12,
@@ -1088,78 +1160,6 @@ export function NativeWorkspace() {
               </div>
               <small>Enter — сохранить · Esc — отменить</small>
             </div>:<small style={{color:"#aec9c5"}}>Выберите элемент двойным щелчком.</small>}
-          </section>
-          <section aria-label="Фильтр исходного CIOPRG" style={{
-            marginBottom:12,padding:9,border:"1px solid #456078",borderRadius:5,
-            background:"#1c2d3b",fontSize:12,
-          }}>
-            <strong>Фильтрация всего CIOPRG · до 200 000 строк</strong>
-            <p style={{fontSize:11,color:"#dabc88",lineHeight:1.5}}>
-              По физическому исходнику, не по выполняемой логике. Результаты по 100 строк,
-              снимок привязан к SHA-256; неизвестное содержимое не скрывается.
-            </p>
-            <form onSubmit={event=>{event.preventDefault();void filterFullSource(0);}}
-              style={{display:"grid",gap:6}}>
-              <label style={{display:"grid",gap:3}}>
-                Класс синтаксиса
-                <select aria-label="Фильтр класса синтаксиса" value={sourceClass}
-                  onChange={event=>{
-                    setSourceClass(event.target.value as ""|SyntaxClass);
-                    setSourceFilterResult(null);
-                  }} style={{...field,width:"100%",boxSizing:"border-box"}}>
-                  <option value="">Все классы</option>
-                  <option value="Recognized">Recognized</option>
-                  <option value="TypedCandidate">TypedCandidate</option>
-                  <option value="Unsupported">Unsupported</option>
-                  <option value="Malformed">Malformed</option>
-                  <option value="Opaque">Opaque</option>
-                  <option value="PostEndData">PostEndData</option>
-                  <option value="Structural">Structural</option>
-                </select>
-              </label>
-              <label style={{display:"grid",gap:3}}>
-                Opcode (точное ASCII-имя)
-                <input aria-label="Фильтр opcode" value={sourceOpcode} maxLength={20}
-                  onChange={event=>{setSourceOpcode(event.target.value);setSourceFilterResult(null);}}
-                  placeholder="STR / OUT / MOV / TMR" style={{...field,width:"100%",boxSizing:"border-box"}}/>
-              </label>
-              <label style={{display:"grid",gap:3}}>
-                Адрес (текстовый токен)
-                <input aria-label="Фильтр адреса" value={sourceAddress} maxLength={6}
-                  onChange={event=>{setSourceAddress(event.target.value);setSourceFilterResult(null);}}
-                  placeholder="#70010 / M010" style={{...field,width:"100%",boxSizing:"border-box"}}/>
-              </label>
-              <button type="submit" style={btn} disabled={sourceFilterBusy||pageBusy}>
-                {sourceFilterBusy?"Фильтрация…":"Применить фильтр"}
-              </button>
-            </form>
-            {sourceFilterResult&&<div style={{marginTop:8}} aria-live="polite">
-              <div style={{fontSize:11,color:"#acc9d6"}}>
-                Совпадений {sourceFilterResult.total_matches}; показано
-                {" "}{sourceFilterResult.hits.length===0?0:sourceFilterResult.offset+1}–
-                {sourceFilterResult.offset+sourceFilterResult.hits.length}
-              </div>
-              <div style={{display:"flex",gap:7,marginTop:5,marginBottom:5}}>
-                <button type="button" style={btn}
-                  disabled={sourceFilterBusy||sourceFilterResult.offset===0}
-                  onClick={()=>void filterFullSource(Math.max(0,sourceFilterResult.offset-100))}>
-                  ← 100
-                </button>
-                <button type="button" style={btn}
-                  disabled={sourceFilterBusy||sourceFilterResult.next_offset===null}
-                  onClick={()=>void filterFullSource(sourceFilterResult.next_offset!)}>
-                  100 →
-                </button>
-              </div>
-              <div style={{maxHeight:190,overflowY:"auto"}}>
-                {sourceFilterResult.hits.map(hit=><button type="button" key={hit.line}
-                  style={itemStyle} title={"Byte offset: "+hit.byte_offset}
-                  onClick={()=>void showLine(hit.line)}>
-                  L{hit.line} · {hit.syntax_class} · {hit.preview}
-                </button>)}
-              </div>
-              {!sourceFilterResult.hits.length&&<small>Совпадения отсутствуют на этой странице.</small>}
-            </div>}
           </section>
           <strong>Поиск по всему файлу</strong>
           <div style={{display:"flex",gap:6,marginTop:8}}>
