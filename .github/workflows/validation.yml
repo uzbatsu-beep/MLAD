@@ -98,32 +98,25 @@ jobs:
       - name: Ensure npm install did not mutate dependency manifests
         if: needs.scope.outputs.runtime_required == 'true'
         run: git diff --exit-code -- package.json package-lock.json
+      # All Node model/safety/community tests are dependency-free and cheap:
+      # run them even for docs-only PRs to preserve non-Rust safety coverage.
       - name: GitHub Community Standards and Issue Form contract
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:community
       - name: Offline controller safety invariants
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:security
       - name: Native integrated workspace regressions
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:native
       - name: Diagnostic grouping model tests
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:diagnostics
       - name: OEM manual reference labels (no execution)
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:oem-reference
       - name: Graph layout and editor model tests
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:graph
       - name: Advanced CIO block UI model tests
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:advanced
       - name: Tri-state visualization tests
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:visual
       - name: Inline operand validation tests
-        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:inline
       - name: Typecheck and build
         if: needs.scope.outputs.runtime_required == 'true'
