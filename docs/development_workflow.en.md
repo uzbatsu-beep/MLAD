@@ -61,7 +61,7 @@ If you deviate from Q2/Q3/Q6, you cannot declare the past CI "ready to load on t
 ## 4. Real status of release workflow on 18.11.2026
 
 - [`validation.yml`](../.github/workflows/validation.yml) Ubuntu pipeline: Rust tests, npm ci with lockfile, security, Native Workspace, diagnostics, OEM help, graphics, TypeScript/Vite and docs-check. Last one. `main` [SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563).
-- [`windows-oem-reference-rc9.yml`](../.github/workflows/windows-oem-reference-rc9.yml) Windows x64 NSIS/portable/source/SHA256 pipeline. [RC9 SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155), [release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).
+- [`windows-oem-reference-rc9.yml`](../.github/workflow-archive/windows-oem-reference-rc9.yml) Windows x64 NSIS/portable/source/SHA256 pipeline. [RC9 SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155), [release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference).
 - Historic Windows Workflows `windows-bench-rc.yml`, `windows-ui-preview.yml` и `windows-*-rc[2-8].yml` Linked to the original branch/tag and **not* automatically reassemble older versions. A new RC requires a separate tag/branch and a ban on overwriting an existing release.
 - `package-lock.json` (v3) и `Cargo.lock` tracked in Git; npm 22/CI `npm ci`; Rust uses `cargo test --locked`. This is not Windows EXE bit reproducibility or hardware verification.
 - For release: check Windows MSVC, portable ZIP, NSIS, source archive, SHA256SUMS, GPL/third-party notices, WebView2 And a separate manual Windows smoke. **No GitHub workflow closes the OEM bench gate.**
