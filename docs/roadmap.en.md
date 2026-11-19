@@ -86,3 +86,9 @@ PR numbers after #40 are planning labels and not reserved by GitHub. PR #40 may 
 ## 7. Documentation and traceability
 
 [Implementation plan](implementation_plan.en.md) · [Project status](project_status.en.md) · [Decisions](engineering_decisions.en.md) · [Verification gates](verification_gates.en.md) · [Private fixture intake](controller_fixture_intake.en.md) · [Filesystem risk review](filesystem_security_pr29.en.md).
+
+## Reconciliation after merged PR #40 — 20 November 2026
+
+PR #40 merged as a documentation update into main (2f28d5c0941c7495c2577fa4839eabc28d52298e). The Parser Fidelity implementation is now in separate PR #41: a synthetic fixture corpus, full-source per-physical-line classification, original byte offsets and unknown-syntax diagnostics. The previously proposed Native Workspace UX PR #41 moves to PR #42 or later. Subsequent Security, Sidecar, Typed Grammar, Static Analysis, Unified IDE and Windows Preview numbers are provisional, not assigned to open PRs.
+
+Exact-final-HEAD checks and explicit owner approval are mandatory before merging. CIOPRG.LST / IONAME.DAT are read-only. HSES/FTP, native writer and deployment are **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Synthetic tests do not establish OEM scan behavior or System/User permissions.

@@ -10,6 +10,20 @@ import "./native-workspace.css";
 
 type Controller = "DX100" | "DX200" | "YRC1000";
 type Encoding = "Utf8" | "Utf8Bom" | "OpaqueBytes";
+type SyntaxClass = "Recognized" | "TypedCandidate" | "Unsupported" |
+  "Malformed" | "Opaque" | "PostEndData" | "Structural";
+type SyntaxCoverage = {
+  total_lines: number;
+  recognized: number;
+  typed_candidate: number;
+  unsupported: number;
+  malformed: number;
+  opaque: number;
+  post_end_data: number;
+  structural: number;
+  all_source_lines_counted: boolean;
+  semantics_verified: boolean;
+};
 type Diagnostic = {
   code: string;
   severity: "Warning" | "Error";
@@ -35,6 +49,8 @@ function getTypedCandidate(kind:unknown):TypedCandidatePreview|null {
 }
 type PreviewLine = {
   line: number;
+  body_span: {start:number;end:number};
+  syntax_class: SyntaxClass;
   ending: string;
   kind: unknown;
   display_text: string;
@@ -159,6 +175,7 @@ type Report = {
   byte_length: number;
   source_sha256: string;
   line_count: number;
+  syntax_coverage: SyntaxCoverage;
   recognized_instructions: number;
   typed_candidate_count: number;
   typed_valid_forms: number;
@@ -240,6 +257,21 @@ function lineCategory(kind: unknown): string {
 }
 
 
+function syntaxClassLabel(line: PreviewLine): string {
+  if(lineCategory(line.kind)==="PostEndSection") return "Раздел данных";
+  if(lineCategory(line.kind)==="PostEndData") return "Данные после END";
+  if(lineCategory(line.kind)==="PostEndOpaque") return "Неизвестно после END";
+  switch(line.syntax_class) {
+    case "Recognized": return "Распознано*";
+    case "TypedCandidate": return "Типизировано*";
+    case "Unsupported": return "Не поддерживается";
+    case "Malformed": return "Ошибка формы";
+    case "Opaque": return "Неизвестно";
+    case "PostEndData": return "Данные после END";
+    case "Structural": return "Структура/комм.";
+  }
+}
+
 /** Primary document workspace, mounted in the main app window — never a modal. */
 export function NativeWorkspace() {
   const [path,setPath]=useState("");
@@ -314,6 +346,11 @@ export function NativeWorkspace() {
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
+      if(value.syntax_coverage.total_lines!==value.line_count ||
+          !value.syntax_coverage.all_source_lines_counted ||
+          value.syntax_coverage.semantics_verified){
+        throw Error("Несовместимый отчёт покрытия или неполный снимок");
+      }
       setPath(selectedPath);
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
@@ -424,6 +461,8 @@ export function NativeWorkspace() {
       format:"MLAD Native Workspace read-only diagnostic report",
       controller:report.controller,source_sha256:report.source_sha256,
       byte_length:report.byte_length,line_count:report.line_count,encoding:report.encoding,
+      syntax_coverage:report.syntax_coverage,
+      coverage_warning:"Syntax-only full-source line classification; not OEM execution coverage.",
       recognized_instructions:report.recognized_instructions,unsupported_lines:report.unsupported_lines,
       typed_candidate_count:report.typed_candidate_count,
       typed_valid_forms:report.typed_valid_forms,
@@ -558,6 +597,20 @@ export function NativeWorkspace() {
         </span>}
         <span title={report.source_sha256}>SHA-256: {report.source_sha256.slice(0,16)}…</span>
       </div>
+      <div aria-label="Покрытие синтаксиса" style={{
+        display:"flex",gap:12,flexWrap:"wrap",padding:"5px 14px",fontSize:11,
+        background:"#18242d",borderBottom:"1px solid #35485b",
+      }}>
+        <b>Классификация {report.syntax_coverage.total_lines} физических строк:</b>
+        <span>Распознано* {report.syntax_coverage.recognized}</span>
+        <span>Типизировано* {report.syntax_coverage.typed_candidate}</span>
+        <span>Unsupported {report.syntax_coverage.unsupported}</span>
+        <span>Malformed {report.syntax_coverage.malformed}</span>
+        <span>Opaque {report.syntax_coverage.opaque}</span>
+        <span>Post-END data {report.syntax_coverage.post_end_data}</span>
+        <span>Структура {report.syntax_coverage.structural}</span>
+        <span style={{color:"#e9c489"}}>* Только синтаксис; исполнение OEM не проверено.</span>
+      </div>
       <div style={{display:"grid",gridTemplateColumns:"220px minmax(300px,1fr) 290px",flex:1,minHeight:0}}>
         <aside style={sideStyle} aria-label="Дерево программы">
           <strong>Структура файла</strong>
@@ -630,18 +683,16 @@ export function NativeWorkspace() {
             <div style={{flex:1,minHeight:0,overflow:"auto",fontFamily:"Consolas,monospace",
               fontSize:12,lineHeight:1.7,padding:"8px 12px"}}>
               {pageLines.map(l=><button type="button" key={l.line} onClick={()=>setSelectedLine(l.line)}
-                title={"Byte offset: "+l.line}
+                title={"Byte offset: "+l.body_span.start+"–"+l.body_span.end}
                 style={{display:"flex",gap:10,whiteSpace:"pre",width:"max-content",minWidth:"100%",
                   textAlign:"left",font:"inherit",padding:"0 4px",border:0,cursor:"pointer",
                   color:"#dce5ef",background:selectedLine===l.line?"#2b4d5b":"transparent"}}>
                 <span style={{width:51,flexShrink:0,textAlign:"right",color:"#849eaf"}}>{l.line}</span>
                 <span style={{width:142,flexShrink:0,color:
-                  lineCategory(l.kind)==="UnsupportedInstruction"?"#e4b97e":
-                  lineCategory(l.kind)==="TypedCandidate"?"#b8ccec":"#85abb9"}}>
-                  {lineCategory(l.kind)==="TypedCandidate"?"Типизировано*":
-                    lineCategory(l.kind)==="PostEndSection"?"Раздел данных":lineCategory(l.kind)==="PostEndData"?
-                    "Данные после END":lineCategory(l.kind)==="PostEndOpaque"?
-                    "Неизвестно после END":lineCategory(l.kind)}</span>
+                  l.syntax_class==="Malformed"?"#f4a8ad":
+                  l.syntax_class==="Unsupported"||l.syntax_class==="Opaque"?"#e4b97e":
+                  l.syntax_class==="TypedCandidate"?"#b8ccec":"#85abb9"}}>
+                  {syntaxClassLabel(l)}</span>
                 <span>{l.display_text||" "}</span>
               </button>)}
             </div>

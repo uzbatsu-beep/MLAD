@@ -50,3 +50,9 @@ MLAD — local OFFLINE/BENCH environment `DX100`/`DX200`/`YRC1000` for analysis 
 **PR #40:** Native CIOPRG Parser Fidelity / Coverage, starting with a documentation baseline in Draft PR. **PR #41–#47:** UX, security, portable sidecar, typed grammar, static analysis, Unified IDE and conditional offline release. Updating Markdown alone does not complete PR #40.
 
 [Roadmap v4](roadmap.en.md) · [PR #40+ plan](implementation_plan.en.md) · [Verification gates](verification_gates.en.md) · [Security risk review](filesystem_security_pr29.en.md) · [Manual Windows acceptance](windows_acceptance_pr28.en.md).
+
+## Verifiable implementation status — PR #41 (20 November 2026)
+
+PR #40 is already merged as documentation only, without parser implementation. Draft PR #41 adds a synthetic CIOPRG corpus, full-source physical-line classification and original source byte spans in Native Workspace. This represents a development branch, not functionality merged into main and not a real-controller validation. Acceptance requires completed Linux/Windows CI on the final HEAD and explicit owner approval before merging.
+
+Independent states: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP/native writer/deployment **BLOCKED**. The previously published rc.9 does not include PR #40/#41. Required-check Ruleset settings are unchanged.
