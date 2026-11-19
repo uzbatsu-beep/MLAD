@@ -21,3 +21,18 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Local Python / generated translation staging (not project source)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+_i18n_staging/
+
+# Native controller backups are private and must not be committed as examples
+**/CIOPRG.LST
+**/IONAME.DAT
+
+# Local JSON draft backups (not distributable fixtures)
+*.graph.json.bak
+*.advanced.json.bak

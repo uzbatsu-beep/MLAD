@@ -1,0 +1,111 @@
+name: MLAD — Prune merged PR branches (manual)
+
+# No schedule, push, pull_request or automatic deletion.
+# Keeps historical commits, pull requests, tags and GitHub Releases intact.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Preview or explicitly delete merged PR head branches"
+        required: true
+        type: choice
+        options:
+          - dry-run
+          - delete
+        default: dry-run
+      confirmation:
+        description: "For delete mode, type DELETE_MERGED_PR_BRANCHES"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: mlad-manual-merged-branch-prune
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Identify exact merged-head branches; preview by default
+        uses: actions/github-script@v7
+        env:
+          MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const current = owner + "/" + repo;
+            const mode = process.env.MODE;
+            const confirmation = process.env.CONFIRMATION;
+            if (!["dry-run", "delete"].includes(mode)) {
+              throw new Error("Unsupported mode");
+            }
+            if (mode === "delete" && confirmation !== "DELETE_MERGED_PR_BRANCHES") {
+              throw new Error("Deletion refused: exact confirmation phrase required");
+            }
+
+            const [branches, closed, open] = await Promise.all([
+              github.paginate(github.rest.repos.listBranches, {
+                owner, repo, per_page: 100,
+              }),
+              github.paginate(github.rest.pulls.list, {
+                owner, repo, state: "closed", per_page: 100,
+              }),
+              github.paginate(github.rest.pulls.list, {
+                owner, repo, state: "open", per_page: 100,
+              }),
+            ]);
+            const activeHeads = new Set(open.filter(p =>
+              p.head.repo?.full_name === current
+            ).map(p => p.head.ref));
+            const activeBases = new Set(open.map(p => p.base.ref));
+            const safe = branches.filter(b =>
+              b.name !== "main" &&
+              !b.protected &&
+              !activeHeads.has(b.name) &&
+              !activeBases.has(b.name) &&
+              closed.some(p =>
+                p.merged_at &&
+                p.head.repo?.full_name === current &&
+                p.head.ref === b.name &&
+                p.head.sha === b.commit.sha
+              )
+            ).sort((a, b) => a.name.localeCompare(b.name));
+
+            const lines = [
+              "## MLAD merged-PR branch cleanup",
+              "",
+              "Mode: **" + mode + "**",
+              "Safe exact-head candidates: **" + safe.length + "**",
+              "",
+              ...safe.map(b => "- " + b.name + " (" + b.commit.sha + ")"),
+            ];
+            core.info(lines.join("\n"));
+
+            if (mode === "delete") {
+              for (const b of safe) {
+                // Only the exact SHA of a merged PR's own same-repo head.
+                // A concurrently updated branch is intentionally NOT forced.
+                const latest = await github.rest.repos.getBranch({
+                  owner, repo, branch: b.name,
+                });
+                if (latest.data.commit.sha !== b.commit.sha || latest.data.protected) {
+                  throw new Error("Changed branch; refusing deletion: " + b.name);
+                }
+                await github.rest.git.deleteRef({
+                  owner, repo, ref: "heads/" + b.name,
+                });
+                core.info("Deleted exact merged head: " + b.name);
+              }
+              lines.push("", "**Deleted: " + safe.length + " merged head branches.**");
+            } else {
+              lines.push("", "**DRY RUN — no refs were deleted.**");
+            }
+            await core.summary.addRaw(lines.join("\n")).write();
