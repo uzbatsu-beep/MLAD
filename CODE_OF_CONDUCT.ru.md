@@ -1,7 +1,7 @@
-<!-- Generated ru companion for CODE_OF_CONDUCT.md; review required. -->
-> **Русский** · [Русский](CODE_OF_CONDUCT.ru.md) · [English](CODE_OF_CONDUCT.en.md) · [Original / Оригинал](CODE_OF_CONDUCT.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](CODE_OF_CONDUCT.ru.md) · [English](CODE_OF_CONDUCT.en.md) · [Исходный текст / Original](CODE_OF_CONDUCT.md)
+>
+> **Примечание:** русскоязычный исходник сохранён без машинного пересказа; технические имена, ограничения и команды не переводились произвольно. / Source fidelity is preserved; OEM validation is independent.
 
 # Кодекс взаимодействия участников MLAD
 

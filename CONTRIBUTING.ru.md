@@ -1,11 +1,11 @@
-<!-- Generated ru companion for CONTRIBUTING.md; review required. -->
-> **Русский** · [Русский](CONTRIBUTING.ru.md) · [English](CONTRIBUTING.en.md) · [Original / Оригинал](CONTRIBUTING.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](CONTRIBUTING.ru.md) · [English](CONTRIBUTING.en.md) · [Исходный текст / Original](CONTRIBUTING.md)
+>
+> **Примечание:** русскоязычный исходник сохранён без машинного пересказа; технические имена, ограничения и команды не переводились произвольно. / Source fidelity is preserved; OEM validation is independent.
 
 # Участие в разработке MLAD
 
-> **Состояние 18.11.2026:** PR #1–#29 merged в `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) SUCCESS. Последний публичный Windows релиз — rc.9 (до #24–#29), а WebView2 UserSmoke/OEMBench `NOT RUN`. [Статус проекта](docs/project_status.ru.md).
+> **Состояние 18.11.2026:** PR #1–#29 merged в `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) SUCCESS. Последний публичный Windows релиз — rc.9 (до #24–#29), а WebView2 UserSmoke/OEMBench — `NOT RUN`. [Project status](docs/project_status.ru.md).
 
 Работа с исходниками MLAD требует разделять **описанные Yaskawa инструкции** и **непроверенные детали нативного файла/протокола**. Любой PR должен сохранять запрет записи в контроллер без независимого разрешённого workflow.
 
@@ -71,4 +71,4 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 
 ## Разработка после PR #29
 
-[Дорожная карта v3](docs/roadmap.ru.md) и [backlog PR #30–#37](docs/implementation_plan.ru.md) разделяют синтетические parser fixtures, Native Workspace navigation, переносимые annotations/sidecar, typed grammar и static analysis. Каждый PR должен указывать физический source span, уровень доказательности, negative cases, не модифицировать `CIOPRG.LST`/`IONAME.DAT` и не добавлять network/native writer разрешений. При работе с JSON учитывать [Идентификатор файла/hardlink/staging guards](docs/filesystem_security_pr29.ru.md), но **не** считать TOCTOU/ACL/backup transaction закрытыми. Для Rust/Tauri изменений обязателен Windows workflow; для docs-only PR достаточно основного CI. Владелец отдельно утверждает merge и release.
+[Roadmap v3](docs/roadmap.ru.md) и [backlog PR #30–#37](docs/implementation_plan.ru.md) разделяют синтетические parser fixtures, Native Workspace navigation, переносимые annotations/sidecar, typed grammar и static analysis. Каждый PR должен указывать физический source span, уровень доказательности, negative cases, не модифицировать `CIOPRG.LST`/`IONAME.DAT` и не добавлять network/native writer разрешений. При работе с JSON учитывать [File ID/hardlink/staging guards](docs/filesystem_security_pr29.ru.md), но **не** считать TOCTOU/ACL/backup transaction закрытыми. Для Rust/Tauri изменений обязателен Windows workflow; для docs-only PR достаточно основного CI. Владелец отдельно утверждает merge и release.

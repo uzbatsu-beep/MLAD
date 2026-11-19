@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/documentation_audit_2026-11-17.md; review required. -->
-> **Русский** · [Русский](documentation_audit_2026-11-17.ru.md) · [English](documentation_audit_2026-11-17.en.md) · [Original / Оригинал](documentation_audit_2026-11-17.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](documentation_audit_2026-11-17.ru.md) · [English](documentation_audit_2026-11-17.en.md) · [Исходный текст / Original](documentation_audit_2026-11-17.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
 # Результаты аудита документации MLAD — 17 ноября 2026
 

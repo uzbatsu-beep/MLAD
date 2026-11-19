@@ -1,9 +1,9 @@
-<!-- Generated ru companion for docs/hse_protocol.md; review required. -->
-> **Русский** · [Русский](hse_protocol.ru.md) · [English](hse_protocol.en.md) · [Original / Оригинал](hse_protocol.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](hse_protocol.ru.md) · [English](hse_protocol.en.md) · [Исходный текст / Original](hse_protocol.md)
+>
+> **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
-# Высокоскоростной Ethernet YaskawaHSES) — статус и требования к верификации
+# Yaskawa High-Speed Ethernet (HSES) — статус и требования к верификации
 
 **Проверено в `main` на 18.11.2026:** HSES/FTP runtime удалён из компилируемого backend в PR #13. Мониторинг и загрузка в контроллер отключены; протокол не верифицирован. [Текущий статус](project_status.ru.md).
 

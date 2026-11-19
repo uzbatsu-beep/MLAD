@@ -1,11 +1,11 @@
-<!-- Generated ru companion for docs/guarded_io_review.md; review required. -->
-> **Русский** · [Русский](guarded_io_review.ru.md) · [English](guarded_io_review.en.md) · [Original / Оригинал](guarded_io_review.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](guarded_io_review.ru.md) · [English](guarded_io_review.en.md) · [Исходный текст / Original](guarded_io_review.md)
+>
+> **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
-# MLAD PR #26 Охраняемые чтения и предотвращение конфликтов JSON
+# MLAD PR #26 — Guarded Reads & JSON Conflict Prevention
 
-**Дата:** 18.11.2026. **Статус:** [PR #26 merged](https://github.com/uzbatsu-beep/MLAD/pull/26) в `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`; [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [Windows MSVC/Tauri CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Опубликованный rc.9 не изменён; M2 остаётся PARTIAL.
+**Дата:** 18.11.2026. **Статус:** [PR #26 merged](https://github.com/uzbatsu-beep/MLAD/pull/26) в `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [Windows MSVC/Tauri CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Опубликованный rc.9 не изменён; M2 остаётся PARTIAL.
 
 ## Мотивировка
 
@@ -16,7 +16,7 @@ PR #25 проверял symlink компонентов пути до файло�
 Отдельный модуль `src-tauri/src/guarded_read.rs`:
 
 - Сначала отвергает обнаруженные родительские symlink/reparse и прямую ссылку.
-- Считывает метаданные и использует **один основной дескриптор для чтения**. На Windows дополнительно открывает контрольные дескрипторы с `FILE_FLAG_OPEN_REPARSE_POINT` до и после чтения; сравнивает их WinAPI File ID. Это уменьшает окно подмены, но не гарантирует полностью атомарный путь. Unix — `dev+ino`Windows — WinAPI `GetFileInformationByHandle` (volume serial + 64-bit file index) для нескольких `HANDLE`; без nightly Rust. Если WinAPI не возвращает идентификаторы, операция завершается отказом. В PR используется Win32 `FILE_FLAG_OPEN_REPARSE_POINT` и проверка флагов reparse на открытых handles.
+- Считывает метаданные и использует **один основной дескриптор для чтения**. На Windows дополнительно открывает контрольные дескрипторы с `FILE_FLAG_OPEN_REPARSE_POINT` до и после чтения; сравнивает их WinAPI File ID. Это уменьшает окно подмены, но не гарантирует полностью атомарный путь. Unix — `dev+ino`; Windows — WinAPI `GetFileInformationByHandle` (volume serial + 64-bit file index) для нескольких `HANDLE`; без nightly Rust. Если WinAPI не возвращает идентификаторы, операция завершается отказом. В PR используется Win32 `FILE_FLAG_OPEN_REPARSE_POINT` и проверка флагов reparse на открытых handles.
 - Ограничивает чтение ещё до выделения всего содержимого: JSON — 2 МиБ, `IONAME.DAT` — 4 МиБ, `CIOPRG.LST` — 16 МиБ.
 - После чтения повторно сверяет pathname и метаданные открытого дескриптора, а также длину и время последнего изменения.
 - Отклоняет все Windows `FILE_ATTRIBUTE_REPARSE_POINT`, включая junction (а не только `is_symlink()`).
@@ -45,18 +45,18 @@ PR #25 проверял symlink компонентов пути до файло�
 | --- | --- |
 | Linux Rust | `cargo test --manifest-path src-tauri/Cargo.toml --locked` |
 | Frontend/security | `npm run test:security`, `npm run docs:check`, `npm run build` |
-| Windows | [MSVC Rust + Tauri build - Успешное строительство](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), без публикации релиза |
+| Windows | [MSVC Rust + Tauri build — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031), без публикации релиза |
 | Negative | Подмена до open, direct symlink, directory symlink, конкурентная замена JSON/создание target |
 | Hardware | Не требуется и не выполняется; HSES/FTP/writer выключены |
-| Принятие пользователем | Требуется ручная проверка; НЕ заменяется GitHub CI |
+| User acceptance | Требуется ручная проверка; НЕ заменяется GitHub CI |
 
 [Статус всего MLAD](project_status.ru.md) · [Ранее закрытые ограничения PR #25](csp_path_hardening.ru.md).
 
 
 **Результаты CI не означают ручной Windows smoke или full TOCTOU closure.** Следующий план: [implementation_plan.md](implementation_plan.ru.md), [verification_gates.md](verification_gates.ru.md).
 
-** Источники Windows API: ** [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle), [BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information), [FILE_FLAG_OPEN_REPARSE_POINT](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew). FFI-код требует независимого security review (ABI, reparse и NTFS/ReFS различия), а не только прохождения компиляции.
+**Windows API sources:** [GetFileInformationByHandle](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle), [BY_HANDLE_FILE_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information), [FILE_FLAG_OPEN_REPARSE_POINT](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew). FFI-код требует независимого security review (ABI, reparse и NTFS/ReFS различия), а не только прохождения компиляции.
 
 ## Последующие доказательства PR #28–#29 (18.11.2026)
 
-Этот документ является **историческим исследованием PR #26**, а не описанием исчерпывающей текущей защиты. После него [PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) ввёл регулярный Windows NTFS/Win32 build/regression; [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) JSON Bytes+ Снимки идентификатора файла, отказ от жесткой ссылки, инсценированная идентификация +SHA-256 и Windows ADS/UNC/device path deny. [Фактический main CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) — SUCCESS, но **не** ручной WebView2 smoke и не гарантия полного TOCTOU closure. Канонический продолженный review: [filesystem_security_pr29.md](filesystem_security_pr29.ru.md).
+Этот документ является **историческим исследованием PR #26**, а не описанием исчерпывающей текущей защиты. После него [PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) ввёл регулярный Windows NTFS/Win32 build/regression; [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) — JSON bytes+File ID snapshots, hardlink rejection, staged identity+SHA-256 и Windows ADS/UNC/device path deny. [Фактический main CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) — SUCCESS, но **не** ручной WebView2 smoke и не гарантия полного TOCTOU closure. Канонический продолженный review: [filesystem_security_pr29.md](filesystem_security_pr29.ru.md).

@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/json_persistence_safety.md; review required. -->
-> **Русский** · [Русский](json_persistence_safety.ru.md) · [English](json_persistence_safety.en.md) · [Original / Оригинал](json_persistence_safety.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](json_persistence_safety.ru.md) · [English](json_persistence_safety.en.md) · [Исходный текст / Original](json_persistence_safety.md)
+>
+> **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
 # MLAD — модель безопасности JSON сохранения (PR #24)
 
@@ -27,7 +27,7 @@
 3. На Windows `rename` при занятом/защищённом целевом файле может вернуть ошибку; задача — сохранить старый файл и сообщить об отказе, а не обещать бесшовную замену на любом томе.
 4. Нет шифрования JSON и отдельных гарантированных прав на каталоги, профили или резервные копии. Пользователь отвечает за права доступа к своей папке. Без Windows smoke, моделирования отключения питания и проверки NTFS нельзя обещать crash-consistent durable commit.
 5. Содержание legacy проекта проходит существующую модель валидации и ограничения формата, не модель native CIO.
-6. PR #24 не менял CSP, но последующие merged PR #25 и #26 добавили CSP/path checks и guarded JSON conflict detection: [Обзор КСП](csp_path_hardening.ru.md), [Охраняемый I/O](guarded_io_review.ru.md). Это не обещает устранения TOCTOU и не включено в выпущенный rc.9.
+6. PR #24 не менял CSP, но последующие merged PR #25 и #26 добавили CSP/path checks и guarded JSON conflict detection: [CSP review](csp_path_hardening.ru.md), [guarded I/O](guarded_io_review.ru.md). Это не обещает устранения TOCTOU и не включено в выпущенный rc.9.
 
 ## Приёмка
 
@@ -36,15 +36,15 @@
 - Windows user acceptance проверит два сохранения каждого JSON, содержимое `*.bak`, занятый файл, no overwrites of robot files, и возможность повторного открытия.
 - Отдельный security PR для true file-handle/dir-handle и CSP, межпроцессной блокировки/версий, atomic backup protocol, permission audit.
 
-**Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC регрессионный рабочий процесс](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
+**Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
 
 
 ## PR #26 (merged): конкурентное редактирование
 
 Перед финальным обновлением JSON сравнивается с snapshot старой версии; появление другого файла при первичном сохранении также вызывает отказ. Стадирование/backup из PR #24 сохраняется. **Не гарантируется** исключение races после последней проверки и транзакция backup+target. [Исследование](guarded_io_review.ru.md).
 
-**Проверка актуального baseline:** [Главный CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Ручной Windows WebView2 smoke и проверка сбоя питания — NOT RUN. [Единые ворота](verification_gates.ru.md).
+**Проверка актуального baseline:** [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Ручной Windows WebView2 smoke и проверка сбоя питания — NOT RUN. [Unified gates](verification_gates.ru.md).
 
-## Дополнение после PR #28- #29 (сливается, 18.11.2026)
+## Дополнение после PR #28–#29 (merged, 18.11.2026)
 
-[PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) добавил Windows NTFS regression (junction, exclusive lock) и формальный UserSmoke checklist. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) добавил сравнение snapshot по **File ID + байтам**, отказ для hardlinked JSON target/backup, проверку staged File ID+SHA-256 и запрет Windows ADS/UNC/device paths. `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` прошёл [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) CI. Иными словами, контракт PR #24 дополнен **новыми регрессиями**, но полной atomic backup+target, ACL-preservation или final check→rename TOCTOU guarantee по-прежнему нет. [Актуальная модель угроз](filesystem_security_pr29.ru.md). Ручной WebView2 дым = `NOT RUN`.
+[PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) добавил Windows NTFS regression (junction, exclusive lock) и формальный UserSmoke checklist. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) добавил сравнение snapshot по **File ID + байтам**, отказ для hardlinked JSON target/backup, проверку staged File ID+SHA-256 и запрет Windows ADS/UNC/device paths. `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` прошёл [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) CI. Иными словами, контракт PR #24 дополнен **новыми регрессиями**, но полной atomic backup+target, ACL-preservation или final check→rename TOCTOU guarantee по-прежнему нет. [Актуальная модель угроз](filesystem_security_pr29.ru.md). Ручной WebView2 smoke = `NOT RUN`.

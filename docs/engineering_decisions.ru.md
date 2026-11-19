@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/engineering_decisions.md; review required. -->
-> **Русский** · [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Original / Оригинал](engineering_decisions.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Исходный текст / Original](engineering_decisions.md)
+>
+> **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
 # MLAD — реестр утверждённых инженерных решений
 
@@ -18,14 +18,14 @@
 | D5 | Реальные выгрузки — закрытый корпус, публично только разрешённые/синтетические фикстуры | Нет реального `CIOPRG.LST`/`IONAME.DAT`, hashes и производственных IP в PR/CI |
 | D6 | Синтаксис и семантика подтверждаются **раздельно** | `TypedCandidate` не означает исполнимый оператор; `ManualDerived` не означает OEM scan |
 | D7 | Сначала полностью автономный read-only инструмент; HSES — отдельное будущее решение | В `main` FTP/HSES runtime отключён, нет телеметрии и разрешений на запись |
-| D8 | Оффлайн MVP `0.6.x`: Native Workspace, навигация, диагностика, сохранность SHA-256 | Acceptance по функционалу и smoke, не по наличию OEM writer |
+| D8 | Offline MVP `0.6.x`: Native Workspace, навигация, диагностика, сохранность SHA-256 | Acceptance по функционалу и smoke, не по наличию OEM writer |
 | D9 | Приоритет: воспроизводимые npm/CI и безопасность, затем workspace/парсер/unified IDE | Изменения только через маленькие PR и негативные тесты, без автоматического слияния |
 
 **Лицензия:** `GPL-3.0-only`; правообладатель **собственных оригинальных материалов MLAD** — Фёдор Сергеевич Кочедыков (физическое лицо), © 2026. Это **не** заявление о владении OEM/сторонними материалами. [licensing.md](licensing.ru.md).
 
 ## 2. Непересматриваемые без отдельного решения ограничения
 
-- Родной экспорт / запись `CIOPRG.LST` запрещён; JSON draft не маскируется под OEM программу.
+- Native export/write `CIOPRG.LST` запрещён; JSON draft не маскируется под OEM программу.
 - HSES/FTP, robot upload, live I/O и изменение System/User запрещены.
 - `PART 1/2` нельзя объявлять установленными правами System/User.
 - Для каждого controller/firmware подтверждение формы и результата требуется отдельно.
@@ -39,10 +39,10 @@
 | --- | --- | --- |
 | Format `*.mlad.json` sidecar, schema version, миграции | Схема+prototype+negative tests, связь по SHA | Предложение в [плане](implementation_plan.ru.md), не реализовано |
 | Проверка/коррекция native grammar DX100/DX200/YRC1000 | Права на fixture, firmware и OEM manual | Исследование M1/M5, без разрешения на native writer |
-| Формальное правило cross-references и static dataflow | Источники, двусмысленности, уровни доказательств | Не проверенный scan model |
-| Доверие к файлам Windows: ручки / ACL / гонки | Модель угрозы, воспроизводимые тесты Windows | M2 Partial; PR #24–#29 снизили часть рисков, но last-check→rename/ACL/recovery открыты |
-| Release `0.6.x` | Windows UserSmoke, юридический/источник/активы | Кандидат, не объявлен; условно PR #37 |
-| Read-only HSES | Отдельное одобрение владельца, OEM читать спецификации, изолированная установка | BLOCKED |
+| Формальное правило cross-references и static dataflow | Source spans, ambiguities, evidence levels | Не проверенный scan model |
+| Windows file trust: handles/ACL/races | Threat model, reproducible Windows tests | M2 PARTIAL; PR #24–#29 снизили часть рисков, но last-check→rename/ACL/recovery открыты |
+| Release `0.6.x` | Windows UserSmoke, legal/source/assets, approval | Кандидат, не объявлен; условно PR #37 |
+| Read-only HSES | Separate owner approval, OEM read spec, isolated rig | BLOCKED |
 | Native writer и deployment | OEM verified fidelity, safety review, отдельное согласие | BLOCKED |
 
 **Новый план PR #31–#37 — предложение**, он не создаёт D10 и не утверждает автоматически sidecar schema, набор новых opcodes или дату release. Прежде чем менять архитектуру или ограничения, требуется отдельный ADR/согласование.

@@ -1,7 +1,7 @@
-<!-- Generated ru companion for SECURITY.md; review required. -->
-> **Русский** · [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Original / Оригинал](SECURITY.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Исходный текст / Original](SECURITY.md)
+>
+> **Примечание:** русскоязычный исходник сохранён без машинного пересказа; технические имена, ограничения и команды не переводились произвольно. / Source fidelity is preserved; OEM validation is independent.
 
 # Политика безопасности MLAD (Security Policy)
 
@@ -17,7 +17,7 @@
 | Последний Windows pre-release (на дату политики: `v0.5.0-rc.9-oem-reference`) | Принимаются сообщения; версия экспериментальная, **не сертифицирована как безопасная для оборудования** |
 | Старые RC и отдельные архивные ветки | Не поддерживаются как отдельные линии исправлений; рекомендуется сверять дефект с актуальным `main` |
 
-Эта таблица **не является обещанием обслуживания по SLA**. Статус конкретной версии сверяйте по [GitHub выпустили](https://github.com/uzbatsu-beep/MLAD/releases) и [актуальной матрице проекта](docs/project_status.ru.md).
+Эта таблица **не является обещанием обслуживания по SLA**. Статус конкретной версии сверяйте по [GitHub Releases](https://github.com/uzbatsu-beep/MLAD/releases) и [актуальной матрице проекта](docs/project_status.ru.md).
 
 ## Как сообщить об уязвимости
 
@@ -47,7 +47,7 @@
 - FTP/HSES, мониторинг, live I/O, деплой и команды записи в робот **отключены**.
 - `TRUE/FALSE/UNKNOWN` в локальных моделях — **не** живые сигналы контроллера.
 - `MOV/ADD/SUB/SHL/SHR`: `TypedCandidate`, статические ссылки и `ManualDerived` **не** равны результатам исполнения на конкретной системе.
-- В текущем `main` PR #25–#26 добавили CSP/path guard/identity-checked reads, PR #28 - Windows NTFS Security CI, PR #29 — сравнение File ID+bytes, отказ от hardlinks/ADS/UNC/device paths и staged SHA-256 checks. **Открыты:** финальное `check→rename` TOCTOU, ancestor races, Windows ACL, транзакция `backup+target`, power-loss durability и ручной Windows/WebView2 smoke. CI **не** является независимым pentest; [модель угроз](docs/filesystem_security_pr29.ru.md).
+- В текущем `main` PR #25–#26 добавили CSP/path guard/identity-checked reads, PR #28 — Windows NTFS security CI, PR #29 — сравнение File ID+bytes, отказ от hardlinks/ADS/UNC/device paths и staged SHA-256 checks. **Открыты:** финальное `check→rename` TOCTOU, ancestor races, Windows ACL, транзакция `backup+target`, power-loss durability и ручной Windows/WebView2 smoke. CI **не** является независимым pentest; [модель угроз](docs/filesystem_security_pr29.ru.md).
 
 Проверяйте экспериментальное ПО только автономно на копиях, **без подключения к действующему промышленному оборудованию**. Не исследуйте уязвимости на чужом контроллере, предприятии или сети без явного разрешения.
 
@@ -59,4 +59,4 @@
 
 ## Техническая контрольная точка (18.11.2026)
 
-Проверен `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` после merged [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Безопасность Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Это **не** подтверждает независимый WebView2 smoke, защиту от всех файловых гонок, OEM bench или допуск native writer. [Проверочные ворота](docs/verification_gates.ru.md) · [Дорожная карта v3](docs/roadmap.ru.md).
+Проверен `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` после merged [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Это **не** подтверждает независимый WebView2 smoke, защиту от всех файловых гонок, OEM bench или допуск native writer. [Verification gates](docs/verification_gates.ru.md) · [Roadmap v3](docs/roadmap.ru.md).

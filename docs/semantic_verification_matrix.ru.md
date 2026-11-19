@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/semantic_verification_matrix.md; review required. -->
-> **Русский** · [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Original / Оригинал](semantic_verification_matrix.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Исходный текст / Original](semantic_verification_matrix.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
 # MLAD PR #20 — семантическая верификация и аудит ссылок
 
@@ -9,8 +9,8 @@
 
 ## Источники и уровень доказательности
 
-1. Официальный индекс [YRC1000 Параллельный I/O R12](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12) подтверждает наличие в руководстве §12.2.17 ADD, §12.2.18 SUB, §12.2.24 MOV, §12.2.29 SHL, §12.2.30 SHR и §12.3 Arithmetic Flag. **Индекс сам по себе не доказывает поведение команды**.
-2. [YRC1000 Руководство по редактору лестницы HW1483388](https://www.motoman.com/getmedia/7DCAB851-59B3-4698-97FB-AE39E45FD106/179482-1CD) подтверждает наличие этих инструкций в меню редактора. Не доказывает особенности сканирования, статуса реле и эквивалентность поколений.
+1. Официальный индекс [YRC1000 Concurrent I/O R12](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12) подтверждает наличие в руководстве §12.2.17 ADD, §12.2.18 SUB, §12.2.24 MOV, §12.2.29 SHL, §12.2.30 SHR и §12.3 Arithmetic Flag. **Индекс сам по себе не доказывает поведение команды**.
+2. [YRC1000 Ladder Editor manual HW1483388](https://www.motoman.com/getmedia/7DCAB851-59B3-4698-97FB-AE39E45FD106/179482-1CD) подтверждает наличие этих инструкций в меню редактора. Не доказывает особенности сканирования, статуса реле и эквивалентность поколений.
 3. [docs/typed_opcode_grammar.md](typed_opcode_grammar.ru.md) фиксирует типизированные **формы**, добавленные PR #19. Это результат синтаксического анализа, не измерения результатов выполнения.
 4. Пять настоящих CIOPRG.LST использовались ранее для приватной инвентаризации форм. Доступные синтетические тесты **не** подтверждают OEM-семантику. Настоящие файлы/адреса не публиковать.
 
@@ -73,4 +73,4 @@
 
 ## Дальнейшая работа после PR #29
 
-[Дорожная карта v3](roadmap.ru.md) предлагает parser fixtures, typed grammar (условный PR #34) и source-linked static analysis (условный PR #35). Нынешние `ManualDerived` и M-link observations **не подтверждают** реальные значения EN/Carry/Zero/Error во время скана, System/User ownership или иерархию чтения-записи в аппаратном CIO. До независимых OEM bench данных результаты сохраняют `Unresolved` и `NotExecuted`, а HSES/FTPРодной писатель — `BLOCKED`. [Текущее состояние](project_status.ru.md).
+[Roadmap v3](roadmap.ru.md) предлагает parser fixtures, typed grammar (условный PR #34) и source-linked static analysis (условный PR #35). Нынешние `ManualDerived` и M-link observations **не подтверждают** реальные значения EN/Carry/Zero/Error во время скана, System/User ownership или иерархию чтения-записи в аппаратном CIO. До независимых OEM bench данных результаты сохраняют `Unresolved` и `NotExecuted`, а HSES/FTP/native writer — `BLOCKED`. [Current status](project_status.ru.md).

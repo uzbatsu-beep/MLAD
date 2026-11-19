@@ -1,100 +1,100 @@
-<!-- Generated en companion for docs/README.md; review required. -->
-> **English** · [Русский](README.ru.md) · [English](README.en.md) · [Original / Оригинал](README.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against docs/README.md -->
+> **Language / Язык:** [English](README.en.md) · [Русский](README.ru.md) · [Original](README.md)
+>
+> **Safety/evidence baseline:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. HSES/FTP, native writing, live I/O and robot deployment remain **BLOCKED**. `WindowsCI=PASS` does **not** mean `UserSmoke=PASS` or `OEMBenchVerified`; both manual acceptance and OEM bench testing are **NOT RUN** absent independently documented results.
 
-# MLAD - catalogue of technical documentation
+> **Translation policy:** source documents and OEM manuals remain authoritative. Machine-generated companions that have not been editorially reviewed must not be treated as validated engineering or safety specifications.
 
-** Verified 18.11.2026:** `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged), [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Last published [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) contains PR #24-#29. Publication of documentation PR #30 does not mean merge; [status](project_status.en.md).
+# MLAD — Technical Documentation Index
 
-## Where to start?
+**Verified baseline (18 November 2026):** `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest [published Windows preview, rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), **does not include PR #24–#29**. Creating PR #30 did not by itself merge it into `main`; consult [project status](project_status.en.md) for an up-to-date baseline.
 
-| What do you need? | Document |
+## Start here
+
+| Purpose | Document |
 | --- | --- |
-| Appointment and quick start | [README repository](../README.en.md) |
-| Full Verified Functionality, Risks, Progress | [project_status.md](project_status.en.md) |
-| Current roadmap v3:** M0–M13, priorities, dependencies | [roadmap.md](roadmap.en.md) |
-| ** Development plan PR #30-#37:** Volume, checks, sequence | [implementation_plan.md](implementation_plan.en.md) |
-| Matrix CI, Windows smoke, checks and releases | [verification_gates.md](verification_gates.en.md) |
-| Windows Acceptance & Security Regression (PR #28 merged) | [windows_acceptance_pr28.md](windows_acceptance_pr28.en.md) |
-| Filesystem Security Hardening and Residual ThreatsPR #29 merged) | [filesystem_security_pr29.md](filesystem_security_pr29.en.md) |
-| Consistent Engineering Solutions D1–D9 | [engineering_decisions.md](engineering_decisions.en.md) |
-| Access components and permissions | [architecture.md](architecture.en.md) |
-| Development process, CI, Windows Preview | [development_workflow.md](development_workflow.en.md) |
-| Safe preservation of JSON (PR #24 merged) | [json_persistence_safety.md](json_persistence_safety.en.md) |
-| CSP / Parental File PathsPR #25 merged) | [csp_path_hardening.md](csp_path_hardening.en.md) |
-| Open file identity and save conflictsPR #26 merged) | [guarded_io_review.md](guarded_io_review.en.md) |
-| Deposit rules | [CONTRIBUTING.md](../CONTRIBUTING.en.md) |
-| Community and Issues templates | [CONTRIBUTING.md](../CONTRIBUTING.en.md) / [Issue templates](../.github/ISSUE_TEMPLATE) |
-| Responsible reporting of vulnerabilities | [SECURITY.md](../SECURITY.en.md) |
-| Code of engagement | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.en.md) |
-| Interface availability and limitations | [ACCESSIBILITY.md](../ACCESSIBILITY.en.md) |
-| PR template with MLAD restrictions | [PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.en.md) |
-| License and third-party components | [licensing.md](licensing.en.md) |
-| Registry of all Markdown audits after PR #29 | [documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.en.md) |
-| Historical audit of documentation on 17.11. 2026 | [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.en.md) |
+| Project scope and quick start | [Repository README](../README.en.md) |
+| Verified features, risks, and maturity | [Project status](project_status.en.md) |
+| Roadmap v3: M0–M13, priorities, dependencies | [Roadmap](roadmap.en.md) |
+| Proposed implementation sequence PR #30–#37 | [Implementation plan](implementation_plan.en.md) |
+| CI, Windows acceptance, testing, and release gates | [Verification gates](verification_gates.en.md) |
+| PR #28: Windows Acceptance & Security Regression | [Windows acceptance protocol](windows_acceptance_pr28.en.md) |
+| PR #29: Filesystem Security Hardening and residual risks | [Filesystem threat review](filesystem_security_pr29.en.md) |
+| Approved decisions D1–D9 | [Engineering decisions](engineering_decisions.en.md) |
+| Components, data flow, and permissions | [Architecture](architecture.en.md) |
+| Development, CI and release workflow | [Development workflow](development_workflow.en.md) |
+| Safe persistence of independent JSON drafts (PR #24) | [JSON persistence safety](json_persistence_safety.en.md) |
+| CSP and ancestor-path checks (PR #25) | [CSP/path review](csp_path_hardening.en.md) |
+| Open-handle identity and save-conflict guards (PR #26) | [Guarded I/O review](guarded_io_review.en.md) |
+| Contributor instructions | [CONTRIBUTING](../CONTRIBUTING.en.md) |
+| GitHub community and issue templates | [CONTRIBUTING](../CONTRIBUTING.en.md) / [Issue templates](../.github/ISSUE_TEMPLATE) |
+| Sensitive vulnerability reporting | [SECURITY](../SECURITY.en.md) |
+| Expected community conduct | [CODE_OF_CONDUCT](../CODE_OF_CONDUCT.en.md) |
+| Accessibility limitations | [ACCESSIBILITY](../ACCESSIBILITY.en.md) |
+| Pull-request review template | [PR template](../.github/PULL_REQUEST_TEMPLATE.en.md) |
+| GPL licensing and third-party material | [Licensing](licensing.en.md) |
+| Complete Markdown review inventory after PR #29 | [Documentation inventory](documentation_inventory_2026-11-18.en.md) |
+| Historical documentation audit dated 17 November 2026 | [Historical audit](documentation_audit_2026-11-17.en.md) |
+| Language availability and editorial-review status | [Translation coverage](translation_coverage.md) |
 
-## Source files, addresses and semantics
+## Native source files, memory addressing and semantics
 
-| Direction | Document |
+| Topic | Document |
 | --- | --- |
-| Primary sources/revisions of Yaskawa | [source_registry.md](source_registry.en.md) |
-| Native CIOPRG: Known and Unknown | [cioprg_lst_spec.md](cioprg_lst_spec.en.md) |
-| Byte-saving imports | [cioprg_lossless_parser.md](cioprg_lossless_parser.en.md) |
-| Post-END ALARM/MESSAGE | [post_end_data.md](post_end_data.en.md) |
-| Control body structure, source protection | [controller_fixture_intake.md](controller_fixture_intake.en.md) |
-| DX100/DX200/YRC1000 memory profiles | [typed_memory_model.md](typed_memory_model.en.md) |
-| Boolean Semantic AST | [semantic_ast.md](semantic_ast.en.md) |
-| Typed MOV/ADD/SUB/SHL/SHR | [typed_opcode_grammar.md](typed_opcode_grammar.en.md) |
-| Checked documentation for five teams and unknown edges | [oem_5_opcode_analysis.md](oem_5_opcode_analysis.en.md) |
-| Static Hypotheses of M Dependencies, OEM Assumptions | [semantic_verification_matrix.md](semantic_verification_matrix.en.md) |
-| TMR/CNT/GSTR/GOUT | [advanced_blocks.md](advanced_blocks.en.md) |
-| Matrix of **unconducted ** robot tests | [advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.en.md) |
-| HSES **not on** | [hse_protocol.md](hse_protocol.en.md) |
+| Manufacturer manuals and source revisions | [Yaskawa source registry](source_registry.en.md) |
+| Known and unknown native CIOPRG grammar | [CIOPRG.LST specification baseline](cioprg_lst_spec.en.md) |
+| Exact-byte, lossless file inspection | [Lossless parser](cioprg_lossless_parser.en.md) |
+| ALARM/MESSAGE records after `END` | [Post-END data](post_end_data.en.md) |
+| Private controller fixture intake and confidentiality | [Fixture intake](controller_fixture_intake.en.md) |
+| DX100 / DX200 / YRC1000 memory profiles | [Typed memory model](typed_memory_model.en.md) |
+| Boolean source-to-AST analysis | [Semantic AST](semantic_ast.en.md) |
+| Typed MOV/ADD/SUB/SHL/SHR candidates | [Typed opcode grammar](typed_opcode_grammar.en.md) |
+| OEM-backed reference rules and unresolved cases for five instructions | [Five-opcode analysis](oem_5_opcode_analysis.en.md) |
+| Tentative static M-register references and evidence boundaries | [Semantic verification matrix](semantic_verification_matrix.en.md) |
+| TMR/CNT/GSTR/GOUT | [Advanced blocks](advanced_blocks.en.md) |
+| **Not-yet-executed** controller bench test plan | [Hardware test matrix](advanced_hardware_test_matrix.en.md) |
+| HSES: **not enabled** | [HSES protocol verification status](hse_protocol.en.md) |
 
-## Interface and user data
+## Interface and user-owned data
 
-- [graph_editor.md](graph_editor.en.md) Safe JSON drafts; not native export.
-- [ui_multi_rung_state.md](ui_multi_rung_state.en.md) Visual chains and offline tri-state.
-- [inline_address_editing.md](inline_address_editing.en.md) Edit JSON addresses and local notes separately.
-- [ioname_annotations.md](ioname_annotations.en.md) I/O names and local comments without changing native files.
+- [Graph editor](graph_editor.en.md) — independent editable JSON drafts; **not** a native CIOPRG exporter.
+- [Multi-rung visualization](ui_multi_rung_state.en.md) — offline TRUE/FALSE/UNKNOWN states; **not live telemetry**.
+- [Inline address editing](inline_address_editing.en.md) — address changes in JSON drafts; native file remains read-only.
+- [IONAME and annotations](ioname_annotations.en.md) — display names and local notes without changing the source file.
 
-## Release notes (archival documents of specific assemblies)
+## Release notes: historical, release-specific records
 
-All release notes below refer to your tag/commit** only. They are not modified retroactively so as not to distort the reproducible information about the previously published artifact.
+The files below describe only the corresponding **tag/commit**. They must not be retroactively rewritten as descriptions of the current `main`.
 
-| Release. | Feature | File. |
+| Release | Scope | Document |
 | --- | --- | --- |
-| rc.1 | Windows hardware bench preview | [rc.1](releases/v0.5.0-rc.1-hardware.en.md) |
-| rc.2 | Native read-only CIOPRG | [rc.2](releases/v0.5.0-rc.2-cioprg.en.md) |
-| rc.3 | Built-in Native Workspace | [rc.3](releases/v0.5.0-rc.3-workspace.en.md) |
-| rc.4 | IONAME / Local comments | [rc.4](releases/v0.5.0-rc.4-annotations.en.md) |
-| rc.5 | Compact panel and system dialogues | [rc.5](releases/v0.5.0-rc.5-layout.en.md) |
-| rc.6 | Post-END and Diagnostic Grouping | [rc.6](releases/v0.5.0-rc.6-postend.en.md) |
-| rc.7 | Type five teams | [rc.7](releases/v0.5.0-rc.7-typed.en.md) |
-| rc.8 | Static Source Hypotheses | [rc.8](releases/v0.5.0-rc.8-evidence.en.md) |
-| **rc.9** | **OEM reference for five teams - most recently published ** | [rc.9](releases/v0.5.0-rc.9-oem-reference.en.md) |
+| rc.1 | Initial Windows hardware-bench preview | [rc.1](releases/v0.5.0-rc.1-hardware.en.md) |
+| rc.2 | Read-only native CIOPRG inspection | [rc.2](releases/v0.5.0-rc.2-cioprg.en.md) |
+| rc.3 | Embedded Native Workspace | [rc.3](releases/v0.5.0-rc.3-workspace.en.md) |
+| rc.4 | IONAME and local annotations | [rc.4](releases/v0.5.0-rc.4-annotations.en.md) |
+| rc.5 | Compact workspace and system file dialogs | [rc.5](releases/v0.5.0-rc.5-layout.en.md) |
+| rc.6 | Post-END classification and grouped diagnostics | [rc.6](releases/v0.5.0-rc.6-postend.en.md) |
+| rc.7 | Typed candidates for five opcodes | [rc.7](releases/v0.5.0-rc.7-typed.en.md) |
+| rc.8 | Tentative static source dependencies | [rc.8](releases/v0.5.0-rc.8-evidence.en.md) |
+| **rc.9** | **OEM reference rules for five opcodes — latest published release** | [rc.9](releases/v0.5.0-rc.9-oem-reference.en.md) |
 
-Current [GitHub Release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference)The published source archive corresponds to the release commit, not future changes n `main`.
+The [latest published GitHub Release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) contains source code corresponding to its own release commit, **not subsequent PRs in `main`**.
 
-## Historical materials and redirections
+## Historical materials and redirects
 
-- [roadmap_v2_archive.md](roadmap_v2_archive.en.md) ** Archive of the previous detailed roadmap, it has outdated draft statuses.
-- [implementation_plan_v2_archive.md](implementation_plan_v2_archive.en.md) - **archive** of the previous turn PR #27#35; current numbers reassigned after documentary PR #30.
-- [documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.en.md) Historical audit at the date of creation.
+- [Roadmap v2 archive](roadmap_v2_archive.en.md) — previous roadmap with statuses that have since changed.
+- [Previous PR #27–#35 plan](implementation_plan_v2_archive.en.md) — archived planning sequence, superseded by roadmap v3.
+- [Documentation audit, 17 November 2026](documentation_audit_2026-11-17.en.md) — historical snapshot.
+- [Early ladder specification](ladder_spec.en.md) → [current CIOPRG baseline](cioprg_lst_spec.en.md).
+- [Early memory map](memory_map.en.md) → [typed memory model](typed_memory_model.en.md).
+- [Early references](references.en.md) → [current source registry](source_registry.en.md).
 
+## Markdown maintenance policy
 
-- [ladder_spec.md](ladder_spec.en.md) → [cioprg_lst_spec.md](cioprg_lst_spec.en.md).
-- [memory_map.md](memory_map.en.md) → [typed_memory_model.md](typed_memory_model.en.md).
-- [references.md](references.en.md) → [source_registry.md](source_registry.en.md).
+The authoritative current-status documents are this index, `project_status.md`, `roadmap.md`, `implementation_plan.md`, `verification_gates.md`, `engineering_decisions.md`, `SECURITY.md` and `architecture.md`. Technical specification documents are authoritative **only within their explicitly stated evidence scope**. An old PR number such as `PR #21` in a title denotes the origin of a feature, not the project's latest state.
 
-## Markdown Update Policy
+Historical release notes and dated audits are preserved, including their original context. Following a new merge, update relevant status-bearing documents and the translation counterparts without altering historical tag claims. See the [Markdown inventory](documentation_inventory_2026-11-18.en.md) and the [translation coverage report](translation_coverage.md).
 
-- **Acting sources of truth:** This index, `project_status.md`, `roadmap.md`, `implementation_plan.md`, `verification_gates.md`, `engineering_decisions.md`, `SECURITY.md`, `architecture.md`.
-- ** Function specifications** (CIOPRG, memory, parser, graph, advanced, HSES) remain valid ** only within the limits described **; old `PR #21` The title stands for provenance of implementation, not the last leaked PR project.
-- **Historical records (rc.1–rc.9, archival decisions, dated audits) should not be rewritten retroactively or taken by SHA/CI as current state.
-- Review of all Markdown coverage [documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.en.md). After the new merge, repeat the revision of only modified / status files, saving the archives.
+## Evidence discipline
 
-## Discipline of evidence
-
-Exact differences: `Documented/ManualDerived` ≠ `SyntheticTested` ≠ `OEMBenchVerified` ≠ `Authorized`. Read-only GUI . native export or download to the robot. Each new feature requires an original OEM source, negative case tests, ControllerFamily binding, security script, and status updates without erasing history.
+`Documented/ManualDerived` is **not** the same as `SyntheticTested`, `OEMBenchVerified`, or `Authorized`. A read-only GUI does **not** imply permission to export native code or upload it to a robot. Each new capability requires a traceable manufacturer source, negative tests, controller-family scope, safety assessment and a current, explicit evidence status.

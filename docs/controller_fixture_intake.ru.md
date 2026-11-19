@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/controller_fixture_intake.md; review required. -->
-> **Русский** · [Русский](controller_fixture_intake.ru.md) · [English](controller_fixture_intake.en.md) · [Original / Оригинал](controller_fixture_intake.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](controller_fixture_intake.ru.md) · [English](controller_fixture_intake.en.md) · [Исходный текст / Original](controller_fixture_intake.md)
+>
+> **Конфиденциальность и доказательность:** данные реальных контроллеров не публикуются. Сохранены исходные правила приёмки и ограничения; ручная OEM-верификация не заменяется переводом.
 
 # CIOPRG.LST — приёмка оригинальных файлов с DX100/DX200/YRC1000
 
@@ -18,7 +18,7 @@
 | Поле | Что записывать |
 |---|---|
 | Контроллер | DX100 / DX200 / YRC1000, точная аппаратная ревизия |
-| Программное обеспечение / System Software | Версия с панели, дата сборки при наличии |
+| Firmware / system software | Версия с панели, дата сборки при наличии |
 | Application | Handling / welding / painting / иные установленные опции |
 | Средства экспорта | Версия встроенного меню, Ladder Editor 32 и способ получения файла |
 | Файл | Изначальный `CIOPRG.LST`, размер, точный SHA-256 |
@@ -48,7 +48,7 @@ Get-FileHash -Path "D:\\backup\\CIOPRG.LST" -Algorithm SHA256
 6. Для тестовой фикстуры согласовать разрешённую минимальную анонимизацию. **Любая анонимизация меняет байты и SHA-256**; сохранить связь `original_hash → sanitized_hash` в закрытом реестре.
 7. Использовать репозиторий только для разрешённых **синтетических** и обезличенных фрагментов с явным происхождением. Клиентские System Ladder, network configuration и секреты в публичный git не добавлять.
 
-## 3.Принятие золотой арматуры
+## 3. Golden fixture acceptance
 
 - Содержимое и хеш файла проверяются дважды независимо.
 - Проверка `parse_document` не изменяет исходных байтов (`copy_original() == input`), включая BOM и окончания строк.

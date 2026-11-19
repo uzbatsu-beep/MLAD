@@ -1,52 +1,52 @@
-<!-- Generated en companion for docs/engineering_decisions.md; review required. -->
-> **English** · [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Original / Оригинал](engineering_decisions.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against docs/engineering_decisions.md -->
+> **Language / Язык:** [English](engineering_decisions.en.md) · [Русский](engineering_decisions.ru.md) · [Original](engineering_decisions.md)
+>
+> **Authority:** Only decisions explicitly approved by the project owner are binding. Translation does not create a new engineering decision or authorize controller operations.
 
-# MLAD – Register of Approved Engineering Solutions
+# MLAD — Register of Approved Engineering Decisions
 
-**Register version:** 18.11.2026. This document fixes the agreed limits and shares them with the proposals that have not yet been adopted. Reason: [roadmap v3](roadmap.en.md) и [v2](roadmap_v2_archive.en.md), [status](project_status.en.md), [PR](implementation_plan.en.md). The decision to merge a particular PR is always made separately.
+**Register version:** 18 November 2026. This document records agreed restrictions separately from proposals that have **not yet been adopted**. References: [roadmap v3](roadmap.en.md) and the [archived roadmap v2](roadmap_v2_archive.en.md), [current project status](project_status.en.md), and [proposed PR plan](implementation_plan.en.md). **Merging each individual PR requires a separate owner decision.**
 
-## 1. Stable solutions D1-D9
+## 1. Approved decisions D1–D9
 
-| ID | Agreed decision | Consequence for development |
+| ID | Approved decision | Consequence for development |
 | --- | --- | --- |
-| D1 | **Balanced path D:** short safety baseline → Native Workspace and navigation, real fixtures parallel → parser/semantics → Unified IDE | Architectural sequence selection; UX does not wait for full OEM grammar, but does not claim false compatibility |
-| D2 | `CIOPRG.LST` * read-only** only, editable data and sidecar separately | Do not overwrite/normalize the original; immutable bytes and SHA-256Changes to specific JSONs only |
-| D3 | In Native Workspace, blocks are represented by a **compact list with disclosure**, the selected chain is in the center. | All recognized chains are available, the source text is page by page; do not overload the canvas with hundreds of heavy diagrams. |
-| D4 | Unknown to show as source text, without guessing about semantics | Conditions `recognized`, `partially supported` и `opaque`, initial spans and explicit warnings |
-| D5 | Real unloading - closed case, publicly only allowed/synthetic fixtures | There's no real `CIOPRG.LST`/`IONAME.DAT`hashes and production IP in PR/CI |
-| D6 | Syntax and semantics confirmed **separately* * | `TypedCandidate` does not mean an executable operator; `ManualDerived` Does not mean OEM scan |
-| D7 | A fully autonomous read-only tool. HSES A separate future solution | В `main` FTP/HSES Runtime disabled, no telemetry or recording permissions |
-| D8 | Offline MVP `0.6.x`Native Workspace, navigation, diagnostics, safety SHA-256 | Acceptance on functionality and smoke, not by OEM writer |
-| D9 | Priority: reproducible npm/CI and security, then workspace/parser/unified IDE | Changes only through small PR and negative tests, no automatic merger |
+| D1 | **Balanced development path D:** establish a short safety baseline → develop Native Workspace and navigation, collecting real fixtures in parallel → refine the parser and semantics → build a Unified IDE | This is the agreed architectural order. UX improvements need not wait for a complete OEM grammar, but must not imply unverified compatibility |
+| D2 | `CIOPRG.LST` is strictly **read-only**; edited data and sidecars are maintained separately | Never overwrite or normalize original source bytes; preserve byte identity and SHA-256. User changes are stored only in independent JSON files |
+| D3 | Native Workspace displays blocks in a **compact expandable list**, with the selected rung/circuit in the central work area | All recognized circuits remain accessible; source text is paginated. Avoid rendering hundreds of expensive diagrams simultaneously |
+| D4 | Show unknown source as source text; **do not guess its semantics** | Distinguish `recognized`, `partially supported` and `opaque`; keep exact source spans and visible warnings |
+| D5 | Genuine controller exports belong to a **private corpus**; public fixtures must be explicitly permitted or synthetic | Do not include real `CIOPRG.LST`, `IONAME.DAT`, private hashes or production IP addresses in PRs or CI |
+| D6 | Syntax and behavior must be established **independently** | A `TypedCandidate` is not an executable instruction model; `ManualDerived` does not establish an OEM-verified scan |
+| D7 | Deliver a fully offline read-only tool first; HSES is a separately authorized future decision | FTP/HSES runtime is disabled in `main`; there is no live telemetry or permission to write to a controller |
+| D8 | Offline MVP `0.6.x`: Native Workspace, navigation, diagnostics and SHA-256 source preservation | Acceptance is based on demonstrated offline functionality and smoke testing, **not** on the existence of an OEM-native writer |
+| D9 | Prioritize reproducible npm/CI and security, then workspace/parser/unified-IDE improvements | Use small independently tested PRs with negative regressions and **no automatic merging** |
 
-License: `GPL-3.0-only`; copyright holder ** own original materials MLAD** — Fedor Sergeyevich Kochedykov (individual), © 2026. This is a ***** statement of ownership of OEM/third party materials. [licensing.md](licensing.en.md).
+**License:** `GPL-3.0-only`. Copyright in MLAD's **own original materials** is held by **Фёдор Сергеевич Кочедыков** (an individual), © 2026. This does **not** claim ownership of third-party or OEM materials. See [licensing](licensing.en.md).
 
-## 2. Unrevised restrictions without a separate decision
+## 2. Restrictions that must not change without a separate decision
 
-- Native export/write `CIOPRG.LST` JSON draft is not disguised as an OEM program.
-- HSES/FTPRobot upload, live I/O and System/User modification are prohibited.
-- `PART 1/2` You can not declare the established rights of the System / User.
-- For each controller/firmware, form and result confirmation is required separately.
-- The request to connect to a real robot ** is not intended** from the offline UI development.
-- All PR is tested; **merge is solely with the consent of the owner.
-- Historical release notes and published artifacts are not rewritten retroactively.
+- Native export or writing of `CIOPRG.LST` is **prohibited**. An editable JSON draft must never masquerade as an OEM program.
+- HSES/FTP, robot upload, live I/O and modification of System/User Ladder are **prohibited**.
+- The `PART 1/2` markers must **not** be treated as a verified System/User access-control policy.
+- Syntax, program behavior and any controller-specific effect must be verified separately for each controller family and firmware.
+- Developing an offline interface **does not imply permission to connect to a real robot**.
+- All PRs require tests; **merge requires the owner's explicit consent**.
+- Historical release notes and published artifacts must not be silently rewritten to reflect later code.
 
-## 3. Open decisions (not considered approved)
+## 3. Open questions — not approved decisions
 
-| Question | Relevant data | Current status |
+| Question | Evidence needed | Current status |
 | --- | --- | --- |
-| Format `*.mlad.json` sidecar, schema version, migrations | Circuit + prototype + negative tests, communication by SHA | Proposal in [plan](implementation_plan.en.md)not implemented |
-| Checking/correcting native grammar DX100/DX200/YRC1000 | Fixture, firmware and OEM manual rights | Study M1/M5 without permission from a native writer |
-| Cross-references and static dataflow | Source spans, ambiguities, evidence levels | Untested scan model |
-| Windows file trust: handles/ACL/races | Threat model, reproducible Windows tests | M2 PARTIAL; PR #24#29 reduced some risks, but last-check→rename/ACL/recovery is open |
-| Release `0.6.x` | Windows UserSmoke, legal/source/assets, approval | Candidate, not announced; conditionally PR #37 |
-| Read-only HSES | Separate owner approval, OEM read spec, isolated rig | BLOCKED |
-| Native writer и deployment | OEM verified fidelity, safety review, separate consent | BLOCKED |
+| `*.mlad.json` sidecar format, schema version and migrations | Proposed schema, prototype, negative tests and SHA-based source binding | Proposal in the [implementation plan](implementation_plan.en.md); **not implemented** |
+| Verification and correction of native grammar for DX100/DX200/YRC1000 | Rights to use controller exports, firmware metadata and relevant OEM manuals | M1/M5 investigation only; **no native writer permission** |
+| Formal cross-reference and static-dataflow rules | Exact source spans, treatment of ambiguity, explicit evidence levels | A controller scan model has **not** been verified |
+| Windows filesystem trust: handles, ACLs and races | Threat model and reproducible Windows tests | M2 **PARTIAL**; PR #24–#29 reduced some risks, but final check→rename, ACL and recovery remain open |
+| Release `0.6.x` | Windows UserSmoke, licensing/source/assets and explicit approval | Candidate only, not announced; conditionally proposed as PR #37 |
+| Read-only HSES | Separate owner approval, verified OEM read specification and isolated bench | **BLOCKED** |
+| Native writer and deployment | OEM-verified file fidelity, independent safety review and explicit approval | **BLOCKED** |
 
-** New plan. PR #31#37 is a sentence**, it does not create D10 and does not automatically approve sidecar schema, a set of new opcodes or a release date. Separate ADR/consistency is required before changing the architecture or constraints.
+**The proposed PR #31–#37 plan does not create decision D10.** It does not automatically approve a sidecar schema, additional opcode set or release date. Any material change to architecture or restrictions requires a separate architecture decision record (ADR) and owner approval.
 
-Any D1-D9 change is made through a separate ADR/PR with motivation, risks and tests. The new decision is not valid until the owner has approved it.
+Every modification to D1–D9 must be documented in a separate ADR/PR with rationale, risks and tests. A new decision does not take effect until the owner explicitly approves it.
 
-[Matrix of inspections](verification_gates.en.md) · [PR process](development_workflow.en.md) · [Current threat model](filesystem_security_pr29.en.md)
+[Verification matrix](verification_gates.en.md) · [PR process](development_workflow.en.md) · [Current filesystem threat model](filesystem_security_pr29.en.md)

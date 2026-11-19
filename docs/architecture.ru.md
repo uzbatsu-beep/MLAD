@@ -1,11 +1,11 @@
-<!-- Generated ru companion for docs/architecture.md; review required. -->
-> **Русский** · [Русский](architecture.ru.md) · [English](architecture.en.md) · [Original / Оригинал](architecture.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](architecture.ru.md) · [English](architecture.en.md) · [Исходный текст / Original](architecture.md)
+>
+> **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
 # Архитектура MLAD и границы доверия
 
-**Фактический baseline 18.11.2026:** `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` после [merge PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) успешны. [Статус проекта](project_status.ru.md), [Дорожная карта v3](roadmap.ru.md), [Backlog](implementation_plan.ru.md). Native source строго read-only; FTP/HSES/deploy отключены.
+**Фактический baseline 18.11.2026:** `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` после [merge PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) успешны. [Project status](project_status.ru.md), [Roadmap v3](roadmap.ru.md), [Backlog](implementation_plan.ru.md). Native source строго read-only; FTP/HSES/deploy отключены.
 
 ## 1. Слои и поток данных
 
@@ -44,21 +44,21 @@ React / TypeScript / Tauri WebView
 
 | Формат | Операция | Статус |
 | --- | --- | --- |
-| `CIOPRG.LST` | Native Open + только для чтения / поиск / поиск / хэш | Оригинал неизменяем. Нет native writer, recompiler, overwrite |
-| `IONAME.DAT` | Нативный Open + ограниченный структурный предварительный просмотр | Только чтение, индексы на #XXXXX не подтверждены |
+| `CIOPRG.LST` | Native Open + read-only inspect/paging/search/hash | Оригинал неизменяем. Нет native writer, recompiler, overwrite |
+| `IONAME.DAT` | Native Open + bounded structural preview | Только чтение, индексы на #XXXXX не подтверждены |
 | Локальные native комментарии | localStorage, ключи по SHA-256 | **Не** OEM-аннотации в файле; portable sidecar ещё нет |
 | `*.graph.json` | Валидация/сохранение собственного формата | Редактируемый отдельный JSON draft, не native CIO |
 | `*.advanced.json` | Валидация/сохранение собственного формата | Отдельный JSON draft, не native CIO |
 | `project.json` | Старый совместимый формат | Legacy, не конвертер на робота |
 | Локальные TMR/CNT/GSTR test steps | Детерминированные **ручные** шаги | Не реальный scan/IO |
-| HSES / FTP | IPC Tauri IPC | **OFFLINE / запрещено** |
+| HSES / FTP | Deny-only Tauri IPC | **OFFLINE / запрещено** |
 
 Backend не предоставляет рабочей команды сохранения изменённого CIOPRG и не включает программу робота. PR #24 уже слит (JSON staged/rename). **PR #25 merged** реализует production CSP и проверки предков путей; CSP **в опубликованном rc.9 ещё отсутствует**, а PR #29 добавил File ID/byte snapshots, hardlink rejection и Windows ADS/UNC/device path deny. Остаются race windows/TOCTOU, ACL/power-loss и Windows user smoke. [Обзор](filesystem_security_pr29.ru.md).
 
 ## 3. Три уровня интерпретации
 
 1. **Lexical/structural:** исходные байты, BOM, CRLF/LF/CR, spans, PART/END, наблюдаемые секции ALARM/MESSAGE после END. Unknown остаётся unknown.
-2. **Типированный синтаксис:** `MOV/ADD/SUB/SHL/SHR` как `TypedCandidate`, операнды и возможные M-ссылки. Все новые «связи» — только текстовые гипотезы; boolean AST получает barrier, не исполнения.
+2. **Typed syntax:** `MOV/ADD/SUB/SHL/SHR` как `TypedCandidate`, операнды и возможные M-ссылки. Все новые «связи» — только текстовые гипотезы; boolean AST получает barrier, не исполнения.
 3. **Manual-derived reference:** изолированная функция проверки заданных вручную 16-bit векторов и OEM-справка в UI. Не читает и не модифицирует значения из `CIOPRG.LST`; `controller_execution_verified=false`, `scan_chain_verified=false`.
 
 **Нет** четвёртого уровня OEM-certified execution. Флаги Carry/Zero/Error относятся к руководству и reference-векторам, не к состояниям контроллера.
@@ -72,7 +72,7 @@ Backend не предоставляет рабочей команды сохра
 
 ## 5. Открытые security/engineering долги
 
-1. PR #25 объединенные: CSP/ancestor checks; PR #26 объединенные: охраняемые чтения/конфликты; PR #28 merged: реальный Windows NTFS test workflow; PR #29 Слияние: File ID + байты, жесткие ссылки, постановка SHA-256, Windows path deny. Остаются last check→rename TOCTOU, directory handles, ACL/Windows edge cases, concurrent writers и отсутствие транзакции backup+target.
+1. PR #25 merged: CSP/ancestor checks; PR #26 merged: guarded reads/conflicts; PR #28 merged: реальный Windows NTFS test workflow; PR #29 merged: File ID + bytes, hardlinks, staged SHA-256, Windows path deny. Остаются last check→rename TOCTOU, directory handles, ACL/Windows edge cases, concurrent writers и отсутствие транзакции backup+target.
 2. Реальные golden fixtures с provenance по DX100/DX200/YRC1000 и firmware.
 3. Полная native grammar, byte/word aliasing, System/User ownership.
 4. Взаимодействие флагов и условий EN при полном скане; крайние MOV byte=256, SHL/SHR n=0/16.
@@ -87,19 +87,19 @@ Backend не предоставляет рабочей команды сохра
 Три IPC-метода записи JSON используют один Rust `draft_io::write_atomic` для временного файла с уникальным именем, `sync_all` и замены файла в той же папке. Читатели Graph/Advanced/legacy JSON ограничены 2 МиБ и отвергают прямые symlink. Резервная копия `*.bak` формируется отдельно и **не атомарна одновременно** с целевым JSON. Это **не** capability grant для записи CIOPRG.LST или IONAME.DAT, no FTP/HSES. См. [модель безопасности записи](json_persistence_safety.ru.md).
 
 
-## 7. PR #25 CSP и отказ от связанного пути (слияние)
+## 7. PR #25 — CSP and linked path rejection (merged)
 
 Настройка `app.security.csp` ограничивает external loads в packaged WebView; `devCsp` отдельно позволяет только Vite localhost HMR. Inline CSS/React styles требуют исключения `style-src 'unsafe-inline'`; JS остаётся без `unsafe-inline` и `unsafe-eval`. Для файлов `draft_io::verify_parent_directory` предварительно выявляет symlink ancestors/ParentDir, но не удерживает дескриптор директории от изменения. [Подробные ограничения](csp_path_hardening.ru.md).
 
 
-## 8. PR #26 — ограниченное чтение с проверкой личности и охрана конфликта JSON (слияние)
+## 8. PR #26 — bounded identity-checked read and JSON conflict guard (merged)
 
 `guarded_read::read_regular` использует единый дескриптор для содержимого (на Windows — дополнительные контрольные дескрипторы), предварительно и после чтения сверяет Unix dev/inode или Windows volume/file index. Проверяются symlink/reparse, размер и mtime. Native CIOPRG и IONAME используют `spawn_blocking` и не предоставляют writer. `draft_io::write_atomic` сравнивает байты target перед финальным rename; возвращает конфликт вместо silent lost update. Подробно: [guarded_io_review.md](guarded_io_review.ru.md).
 
 ## 9. PR #28/#29 — Windows regression и filesystem hardening (merged)
 
-[Рабочий процесс Windows](../.github/workflows/windows-security-acceptance.yml) после PR #28 исполняет тесты на Windows runner, компилирует Tauri EXE с production CSP и формирует временный unsigned artifact. В PR #29 JSON read/save расширены `FileIdentity` snapshots и запретом hardlinked target/backup; staged JSON сверяет File ID и SHA-256 перед переименованием. Прямые Windows alternate streams, UNC/device/verbatim и drive-relative пути отклоняются; для работы выбирать обычные локальные копии. [Обзор угроз](filesystem_security_pr29.ru.md). **Не гарантируются** directory-handle atomicity, сохранение ACL, crash durability и транзакция пары `backup+target`. В `Cargo.toml` всё ещё указан `suppaftp` как зависимость — отдельная проверка зависимостей не означает, что сетевой runtime активен.
+[Windows workflow](../.github/workflows/windows-security-acceptance.yml) после PR #28 исполняет тесты на Windows runner, компилирует Tauri EXE с production CSP и формирует временный unsigned artifact. В PR #29 JSON read/save расширены `FileIdentity` snapshots и запретом hardlinked target/backup; staged JSON сверяет File ID и SHA-256 перед переименованием. Прямые Windows alternate streams, UNC/device/verbatim и drive-relative пути отклоняются; для работы выбирать обычные локальные копии. [Threat review](filesystem_security_pr29.ru.md). **Не гарантируются** directory-handle atomicity, сохранение ACL, crash durability и транзакция пары `backup+target`. В `Cargo.toml` всё ещё указан `suppaftp` как зависимость — отдельная проверка зависимостей не означает, что сетевой runtime активен.
 
 ## 10. Архитектурный маршрут после PR #29
 
-**Следующие отдельные изменения:** synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based typed syntax → source-linked static analysis → unified Offline Engineering IDE → условный Windows 0.6.x preview. [План осуществления](implementation_plan.ru.md) · [Проверочные ворота](verification_gates.ru.md) · [Решения D1-D9](engineering_decisions.ru.md). Ни один документ не санкционирует запись native или подключение контроллера.
+**Следующие отдельные изменения:** synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based typed syntax → source-linked static analysis → unified Offline Engineering IDE → условный Windows 0.6.x preview. [Implementation plan](implementation_plan.ru.md) · [Verification gates](verification_gates.ru.md) · [Decisions D1–D9](engineering_decisions.ru.md). Ни один документ не санкционирует запись native или подключение контроллера.
