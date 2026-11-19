@@ -1,11 +1,11 @@
-<!-- Generated en companion for docs/post_end_data.md; review required. -->
-> **English** · [Русский](post_end_data.ru.md) · [English](post_end_data.en.md) · [Original / Оригинал](post_end_data.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against post_end_data.md -->
+> **Language / Язык:** [English](post_end_data.en.md) · [Русский](post_end_data.ru.md) · [Original](post_end_data.md)
+>
+> **Evidence:** Observed private exports, **not** a universal Yaskawa file grammar or edit permission. `CIOPRG.LST`/`IONAME.DAT` remain read-only; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
 # MLAD — read-only post-END data classification and diagnostics
 
-**Scope on 18.11.2026:** PR #18 **merged**, [Windows rc.6 published](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.6-postend); support is included in the current `main`. Describes the observed post-END format, **not** full OEM grammar/editor. [Current status](project_status.en.md).
+**Scope as of 18 November 2026:** PR #18 **merged**, and [Windows rc.6 was published](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.6-postend). This capability exists in `main`. The described post-END layout is **observed**, **not** a complete OEM grammar or native editor. See [project status](project_status.en.md).
 
 ## Observed exports, not assumed OEM specification
 
