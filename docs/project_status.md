@@ -56,3 +56,9 @@ MLAD — локальная OFFLINE/BENCH среда `DX100`/`DX200`/`YRC1000` �
 PR #40 уже слит как документация, без внедрения парсера. В Draft PR #41 добавлены синтетический корпус CIOPRG, полная покомпонентная классификация физических строк и отображение исходных byte spans в Native Workspace. Это состояние ветки разработки, а не внедрение в main и не проверка реального контроллера. Фактическое принятие PR #41 требует завершения Linux/Windows CI и согласия владельца на merge.
 
 Отдельные статусы: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP/native writer/deployment **BLOCKED**. Старый опубликованный rc.9 не включает PR #40/#41. Настройки required checks Ruleset не менялись.
+
+## Текущая ветка разработки: PR #42 — Native Workspace UX v2
+
+PR #41 Parser Fidelity слит в `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. Новый PR #42 создан как Draft и пока не входит в main. В ветке разработаны переходы source↔rung/block/diagnostic, выбор одной схемы, клавиатурная навигация, серверный постраничный фильтр по `SyntaxClass`, opcode и адресу с контролем SHA-256.
+
+Доказательство CI должно относиться к финальному HEAD PR #42. Любой успешный CI не равен ручной Windows проверке WebView2 и OEM bench. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP, native writer и deployment **BLOCKED**. Публичный Windows Release для данного изменения не выпускался.
