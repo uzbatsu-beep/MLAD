@@ -52,6 +52,10 @@ EDITORIAL_RU = {
     "docs/advanced_hardware_test_matrix.md",
     "docs/typed_opcode_grammar.md",
     "docs/cioprg_lossless_parser.md",
+    "docs/source_registry.md",
+    "docs/post_end_data.md",
+    "docs/semantic_ast.md",
+    "docs/ioname_annotations.md",
 }
 EDITORIAL_EN = {
     "README.md", "docs/README.md", "SECURITY.md",
@@ -61,6 +65,8 @@ EDITORIAL_EN = {
     "docs/advanced_blocks.md", "docs/advanced_hardware_test_matrix.md",
     "docs/typed_opcode_grammar.md", "docs/cioprg_lossless_parser.md",
     "docs/oem_5_opcode_analysis.md", "docs/semantic_verification_matrix.md",
+    "docs/source_registry.md", "docs/post_end_data.md",
+    "docs/semantic_ast.md", "docs/ioname_annotations.md",
 }
 
 # Terms that may never be weakened by editorial translations. The set is
@@ -74,6 +80,10 @@ CRITICAL_REVIEW_MARKERS = {
     "docs/cioprg_lossless_parser.md": ("SHA-256", "//$M", "System", "User", "false"),
     "docs/oem_5_opcode_analysis.md": ("MOV", "ADD", "SUB", "SHL", "SHR", "256"),
     "docs/semantic_verification_matrix.md": ("ManualDerived", "TypedCandidate", "semantics_verified=false"),
+    "docs/source_registry.md": ("RE-CKI-A453", "RE-CKI-A465", "RE-CKI-A467", "HW1483388", "MANUAL", "SOURCE / TEST", "REAL FILE", "BENCH"),
+    "docs/post_end_data.md": ("PostEndSection", "PostEndData", "PostEndOpaque", "PostEndUnknownStructure", "AfterEnd", "subset_analysis_complete=false"),
+    "docs/semantic_ast.md": ("UnbalancedBranch", "PotentialGroupRead", "PotentialGroupWrite", "system_user_boundaries_verified", "MAX_BOOLEAN_NODES", "MAX_OPEN_BRANCHES"),
+    "docs/ioname_annotations.md": ("relay_mapping_verified", "native_write_allowed", "4 MiB", "16 MiB", "IONAME.DAT", "localStorage"),
 }
 
 EN_RELEASE_NEGATION = re.compile(
@@ -189,7 +199,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 6, 14, 59):
+    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 10, 18, 51):
         failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:
