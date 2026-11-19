@@ -5,7 +5,7 @@
 
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
-> **Status and scope:** this document describes the constrained feature subset and evidence available by PR #21; this **does not** imply the whole project stopped at PR #21. See the [current project status](project_status.en.en.md) for merged PR #29 and independent CI/UserSmoke/OEM evidence levels. This specification does **not** authorize a native writer, HSES or execution of a controller scan.
+> **Status and scope:** this document describes the constrained feature subset and evidence available by PR #21; this **does not** imply the whole project stopped at PR #21. See the [current project status](project_status.en.md) for merged PR #29 and independent CI/UserSmoke/OEM evidence levels. This specification does **not** authorize a native writer, HSES or execution of a controller scan.
 
 **Implementation:** [`src-tauri/src/compiler/memory.rs`](../src-tauri/src/compiler/memory.rs).
 **Version:** 0.1 address baseline. The implementation in `main` was checked as of 18 November 2026, but **no new OEM approval for specific firmware** was obtained. Do not use these tables to authorize HSES writes or robot deployment.
