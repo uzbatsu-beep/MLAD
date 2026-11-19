@@ -1,0 +1,82 @@
+name: MLAD PR25 CSP and Path Safety (Windows x64)
+
+on:
+  push:
+    branches: [feat/pr25-tauri-csp-path-guards]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mlad-pr25-csp-win
+  cancel-in-progress: true
+
+jobs:
+  windows-security-preview:
+    runs-on: windows-2022
+    timeout-minutes: 110
+    env:
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Rust MSVC
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Check pinned npm lockfile
+        run: npm ci --no-audit --no-fund
+
+      - name: Frontend and CSP contract tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          npm run test:security
+          if ($LASTEXITCODE -ne 0) { throw "Security tests failed" }
+          npm run test:community
+          if ($LASTEXITCODE -ne 0) { throw "Community safety tests failed" }
+          npm run docs:check
+          if ($LASTEXITCODE -ne 0) { throw "Docs check failed" }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { throw "Vite build failed" }
+
+      - name: Windows native and JSON path Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Compile Tauri production executable with CSP
+        run: npm run tauri -- build --no-bundle
+
+      - name: Validate unsigned Windows binary
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = "src-tauri/target/release/yaskawa-ladder-ide.exe"
+          if (-not (Test-Path $exe)) { throw "Tauri executable not built" }
+          $size = (Get-Item $exe).Length
+          if ($size -lt 100000) { throw "Executable unexpectedly small" }
+          New-Item -ItemType Directory -Path "pr25-preview" -Force | Out-Null
+          Copy-Item $exe "pr25-preview/yaskawa-ladder-ide.exe"
+          Copy-Item "LICENSE" "pr25-preview/LICENSE"
+          Copy-Item "docs/csp_path_hardening.md" "pr25-preview/SECURITY-READ-ME.md"
+          Get-FileHash $exe -Algorithm SHA256 | Format-List
+
+      - name: Upload Windows unsigned CSP testing binary (not a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MLAD-PR25-CSP-Windows-x64-unsigned
+          path: pr25-preview/*
+          retention-days: 14
+          if-no-files-found: error
