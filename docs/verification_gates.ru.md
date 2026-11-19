@@ -1,11 +1,11 @@
-<!-- Generated ru companion for docs/verification_gates.md; review required. -->
-> **Русский** · [Русский](verification_gates.ru.md) · [English](verification_gates.en.md) · [Original / Оригинал](verification_gates.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](verification_gates.ru.md) · [English](verification_gates.en.md) · [Исходный текст / Original](verification_gates.md)
+>
+> **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
 # MLAD — единые критерии верификации, CI и выпуска
 
-**Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 объединены, [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.
+**Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.
 
 Этот документ — acceptance contract для новых PR и offline preview. Не заменяет [стендовую матрицу](advanced_hardware_test_matrix.ru.md) или официальный регламент безопасности.
 
@@ -49,13 +49,13 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 
 | Область | Позитивные тесты | Отрицательные/пограничные тесты |
 | --- | --- | --- |
-| `CIOPRG.LST` reader | Поиск, paging, exact source spans и SHA-256 | BOM/newlines, malformed/oversize, unsupported/opaque, read-only, file swap/reparse |
+| `CIOPRG.LST` reader | Поиск, paging, exact source spans и SHA-256 | BOM/newlines, malformed/oversized, unsupported/opaque, read-only, file swap/reparse |
 | `IONAME.DAT` | Bounded preview, ручные ассоциации | Неизвестная карта, oversized, неверные index, immutable bytes |
-| Рабочая область Native Workspace | Все доступные строки; source↔rung; компактные блоки | Unsupported не превращается в выполняемый Ladder, offscreen/large source, false LIVE |
-| Typed/semantic | Проверяемые типы, ranges и links с provenance | Неизвестный код операции, двусмысленный псевдоним/operand, EN/scan неизвестный, `PART/END` boundaries |
-| JSON draft/sidecar | Сохранить / открыть, резервная копия, версия схемы, исходный хеш-матч | Параллельное редактирование, путь только для чтения, негабаритный размер, симлинк / соединение, поврежденный JSON, неправильный хеш, нет нативной перезаписи |
-| CSP/Tauri IPC | Локальный UI и разрешённые команды работают | Нет remote scripts/connect, `unsafe-eval`, HSES/FTP/write/Развертывание роботов |
-| Предварительный просмотр Windows | Строительство, установщик / портативные контрольные суммы, исходный архив | Проверки в фактическом WebView2, отказ/restore, blocked file, ACL; unsigned статус явно указан |
+| Native Workspace | Все доступные строки; source↔rung; компактные блоки | Unsupported не превращается в выполняемый Ladder, offscreen/large source, false LIVE |
+| Typed/semantic | Проверяемые типы, ranges и links с provenance | Unknown opcode, ambiguous alias/operand, EN/scan unknown, `PART/END` boundaries |
+| JSON draft/sidecar | Save/reopen, backup, schema version, source hash match | Concurrent edit, read-only path, oversize, symlink/junction, damaged JSON, wrong hash, no native overwrite |
+| CSP/Tauri IPC | Локальный UI и разрешённые команды работают | Нет remote scripts/connect, `unsafe-eval`, HSES/FTP/write/robot deployment |
+| Windows preview | Build, installer/portable checksums, source archive | Проверки в фактическом WebView2, отказ/restore, blocked file, ACL; unsigned статус явно указан |
 
 ## 4. Обязательный ручной Windows smoke (после технического PR и до релиза)
 
@@ -85,13 +85,13 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 
 | Поле | Значение |
 | --- | --- |
-| PR / базовая SHA / головная SHA | Указать точно |
+| PR / base SHA / head SHA | Указать точно |
 | Изменённые контракты | Формат/IPC/UX и контроллерная применимость |
-| Фактические Linux CI / Windows CI | URL + статус |
+| Фактические Linux CI / Windows CI | URL + status |
 | Положительные / отрицательные тесты | Имена и результаты |
 | Windows UserSmoke | PASS/FAIL/NOT RUN |
-| OEM-стенд | PASS/FAIL/NOT RUN/BLOCKED, модель и firmware |
-| Безопасность | неизменный оригинал; HSES/FTPписатель инвалид |
+| OEM Bench | PASS/FAIL/NOT RUN/BLOCKED, модель и firmware |
+| Безопасность | immutable original; HSES/FTP/writer disabled |
 | Остаточный риск | Конкретное ограничение |
 | Право слияния | Отдельное согласование владельца |
 
@@ -101,13 +101,13 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 
 **Наблюдение 18.11.2026:** `main` возвращается GitHub как `protected=false`. Даже успешный workflow не препятствует ручному обходу процесса без branch protection. Отдельно от этого docs PR рекомендуется настроить GitHub Ruleset/Branch Protection с обязательными проверками `frontend-build` и `rust-tests`, запретом прямых push и процедурой review, доступной для текущего типа аккаунта. Техническое правило **не заменяет** явного решения владельца о merge. Документационный PR #27 не меняет настройки репозитория.
 
-## 8. PR #28 Восприятие и регрессия безопасности Windows
+## 8. PR #28 — Windows Acceptance & Security Regression
 
-[Рабочий процесс регрессии Windows](../.github/workflows/windows-security-acceptance.yml) срабатывает на релевантные PR/push в `main` и может запускаться вручную после появления в default branch. Проверяет Node security contracts, Rust file integrity/NTFS exclusive lock/junction, locked dependencies, Tauri production EXE, binary hash/PE evidence. Временный unsigned artifact хранится 14 дней и **не является релизом**. [Подробный протокол](windows_acceptance_pr28.ru.md).
+[Windows regression workflow](../.github/workflows/windows-security-acceptance.yml) срабатывает на релевантные PR/push в `main` и может запускаться вручную после появления в default branch. Проверяет Node security contracts, Rust file integrity/NTFS exclusive lock/junction, locked dependencies, Tauri production EXE, binary hash/PE evidence. Временный unsigned artifact хранится 14 дней и **не является релизом**. [Подробный протокол](windows_acceptance_pr28.ru.md).
 
-На baseline `f85ddfc` WindowsCI **PASS**[run](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621)); для каждого **нового PR** этот уровень снова `NOT RUN` до выполнения Windows workflow на его HEAD SHA. После успешного CI менять только WindowsCI на `PASS`. Ручной WebView2 `UserSmoke` (WIN-01…WIN-12) и OEM Bench остаются `NOT RUN` до независимого протокола. Проверка пользовательского интерфейса, control-system connectivity, абсолютная защита TOCTOU и полная атомарность backup+target не следуют из `cargo test` и `tauri build`.
+На baseline `f85ddfc` WindowsCI **PASS** ([run](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621)); для каждого **нового PR** этот уровень снова `NOT RUN` до выполнения Windows workflow на его HEAD SHA. После успешного CI менять только WindowsCI на `PASS`. Ручной WebView2 `UserSmoke` (WIN-01…WIN-12) и OEM Bench остаются `NOT RUN` до независимого протокола. Проверка пользовательского интерфейса, control-system connectivity, абсолютная защита TOCTOU и полная атомарность backup+target не следуют из `cargo test` и `tauri build`.
 
-## 9. PR #29 — File ID/Hardlink/Staging (слияние)
+## 9. PR #29 — File ID/Hardlink/Staging (merged)
 
 [Модель угроз и acceptance](filesystem_security_pr29.ru.md): обязательно проверить сравнение JSON байтов **и** идентичности открытого файла (Windows volume/file index, Unix dev/inode), запрет hardlinks на JSON и backup, повторную проверку staged временного файла по File ID+SHA-256 и возврат fail-closed при обнаруженной подмене. CI: Linux Rust и Windows NTFS/Rust на том же SHA PR, Node security, Tauri EXE. **Не выдавать** прохождение за full TOCTOU closure или гарантию сохранения ACL/атомарности backup+target. UserSmoke и OEM Bench остаются независимыми.
 
@@ -115,13 +115,13 @@ CI `.github/workflows/validation.yml` запускает `frontend-build` и `ru
 
 | Этап | Обязательный evidence | Недопустимый ложный PASS |
 | --- | --- | --- |
-| #30 Документы | `docs:check`, актуальность README/status/roadmap, линковка архивов | Docs CI ≠ Windows UserSmoke |
-| #31 Парсерные светильники | Синтетические byte spans, SHA-256, искаженные/непрозрачные отрицательные тесты, метаданные | Не называть синтетические файлы OEM golden |
-| #32 Родной UX | 1400+ lines, full paging/source↔rung, диагностика unknown, keyboard/navigation smoke | Не заявлять полную семантику по графу |
-| #33 Сайдкар | Схема/версия, источник SHA bind, устаревший/отсутствующий отказ ref, JSON пишет безопасность | Sidecar не OEM writer |
-| #34 Типовая грамматика | OEM-ручные/версионные доказательства, явные семейные, типизированные/частичные/непрозрачные, положительные + отрицательные тесты | TypedCandidate ≠ сканирование |
-| #35 Статический анализ | Источник ссылки READ/WRITE refs, неоднозначные случаи, ложноположительные предохранители | Не подтверждать физические scan/flags |
-| #36 Единая IDE | UI end-to-end open→annotate→JSON save/reopen, оригинальные байты без изменений | Native export/deploy запрещены |
+| #30 Docs | `docs:check`, актуальность README/status/roadmap, линковка архивов | Docs CI ≠ Windows UserSmoke |
+| #31 Parser fixtures | Синтетические byte spans, SHA-256, malformed/opaque negative tests, metadata manifest | Не называть синтетические файлы OEM golden |
+| #32 Native UX | 1400+ lines, full paging/source↔rung, диагностика unknown, keyboard/navigation smoke | Не заявлять полную семантику по графу |
+| #33 Sidecar | Schema/version, source SHA bind, stale/missing ref rejection, JSON write safety | Sidecar не OEM writer |
+| #34 Typed grammar | OEM manual/version evidence, explicit family, typed/partial/opaque, positive+negative tests | TypedCandidate ≠ scan-executed |
+| #35 Static analysis | Source-linked READ/WRITE refs, ambiguous cases, false positive guards | Не подтверждать физические scan/flags |
+| #36 Unified IDE | UI end-to-end open→annotate→JSON save/reopen, original bytes unchanged | Native export/deploy запрещены |
 | #37 0.6.x RC | Exact tag SHA, Linux/Windows CI, **manual Windows UserSmoke**, legal/source/SHA assets, owner approval | CI ≠ OEM bench; выпуск не автоматически |
 
-**Открытая filesystem область:** защита PR #29 от известных hardlinks/ADS не делает атомарной операцию check→rename, не переносит существующие ACL гарантированно и не решает двухфайловую транзакцию. Для новых пользовательских форматов проверять [Обзор угроз](filesystem_security_pr29.ru.md) до merge. Отдельный [Протокол Windows](windows_acceptance_pr28.ru.md) обязателен до preview.
+**Открытая filesystem область:** защита PR #29 от известных hardlinks/ADS не делает атомарной операцию check→rename, не переносит существующие ACL гарантированно и не решает двухфайловую транзакцию. Для новых пользовательских форматов проверять [threat review](filesystem_security_pr29.ru.md) до merge. Отдельный [Windows protocol](windows_acceptance_pr28.ru.md) обязателен до preview.
