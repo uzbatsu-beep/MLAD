@@ -1,9 +1,9 @@
-<!-- Generated en companion for docs/graph_editor.md; review required. -->
-> **English** · [Русский](graph_editor.ru.md) · [English](graph_editor.en.md) · [Original / Оригинал](graph_editor.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against graph_editor.md -->
+> **Language / Язык:** [English](graph_editor.en.md) · [Русский](graph_editor.ru.md) · [Original](graph_editor.md)
+>
+> **Safety and scope:** Graph Workspace edits **JSON drafts only**; `CIOPRG.LST` and `IONAME.DAT` are read-only. HSES/FTP, live I/O, native writer and deployment remain **BLOCKED**. Manual Windows UserSmoke and OEMBench remain **NOT RUN** unless independently documented. This is an editorial translation of the project's stated behavior, not OEM certification.
 
-# Ladder Graph Editor & Visualization — PR #4 + Interface changes PR #7/#8
+# Ladder Graph Editor & Visualization — PR #4, plus UI changes in PR #7/#8
 
 **Status:** interactive **JSON graph-draft editor** + independent **read-only CIOPRG.LST semantic visualization**.
 Target families: DX100, DX200, YRC1000. **This is not a robot-compatible editor/exporter yet.**
@@ -14,9 +14,9 @@ The project has four distinct surfaces. **They must not be conflated**:
 
 | Surface | Source format | Mutates file? | Native CIOPRG.LST export? | Sends commands to robot? |
 |---|---|---|---|---|
-| Graph Workspace (separate JSON draft tab; not default) | `*.graph.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
+| Graph Workspace (separate JSON draft tab; not the default) | `*.graph.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
 | Advanced Workspace | `*.advanced.json` (version 1) | Yes, JSON drafts only | **No** | **No** |
-| Native Workspace (main tab, read-only) | Original `CIOPRG.LST` | **Never** | **No** | **No** |
+| Native Workspace (main read-only tab) | Original `CIOPRG.LST` | **Never** | **No** | **No** |
 | Legacy JSON interface | `project.json` (`Vec<Rung>`) | Yes, legacy JSON only | **No** | **No** |
 
 The unverified HSES monitor is disabled **in both the visible interface and the backend Tauri command**, because a single relay being true cannot establish the powered state of a complete rung; proper scan semantics and HSES protocol validation remain a separate workstream.
@@ -86,13 +86,13 @@ PR #3's `SemanticPreview` now also returns the first **4,096 indexed expression 
 
 ## 6. Operator quick-start
 
-1. Launch MLAD and open the **Graphic Editor** tab. This is an independent JSON project, not an editable controller program.
+1. Launch MLAD and open the **Графический редактор** (Graph Editor) tab. This is an independent JSON project, not an editable controller program.
 2. Select controller family **DX100 / DX200 / YRC1000** and a rung in the left column. Click a contact in the diagram to select it.
-3. Use **+ Consistent (AND)** for series contacts or **+ Parallel (OR)** for parallel branches. If no contact is selected, these commands wrap the entire current expression.
+3. Use **+ Последовательно (AND)** (Series) for series contacts or **+ Параллельно (OR)** (Parallel) for parallel branches. If no contact is selected, these commands wrap the entire current expression.
 4. Edit relay addresses and OUT either in property fields or by **double-click/F2** on a label inside the editable SVG; Enter saves, Esc cancels. The Rust validator checks selected controller ranges and diagnoses invalid or duplicate addresses. For complex advanced input conditions, use the expression editor instead of replacing them with one contact.
-5. Use **мена Cancel / . Repeat ** to navigate graph changes. Above the **combined view of all rungs**, set manual `? / 0 / 1` inputs to see gray/red/green contacts and coils; it **never** reads the robot. Advanced blocks have their own independent local state tests.
+5. Use **↶ Отмена / ↷ Повтор** (Undo / Redo) to navigate graph changes. Above the **combined view of all rungs**, set manual `? / 0 / 1` inputs to see gray/red/green contacts and coils; it **never** reads the robot. Advanced blocks have their own independent local state tests.
 6. Save to a file named **`ladder.graph.json`** or any `*.graph.json`; the backend copies the previous draft to `*.graph.json.bak` before overwriting.
-7. To inspect a real robot backup, choose CIOPRG.LST** and select the family and source file path. Select a recognized rung and view its **read-only** electrical-style diagram. If the AST is unsupported or truncated, an explicit diagnostic is shown rather than a guessed diagram.
+7. To inspect a saved copy of a real robot program, choose **Просмотр CIOPRG.LST** (Inspect CIOPRG.LST) and select the controller family and source-file path. Select a recognized rung and view its **read-only** electrical-style diagram. If the AST is unsupported or truncated, an explicit diagnostic is shown rather than a guessed diagram.
 8. **No operation in this workflow creates controller-ready CIOPRG.LST or uploads anything to the robot.**
 
 ## 7. Deferred engineering work
@@ -106,13 +106,13 @@ PR #3's `SemanticPreview` now also returns the first **4,096 indexed expression 
 **No industrial controller, system ladder, or robot file was modified by this PR.**
 
 
-## 8. Additional UI Contracts
+## 8. Additional UI contracts
 
-- General layout and lighting values: [ui_multi_rung_state.md](ui_multi_rung_state.en.md).
-- Inline editing, F2/Enter/Esc restrictions and read-only Inspector: [inline_address_editing.md](inline_address_editing.en.md).
-- TMR, CNT circuits with separate C/R and group transmission: [advanced_blocks.md](advanced_blocks.en.md).
-- JSON drafts do not have a confirmed translation into the native robot file. Results `cmd_validate_graph_draft` They don't give you export rights.
+- Shared layout and meaning of offline highlighting: [ui_multi_rung_state.md](ui_multi_rung_state.en.md).
+- Inline editing, F2/Enter/Esc and the read-only Inspector boundary: [inline_address_editing.md](inline_address_editing.en.md).
+- TMR and CNT diagrams with separate C/R ports, and group-transfer blocks: [advanced_blocks.md](advanced_blocks.en.md).
+- JSON drafts have **no verified translation into a native robot file**. A successful result from `cmd_validate_graph_draft` **does not authorize native export**.
 
 ## 9. JSON persistence after PR #29
 
-Save Graph/Advanced/legacy JSON now uses staged-file, backup, conflict checks **bytes + File ID**, failure for hardlinks and verification SHA-256 Windows ADS/UNC/device paths are prohibited. This applies to a backend writer, does not make a graphical JSON a controller file. [Filesystem threat review](filesystem_security_pr29.en.md):last check→rename, ACL, atomic backup+target and power-loss remain **OPEN**. Separate plan portable sidecar [PR #33 (proposal)](implementation_plan.en.md), not implemented.
+Graph/Advanced/legacy JSON saves use staged file writes and backups, detect conflicts using **bytes + File ID**, reject multiply hard-linked files and verify staged-file SHA-256. Windows ADS/UNC/device-style paths are prohibited. These safeguards apply to the **separate JSON backend writer**; they do **not** make a graph draft into a native robot file. In the [filesystem threat review](filesystem_security_pr29.en.md), the final check→rename race, ACL concerns, atomic backup+target transaction and power-loss recovery remain **OPEN**. A portable sidecar was described in the implementation plan as a **provisional PR #33 proposal**, not an implemented feature; actual PR #33 was subsequently used for documentation translation. See [implementation_plan.md](implementation_plan.en.md).
