@@ -434,7 +434,7 @@ fn synthetic_corpus_classifies_all_lines_without_modifying_original_bytes() {
     assert!(corpus.cases.len() >= 12);
     let mut identifiers = std::collections::BTreeSet::new();
     for f in corpus.cases {
-        assert!(identifiers.insert(f.id.as_str()), "duplicate fixture {}", f.id);
+        assert!(identifiers.insert(f.id.clone()), "duplicate fixture {}", f.id);
         let bytes = hex::decode(&f.source_hex).expect("valid hex source");
         let family = match f.controller.as_str() {
             "DX100" => ControllerFamily::DX100,
