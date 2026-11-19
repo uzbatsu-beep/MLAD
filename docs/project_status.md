@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](project_status.ru.md) · [English](project_status.en.md) · [Original / Исходный текст](project_status.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — фактическое состояние проекта
 
 **Сверка:** 18 ноября 2026. **Baseline:** GitHub `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR **#1–#29 merged**. [Main Linux validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) (`frontend-build`, `rust-tests`), [Main Windows Acceptance & Security Regression SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) (`windows-security`) на указанном SHA. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) merged, его [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892563) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892566) CI также SUCCESS.

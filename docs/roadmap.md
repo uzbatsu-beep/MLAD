@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Исходный текст](roadmap.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — дорожная карта v3: Native CIO Workspace → Offline Engineering IDE
 
 **Контрольная точка:** 18.11.2026, `main` = `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 merged. [Linux validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows Acceptance & Security Regression SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Windows GitHub Release: [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) — старый артефакт, **не содержит PR #24–#29**. Отдельное прохождение тестов на ПК пользователя и на роботе **не подтверждено**.

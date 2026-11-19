@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](graph_editor.ru.md) · [English](graph_editor.en.md) · [Original / Исходный текст](graph_editor.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Ladder Graph Editor & Visualization — PR #4 + интерфейсные изменения PR #7/#8
 
 **Status:** interactive **JSON graph-draft editor** + independent **read-only CIOPRG.LST semantic visualization**.

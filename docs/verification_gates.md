@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](verification_gates.ru.md) · [English](verification_gates.en.md) · [Original / Исходный текст](verification_gates.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — единые критерии верификации, CI и выпуска
 
 **Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.

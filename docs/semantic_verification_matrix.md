@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Original / Исходный текст](semantic_verification_matrix.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD PR #20 — семантическая верификация и аудит ссылок
 
 **Актуально на 18.11.2026:** PR #20 и PR #21 **merged**. Статический аудит и автономные OEM manual-derived векторы реализованы, но **реальные EN/scan/flags не измерялись на контроллере**. Таблица ниже — исторический исходный статус до PR #21; текущий документальный уровень дополнен в [исследовании пяти команд](oem_5_opcode_analysis.md). [Матрица готовности](project_status.md).

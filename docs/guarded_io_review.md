@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](guarded_io_review.ru.md) · [English](guarded_io_review.en.md) · [Original / Исходный текст](guarded_io_review.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD PR #26 — Guarded Reads & JSON Conflict Prevention
 
 **Дата:** 18.11.2026. **Статус:** [PR #26 merged](https://github.com/uzbatsu-beep/MLAD/pull/26) в `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [Windows MSVC/Tauri CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Опубликованный rc.9 не изменён; M2 остаётся PARTIAL.

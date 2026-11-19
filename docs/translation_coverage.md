@@ -1,0 +1,70 @@
+# MLAD — translation coverage / Покрытие переводом
+
+> **Status:** generated with local/offline open-source translation models. All results require an engineer's editorial review; original source is authoritative.
+
+> **Статус:** автоматический локальный перевод. Требуется редакторская проверка профильным инженером; исходный файл приоритетен.
+
+**Markdown sources:** 53. **RU/EN companions:** 106. **Total Markdown including this register:** 160.
+
+| Original / Оригинал | Русский | English |
+| --- | --- | --- |
+| [.github/PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md) | [Русский](../.github/PULL_REQUEST_TEMPLATE.ru.md) | [English](../.github/PULL_REQUEST_TEMPLATE.en.md) |
+| [ACCESSIBILITY.md](../ACCESSIBILITY.md) | [Русский](../ACCESSIBILITY.ru.md) | [English](../ACCESSIBILITY.en.md) |
+| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | [Русский](../CODE_OF_CONDUCT.ru.md) | [English](../CODE_OF_CONDUCT.en.md) |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | [Русский](../CONTRIBUTING.ru.md) | [English](../CONTRIBUTING.en.md) |
+| [README.md](../README.md) | [Русский](../README.ru.md) | [English](../README.en.md) |
+| [SECURITY.md](../SECURITY.md) | [Русский](../SECURITY.ru.md) | [English](../SECURITY.en.md) |
+| [docs/README.md](README.md) | [Русский](README.ru.md) | [English](README.en.md) |
+| [docs/advanced_blocks.md](advanced_blocks.md) | [Русский](advanced_blocks.ru.md) | [English](advanced_blocks.en.md) |
+| [docs/advanced_hardware_test_matrix.md](advanced_hardware_test_matrix.md) | [Русский](advanced_hardware_test_matrix.ru.md) | [English](advanced_hardware_test_matrix.en.md) |
+| [docs/architecture.md](architecture.md) | [Русский](architecture.ru.md) | [English](architecture.en.md) |
+| [docs/cioprg_lossless_parser.md](cioprg_lossless_parser.md) | [Русский](cioprg_lossless_parser.ru.md) | [English](cioprg_lossless_parser.en.md) |
+| [docs/cioprg_lst_spec.md](cioprg_lst_spec.md) | [Русский](cioprg_lst_spec.ru.md) | [English](cioprg_lst_spec.en.md) |
+| [docs/controller_fixture_intake.md](controller_fixture_intake.md) | [Русский](controller_fixture_intake.ru.md) | [English](controller_fixture_intake.en.md) |
+| [docs/csp_path_hardening.md](csp_path_hardening.md) | [Русский](csp_path_hardening.ru.md) | [English](csp_path_hardening.en.md) |
+| [docs/development_workflow.md](development_workflow.md) | [Русский](development_workflow.ru.md) | [English](development_workflow.en.md) |
+| [docs/documentation_audit_2026-11-17.md](documentation_audit_2026-11-17.md) | [Русский](documentation_audit_2026-11-17.ru.md) | [English](documentation_audit_2026-11-17.en.md) |
+| [docs/documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.md) | [Русский](documentation_inventory_2026-11-18.ru.md) | [English](documentation_inventory_2026-11-18.en.md) |
+| [docs/engineering_decisions.md](engineering_decisions.md) | [Русский](engineering_decisions.ru.md) | [English](engineering_decisions.en.md) |
+| [docs/filesystem_security_pr29.md](filesystem_security_pr29.md) | [Русский](filesystem_security_pr29.ru.md) | [English](filesystem_security_pr29.en.md) |
+| [docs/graph_editor.md](graph_editor.md) | [Русский](graph_editor.ru.md) | [English](graph_editor.en.md) |
+| [docs/guarded_io_review.md](guarded_io_review.md) | [Русский](guarded_io_review.ru.md) | [English](guarded_io_review.en.md) |
+| [docs/hse_protocol.md](hse_protocol.md) | [Русский](hse_protocol.ru.md) | [English](hse_protocol.en.md) |
+| [docs/implementation_plan.md](implementation_plan.md) | [Русский](implementation_plan.ru.md) | [English](implementation_plan.en.md) |
+| [docs/implementation_plan_v2_archive.md](implementation_plan_v2_archive.md) | [Русский](implementation_plan_v2_archive.ru.md) | [English](implementation_plan_v2_archive.en.md) |
+| [docs/inline_address_editing.md](inline_address_editing.md) | [Русский](inline_address_editing.ru.md) | [English](inline_address_editing.en.md) |
+| [docs/ioname_annotations.md](ioname_annotations.md) | [Русский](ioname_annotations.ru.md) | [English](ioname_annotations.en.md) |
+| [docs/json_persistence_safety.md](json_persistence_safety.md) | [Русский](json_persistence_safety.ru.md) | [English](json_persistence_safety.en.md) |
+| [docs/ladder_spec.md](ladder_spec.md) | [Русский](ladder_spec.ru.md) | [English](ladder_spec.en.md) |
+| [docs/licensing.md](licensing.md) | [Русский](licensing.ru.md) | [English](licensing.en.md) |
+| [docs/memory_map.md](memory_map.md) | [Русский](memory_map.ru.md) | [English](memory_map.en.md) |
+| [docs/oem_5_opcode_analysis.md](oem_5_opcode_analysis.md) | [Русский](oem_5_opcode_analysis.ru.md) | [English](oem_5_opcode_analysis.en.md) |
+| [docs/post_end_data.md](post_end_data.md) | [Русский](post_end_data.ru.md) | [English](post_end_data.en.md) |
+| [docs/project_status.md](project_status.md) | [Русский](project_status.ru.md) | [English](project_status.en.md) |
+| [docs/references.md](references.md) | [Русский](references.ru.md) | [English](references.en.md) |
+| [docs/releases/v0.5.0-rc.1-hardware.md](releases/v0.5.0-rc.1-hardware.md) | [Русский](releases/v0.5.0-rc.1-hardware.ru.md) | [English](releases/v0.5.0-rc.1-hardware.en.md) |
+| [docs/releases/v0.5.0-rc.2-cioprg.md](releases/v0.5.0-rc.2-cioprg.md) | [Русский](releases/v0.5.0-rc.2-cioprg.ru.md) | [English](releases/v0.5.0-rc.2-cioprg.en.md) |
+| [docs/releases/v0.5.0-rc.3-workspace.md](releases/v0.5.0-rc.3-workspace.md) | [Русский](releases/v0.5.0-rc.3-workspace.ru.md) | [English](releases/v0.5.0-rc.3-workspace.en.md) |
+| [docs/releases/v0.5.0-rc.4-annotations.md](releases/v0.5.0-rc.4-annotations.md) | [Русский](releases/v0.5.0-rc.4-annotations.ru.md) | [English](releases/v0.5.0-rc.4-annotations.en.md) |
+| [docs/releases/v0.5.0-rc.5-layout.md](releases/v0.5.0-rc.5-layout.md) | [Русский](releases/v0.5.0-rc.5-layout.ru.md) | [English](releases/v0.5.0-rc.5-layout.en.md) |
+| [docs/releases/v0.5.0-rc.6-postend.md](releases/v0.5.0-rc.6-postend.md) | [Русский](releases/v0.5.0-rc.6-postend.ru.md) | [English](releases/v0.5.0-rc.6-postend.en.md) |
+| [docs/releases/v0.5.0-rc.7-typed.md](releases/v0.5.0-rc.7-typed.md) | [Русский](releases/v0.5.0-rc.7-typed.ru.md) | [English](releases/v0.5.0-rc.7-typed.en.md) |
+| [docs/releases/v0.5.0-rc.8-evidence.md](releases/v0.5.0-rc.8-evidence.md) | [Русский](releases/v0.5.0-rc.8-evidence.ru.md) | [English](releases/v0.5.0-rc.8-evidence.en.md) |
+| [docs/releases/v0.5.0-rc.9-oem-reference.md](releases/v0.5.0-rc.9-oem-reference.md) | [Русский](releases/v0.5.0-rc.9-oem-reference.ru.md) | [English](releases/v0.5.0-rc.9-oem-reference.en.md) |
+| [docs/roadmap.md](roadmap.md) | [Русский](roadmap.ru.md) | [English](roadmap.en.md) |
+| [docs/roadmap_v2_archive.md](roadmap_v2_archive.md) | [Русский](roadmap_v2_archive.ru.md) | [English](roadmap_v2_archive.en.md) |
+| [docs/semantic_ast.md](semantic_ast.md) | [Русский](semantic_ast.ru.md) | [English](semantic_ast.en.md) |
+| [docs/semantic_verification_matrix.md](semantic_verification_matrix.md) | [Русский](semantic_verification_matrix.ru.md) | [English](semantic_verification_matrix.en.md) |
+| [docs/source_registry.md](source_registry.md) | [Русский](source_registry.ru.md) | [English](source_registry.en.md) |
+| [docs/typed_memory_model.md](typed_memory_model.md) | [Русский](typed_memory_model.ru.md) | [English](typed_memory_model.en.md) |
+| [docs/typed_opcode_grammar.md](typed_opcode_grammar.md) | [Русский](typed_opcode_grammar.ru.md) | [English](typed_opcode_grammar.en.md) |
+| [docs/ui_multi_rung_state.md](ui_multi_rung_state.md) | [Русский](ui_multi_rung_state.ru.md) | [English](ui_multi_rung_state.en.md) |
+| [docs/verification_gates.md](verification_gates.md) | [Русский](verification_gates.ru.md) | [English](verification_gates.en.md) |
+| [docs/windows_acceptance_pr28.md](windows_acceptance_pr28.md) | [Русский](windows_acceptance_pr28.ru.md) | [English](windows_acceptance_pr28.en.md) |
+
+## Review gates / Критерии проверки
+
+1. Match each localized file to its source and preserve all fenced code, URLs, command invocations, paths and exact technical identifiers. / Сверить каждый перевод с исходником, сохранить код, адреса, команды и ссылки.
+2. Verify safety clauses, CIOPRG/IONAME read-only, HSES/FTP/native writer BLOCKED. / Проверить предупреждения о безопасности и запреты на запись/подключение.
+3. Independently review terminology and examples for DX100/DX200/YRC1000. / Проверить терминологию и примеры по руководствам Yaskawa.
+4. Until human review, translated files are drafts, not an independently validated OEM source. / До рецензирования переводы являются черновиками, а не подтверждённой OEM документацией.

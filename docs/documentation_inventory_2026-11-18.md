@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](documentation_inventory_2026-11-18.ru.md) · [English](documentation_inventory_2026-11-18.en.md) · [Original / Исходный текст](documentation_inventory_2026-11-18.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — аудит всего каталога Markdown после PR #29
 
 **Дата:** 18.11.2026. **Проверенный baseline:** `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). Проверены все пути `*.md` из [дерева GitHub](https://github.com/uzbatsu-beep/MLAD/tree/f85ddfcce3063dd087425be981a9d2b7a16d6309). В исходном `main` — **50 Markdown**. В предлагаемой ветке этого документа — **53 Markdown**: два новых исторических архива и этот реестр. 38 Markdown-файлов имеют предложенные изменения (включая два архива), 14 исходных файлов сознательно оставлены без изменений. Ссылки ниже относятся к ветке PR #30 до merge.

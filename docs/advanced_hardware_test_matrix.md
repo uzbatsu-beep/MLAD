@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](advanced_hardware_test_matrix.ru.md) · [English](advanced_hardware_test_matrix.en.md) · [Original / Исходный текст](advanced_hardware_test_matrix.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.

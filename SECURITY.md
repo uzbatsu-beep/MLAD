@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](SECURITY.ru.md) · [English](SECURITY.en.md) · [Original / Исходный текст](SECURITY.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # Политика безопасности MLAD (Security Policy)
 
 **Дата введения:** 18.11.2026. **Область:** открытый репозиторий MLAD и его опубликованные инженерные preview-сборки.

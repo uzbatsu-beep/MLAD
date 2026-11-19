@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](ioname_annotations.ru.md) · [English](ioname_annotations.en.md) · [Original / Исходный текст](ioname_annotations.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 
 **Status на 18.11.2026:** функциональность PR #16 **слита в `main`**; read-only import `IONAME.DAT`, локальные комментарии и ручные ассоциации доступны в Native Workspace. **Нет** нативного writer и проверенной автоматической карты IONAME→#XXXXX. [Сверенный статус](project_status.md).

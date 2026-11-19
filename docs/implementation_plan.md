@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](implementation_plan.ru.md) · [English](implementation_plan.en.md) · [Original / Исходный текст](implementation_plan.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD — исполнимый план разработки после PR #29
 
 **Базовая точка:** 18.11.2026, `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 merged. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний [Windows Release — rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен **до** PR #24–#29. Ручной `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. После следующего merge обновлять конкретный baseline в [project_status.md](project_status.md).

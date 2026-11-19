@@ -1,3 +1,7 @@
+<!-- MLAD-I18N:NAV:START -->
+> 🌐 **Язык / Language:** [Русский](windows_acceptance_pr28.ru.md) · [English](windows_acceptance_pr28.en.md) · [Original / Исходный текст](windows_acceptance_pr28.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
+<!-- MLAD-I18N:NAV:END -->
+
 # MLAD PR #28 — Windows Acceptance & Security Regression
 
 **Область:** Windows 10/11 x64, WebView2, NTFS, Rust/Tauri v2, OFFLINE/BENCH. **Base:** `main` после [PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27), SHA `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`. Статус: [PR #28 merged](https://github.com/uzbatsu-beep/MLAD/pull/28) в `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). **Не** релиз и не аппаратная приёмка; UserSmoke ещё `NOT RUN`.
