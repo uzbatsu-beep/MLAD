@@ -1,8 +1,8 @@
 # MLAD — translation coverage / Покрытие переводом
 
-> **Status:** all 53 original Markdown documents have RU/EN companions (106 localized files). PR #32 and PR #33 brought **47** companions to source-aligned/editorial status. This batch reviews four more **RU/EN technical pairs**: OEM source registry, post-END data, semantic AST and IONAME annotations. Total: **55 reviewed/source-aligned**, **51 machine drafts** still requiring semantic editing. Translation/source fidelity is **not** independent OEM firmware, scan, safety or write authorization. The original remains authoritative.
+> **Status:** all 53 original Markdown documents have RU/EN companions (106 localized files). PR #32–#34 brought **55** companions to source-aligned/editorial status. This PR #35 batch reviews **three RU/EN interface pairs** (Graph Editor, multi-rung display, inline address editing) and the **English JSON persistence safety** document. Total **62 source-aligned or editorially reviewed**; **44 machine drafts** still require substantive editing. A translation review **is not** proof of OEM instruction behavior, actual Windows UserSmoke, transaction atomicity or controller write authorization. The original source remains authoritative.
 
-> **Статус:** все 53 исходных документа имеют RU/EN-версии (106 языковых файлов). После PR #32 и PR #33 было **47 сверенных файлов**. Этот пакет добавляет четыре технические пары RU/EN: реестр OEM-источников, post-END, семантический AST и аннотации IONAME. Итого **55 проверенных переводов**, **51 машинный черновик**, требующий смысловой редакции. Сверка перевода **не** является подтверждением прошивок, физического скана, безопасности или права записи на оборудовании. Приоритет имеет исходник.
+> **Статус:** для всех 53 исходных Markdown-документов есть RU/EN-версии (106 языковых файлов). PR #32–#34 обеспечили **55** сверенных версий. В PR #35 проверены **три пары интерфейсных документов RU/EN** (Graph Editor, многоцепное отображение, inline-адреса) и **английская версия JSON persistence safety**. Итого **62 сверенных перевода** и **44 машинных черновика**. Смысловая редактура **не** подтверждает реальное поведение OEM-инструкций, Windows UserSmoke, атомарность backup+target или право записи в робот. Исходный файл имеет приоритет.
 
 **Markdown sources:** 53. **RU/EN companions:** 106. **Total Markdown including this register:** 160.
 
@@ -27,14 +27,14 @@
 | [docs/documentation_inventory_2026-11-18.md](documentation_inventory_2026-11-18.md) | [Русский](documentation_inventory_2026-11-18.ru.md) | [English](documentation_inventory_2026-11-18.en.md) | SourceAligned | MachineDraft |
 | [docs/engineering_decisions.md](engineering_decisions.md) | [Русский](engineering_decisions.ru.md) | [English](engineering_decisions.en.md) | SourceAligned | EditorialPass |
 | [docs/filesystem_security_pr29.md](filesystem_security_pr29.md) | [Русский](filesystem_security_pr29.ru.md) | [English](filesystem_security_pr29.en.md) | SourceAligned | MachineDraft |
-| [docs/graph_editor.md](graph_editor.md) | [Русский](graph_editor.ru.md) | [English](graph_editor.en.md) | MachineDraft | MachineDraft |
+| [docs/graph_editor.md](graph_editor.md) | [Русский](graph_editor.ru.md) | [English](graph_editor.en.md) | EditorialPass | EditorialPass |
 | [docs/guarded_io_review.md](guarded_io_review.md) | [Русский](guarded_io_review.ru.md) | [English](guarded_io_review.en.md) | SourceAligned | MachineDraft |
 | [docs/hse_protocol.md](hse_protocol.md) | [Русский](hse_protocol.ru.md) | [English](hse_protocol.en.md) | SourceAligned | MachineDraft |
 | [docs/implementation_plan.md](implementation_plan.md) | [Русский](implementation_plan.ru.md) | [English](implementation_plan.en.md) | SourceAligned | MachineDraft |
 | [docs/implementation_plan_v2_archive.md](implementation_plan_v2_archive.md) | [Русский](implementation_plan_v2_archive.ru.md) | [English](implementation_plan_v2_archive.en.md) | SourceAligned | MachineDraft |
-| [docs/inline_address_editing.md](inline_address_editing.md) | [Русский](inline_address_editing.ru.md) | [English](inline_address_editing.en.md) | MachineDraft | MachineDraft |
+| [docs/inline_address_editing.md](inline_address_editing.md) | [Русский](inline_address_editing.ru.md) | [English](inline_address_editing.en.md) | EditorialPass | EditorialPass |
 | [docs/ioname_annotations.md](ioname_annotations.md) | [Русский](ioname_annotations.ru.md) | [English](ioname_annotations.en.md) | EditorialPass | EditorialPass |
-| [docs/json_persistence_safety.md](json_persistence_safety.md) | [Русский](json_persistence_safety.ru.md) | [English](json_persistence_safety.en.md) | SourceAligned | MachineDraft |
+| [docs/json_persistence_safety.md](json_persistence_safety.md) | [Русский](json_persistence_safety.ru.md) | [English](json_persistence_safety.en.md) | SourceAligned | EditorialPass |
 | [docs/ladder_spec.md](ladder_spec.md) | [Русский](ladder_spec.ru.md) | [English](ladder_spec.en.md) | MachineDraft | MachineDraft |
 | [docs/licensing.md](licensing.md) | [Русский](licensing.ru.md) | [English](licensing.en.md) | SourceAligned | MachineDraft |
 | [docs/memory_map.md](memory_map.md) | [Русский](memory_map.ru.md) | [English](memory_map.en.md) | MachineDraft | MachineDraft |
@@ -58,24 +58,24 @@
 | [docs/source_registry.md](source_registry.md) | [Русский](source_registry.ru.md) | [English](source_registry.en.md) | EditorialPass | EditorialPass |
 | [docs/typed_memory_model.md](typed_memory_model.md) | [Русский](typed_memory_model.ru.md) | [English](typed_memory_model.en.md) | EditorialPass | EditorialPass |
 | [docs/typed_opcode_grammar.md](typed_opcode_grammar.md) | [Русский](typed_opcode_grammar.ru.md) | [English](typed_opcode_grammar.en.md) | EditorialPass | EditorialPass |
-| [docs/ui_multi_rung_state.md](ui_multi_rung_state.md) | [Русский](ui_multi_rung_state.ru.md) | [English](ui_multi_rung_state.en.md) | MachineDraft | MachineDraft |
+| [docs/ui_multi_rung_state.md](ui_multi_rung_state.md) | [Русский](ui_multi_rung_state.ru.md) | [English](ui_multi_rung_state.en.md) | EditorialPass | EditorialPass |
 | [docs/verification_gates.md](verification_gates.md) | [Русский](verification_gates.ru.md) | [English](verification_gates.en.md) | SourceAligned | EditorialPass |
 | [docs/windows_acceptance_pr28.md](windows_acceptance_pr28.md) | [Русский](windows_acceptance_pr28.ru.md) | [English](windows_acceptance_pr28.en.md) | SourceAligned | MachineDraft |
 
 ## Editorial review register / Реестр редакторской проверки
 
-| Group / Группа | Русский | English | Review evidence / Основание |
+| Review phase / Группа | RU quality | EN quality | Scope of review / Что проверено |
 | --- | --- | --- | --- |
-| README, documentation index, SECURITY, D1–D9, roadmap v3, verification gates | SourceAligned (6) | EditorialPass (6) | PR #32: rights, safety and release chronology |
-| 21 other predominantly Russian sources / 21 другой русскоязычный исходник | SourceAligned (21) | MachineDraft | Exact Russian source identity, localized links |
-| [CIOPRG grammar](cioprg_lst_spec.md), [memory](typed_memory_model.md), [advanced blocks](advanced_blocks.md), [hardware matrix](advanced_hardware_test_matrix.md), [typed grammar](typed_opcode_grammar.md), [lossless parser](cioprg_lossless_parser.md) | EditorialPass (6) | EditorialPass (6) | PR #33: numeric ranges, byte fidelity, instruction syntax, NOT RUN/BLOCKED |
-| [Five-opcode reference](oem_5_opcode_analysis.md), [semantic verification matrix](semantic_verification_matrix.md) | SourceAligned (2, already within the 21 above) | EditorialPass (2) | PR #33: ManualDerived versus OEMBench and unresolved flags |
-| [Source registry](source_registry.md), [post-END](post_end_data.md), [semantic AST](semantic_ast.md), [IONAME](ioname_annotations.md) | EditorialPass (4) | EditorialPass (4) | PR #34: OEM source provenance, exact tail markers, conservative Boolean AST, manual name mapping |
-| Remaining / Остальные | MachineDraft (16) | MachineDraft (35) | Full bilingual review not yet completed |
+| Originally Russian sources / Исходно русскоязычные документы (27) | **SourceAligned (27)** | Mixed, counted separately below | Original Russian semantic sections preserved; localized relative links; includes original JSON safety and OEM matrices |
+| PR #32 — README, index, SECURITY, D1–D9, roadmap and verification gates | Already within RU SourceAligned | **EditorialPass (6)** | Safety, evidence, release chronology and licensing boundaries |
+| PR #33 — CIOPRG, memory, TMR/CNT/GSTR/GOUT, native parsing, opcode syntax | **EditorialPass (6)** | **EditorialPass (8)** | Byte fidelity, numeric ranges, source examples, test/evidence states |
+| PR #34 — source registry, post-END, semantic AST, IONAME | **EditorialPass (4)** | **EditorialPass (4)** | Manufacturer evidence, source spans, no fabricated rung, no automatic IONAME mapping |
+| PR #35 — [Graph Editor](graph_editor.md), [Multi-rung UI](ui_multi_rung_state.md), [Inline editing](inline_address_editing.md), [JSON safety](json_persistence_safety.md) | **EditorialPass (3)**; JSON safety already SourceAligned | **EditorialPass (4)** | Only JSON is editable; tri-state is OFFLINE; WebView2 UserSmoke separate; staged JSON is not a backup+target atomic transaction |
+| Remaining / Остальные | **MachineDraft (13)** | **MachineDraft (31)** | Full bilingual semantic editing still required |
 
-**Totals / Итого:** **53 originals / 106 companions**; **27 RU SourceAligned + 10 RU EditorialPass + 18 EN EditorialPass = 55 reviewed**, **51 MachineDraft**. The two Russian OEM files listed twice by category are counted **only once** as SourceAligned.
+**Totals / Итого:** **53 originals / 106 companions**; **27 RU SourceAligned + 13 RU EditorialPass + 22 EN EditorialPass = 62 reviewed**, **44 MachineDraft** (13 RU + 31 EN). Table groups overlap on the **same source documents**, but **each localized language file is counted only once**.
 
-**Review labels / Уровни:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified`. **EditorialPass validates fidelity to the MLAD source, not real robot behavior or authorization to write.** `NOT RUN`, `BLOCKED`, `Unknown` and `ManualDerived` are distinct.
+**Review levels / Уровни проверки:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified`. An `EditorialPass` checks translation/source fidelity; **it does not certify a controller, confirm WebView2 execution, eliminate TOCTOU or authorize a native writer**. / Смысловая сверка перевода **не** является аппаратным допуском.
 
 ## Terminology contract / Терминологический контракт
 

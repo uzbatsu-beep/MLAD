@@ -56,6 +56,9 @@ EDITORIAL_RU = {
     "docs/post_end_data.md",
     "docs/semantic_ast.md",
     "docs/ioname_annotations.md",
+    "docs/graph_editor.md",
+    "docs/ui_multi_rung_state.md",
+    "docs/inline_address_editing.md",
 }
 EDITORIAL_EN = {
     "README.md", "docs/README.md", "SECURITY.md",
@@ -67,6 +70,8 @@ EDITORIAL_EN = {
     "docs/oem_5_opcode_analysis.md", "docs/semantic_verification_matrix.md",
     "docs/source_registry.md", "docs/post_end_data.md",
     "docs/semantic_ast.md", "docs/ioname_annotations.md",
+    "docs/graph_editor.md", "docs/ui_multi_rung_state.md",
+    "docs/inline_address_editing.md", "docs/json_persistence_safety.md",
 }
 
 # Terms that may never be weakened by editorial translations. The set is
@@ -84,6 +89,22 @@ CRITICAL_REVIEW_MARKERS = {
     "docs/post_end_data.md": ("PostEndSection", "PostEndData", "PostEndOpaque", "PostEndUnknownStructure", "AfterEnd", "subset_analysis_complete=false"),
     "docs/semantic_ast.md": ("UnbalancedBranch", "PotentialGroupRead", "PotentialGroupWrite", "system_user_boundaries_verified", "MAX_BOOLEAN_NODES", "MAX_OPEN_BRANCHES"),
     "docs/ioname_annotations.md": ("relay_mapping_verified", "native_write_allowed", "4 MiB", "16 MiB", "IONAME.DAT", "localStorage"),
+    "docs/graph_editor.md": ("GraphDraft", "cmd_validate_graph_draft", "cmd_save_graph_draft", "edited_cioprg_export_allowed: false", "Undo/Redo", "UNKNOWN", "File ID"),
+    "docs/ui_multi_rung_state.md": ("FALSE AND UNKNOWN = FALSE", "TRUE OR UNKNOWN = TRUE", "TRUE", "FALSE", "UNKNOWN", "OFFLINE", "HSES/FTP"),
+    "docs/inline_address_editing.md": ("#70018", "#20011", "M560", "F2", "Enter", "Esc", "Undo/Redo", "UNKNOWN"),
+    "docs/json_persistence_safety.md": ("draft_io::write_atomic", "create_new(true)", "sync_all", "rename", "File ID", "TOCTOU", "*.bak"),
+}
+
+# High-impact negative claims that cannot be recovered by preserving tokens
+# alone: each is checked for reviewed language/source pairs.
+CRITICAL_PROHIBITIONS = {
+    ("docs/graph_editor.md", "en"): ("JSON drafts only", "does not authorize native export"),
+    ("docs/graph_editor.md", "ru"): ("только JSON-черновик", "не разрешает"),
+    ("docs/ui_multi_rung_state.md", "en"): ("NOT live I/O", "not telemetry"),
+    ("docs/ui_multi_rung_state.md", "ru"): ("не является live I/O", "не телеметрия"),
+    ("docs/inline_address_editing.md", "en"): ("only in JSON drafts", "no access"),
+    ("docs/inline_address_editing.md", "ru"): ("только в JSON-черновиках", "не даёт доступа"),
+    ("docs/json_persistence_safety.md", "en"): ("No single atomic transaction", "still not guaranteed"),
 }
 
 EN_RELEASE_NEGATION = re.compile(
@@ -145,6 +166,9 @@ def main() -> None:
                 failures.append(f"{target}: missing companion")
                 continue
             text = full_path.read_text(encoding="utf-8")
+            for prohibition in CRITICAL_PROHIBITIONS.get((src.as_posix(), lang), ()):
+                if prohibition.casefold() not in text.casefold():
+                    failures.append(f"{target}: critical safety negation missing {prohibition!r}")
             if src.as_posix() in SOURCE_ALIGNED_RU and lang == "ru":
                 count_ru += 1
                 if "MLAD-I18N:EDITORIAL" not in text:
@@ -199,7 +223,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 10, 18, 51):
+    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 13, 22, 44):
         failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:

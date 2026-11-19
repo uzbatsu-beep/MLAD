@@ -1,13 +1,13 @@
-<!-- Generated en companion for docs/inline_address_editing.md; review required. -->
-> **English** · [Русский](inline_address_editing.ru.md) · [English](inline_address_editing.en.md) · [Original / Оригинал](inline_address_editing.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against inline_address_editing.md -->
+> **Language / Язык:** [English](inline_address_editing.en.md) · [Русский](inline_address_editing.ru.md) · [Original](inline_address_editing.md)
+>
+> **Safety:** Only independent `*.graph.json`/`*.advanced.json` addresses can be edited. Native `CIOPRG.LST`/`IONAME.DAT` are read-only; HSES/FTP/native writer/deployment **BLOCKED**. Manual Windows WebView2 UserSmoke and OEMBench remain **NOT RUN** absent independent evidence.
 
 # Inline editing of operand addresses — merged PR #8
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not give permission to a native writer, HSES or perform a scan from the specification described herein.
+> **Status and applicability:** `main` is the evolving primary branch; this describes the functionality and evidence available up to PR #21; **it does not imply all project development ended with PR #21**. See [project_status.md](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and separate CI/UserSmoke/OEM evidence levels. This specification authorizes **no** native writer, HSES or actual controller scan.
 
-**Status (18.11.2026):** PR #8 Mixed; change of ** address* is allowed only in JSON drafts. At Native Workspace PR #16 Double-click edits only the **local comment**, not the address in the original CIOPRG.LST or IONAME.DAT.
+**Status (18 November 2026):** PR #8 merged. Changing the **operand address itself** is allowed **only in JSON drafts**. In Native Workspace (PR #16), a double-click may edit **a local annotation only**, **not** an address in the original CIOPRG.LST or IONAME.DAT.
 
 ## User workflow
 
@@ -42,7 +42,7 @@ Frontend performs a small syntax check to reject malformed inputs *before* modif
 
 A double-click has **no access** to network I/O. Edited JSON is not a Yaskawa program, not an `*.LST` file, and not a permit to write or deploy to a robot.
 
-In **View CIOPRG.LST**, all diagrams remain **read-only**: no editing callback is provided to either the Ladder or Advanced SVG diagram. The original backup's source bytes and SHA-256 are not modified.
+In **Просмотр CIOPRG.LST** (read-only native inspector), all diagrams remain **read-only**: no editing callback is provided to either the Ladder or Advanced SVG diagram. The original backup's source bytes and SHA-256 are not modified.
 
 ## Windows preview regression checklist
 
@@ -60,12 +60,12 @@ In **View CIOPRG.LST**, all diagrams remain **read-only**: no editing callback i
 For vendor-native backups, **always use a preserved copy**. Record model, firmware, source SHA-256 and source encoding; never edit the System Ladder on the robot as part of this test.
 
 
-## Known limitations and delayed improvements
+## Known limitations and deferred improvements
 
-- **Only the syntax in the first step:** for example `#XXXXX` It can be a correct text, but an unacceptable class or range in the chosen generation. Rust-check after recording returns the diagnosis, but the draft may save the incorrect address for correction.
-- For **complex** TMR/CNT conditions, edit the expression tree in the panel from multiple contacts; online replacement of the entire tree with a single contact is prohibited.
-- `Undo/Redo` In the current implementation, Graph Workspace has a separate full history of changes. `*.advanced.json` Not yet implemented.
-- Automatic tests check formats, but the real work of focus and double-click WebView2 You should check the manual Windows smoke test.
-- The control profile should be checked separately: front-end validation should not become the basis for recording in a physical robot.
+- **First-stage frontend validation checks syntax only.** For example, `#XXXXX` may be well formed but outside the allowable class or range for the selected generation. The subsequent Rust check produces a diagnostic, and the draft **may retain an invalid address for later correction**. Do not equate a frontend pass with an accepted robot address.
+- **Complex** TMR/CNT input conditions consisting of multiple contacts must be edited in the expression-tree panel. Silently replacing the entire tree with one contact via inline editing is prohibited.
+- `Undo/Redo` is implemented for Graph Workspace. Full independent undo/redo history for `*.advanced.json` is **not yet implemented**.
+- Automated tests cover model/input formats, **not actual focus or double-click behavior in WebView2**. The latter needs manual Windows smoke testing.
+- Controller family and firmware/configuration must be checked separately; frontend validation never authorizes physical robot writes.
 
-See. [architecture.md](architecture.en.md) и [development_workflow.md](development_workflow.en.md).
+See [architecture.md](architecture.en.md) and [development_workflow.md](development_workflow.en.md).
