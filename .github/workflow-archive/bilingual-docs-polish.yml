@@ -1,0 +1,38 @@
+name: MLAD — bilingual terminology safety review pass
+on:
+  push:
+    branches: [docs/pr31-bilingual-ru-en]
+    paths:
+      - scripts/i18n_polish.py
+      - .github/workflows/bilingual-docs-polish.yml
+
+permissions:
+  contents: write
+
+jobs:
+  safety-terminology:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Correct unsafe NMT status terms; add per-document safety baseline
+        run: python scripts/i18n_polish.py
+      - name: Ensure translated companions and fenced code still match originals
+        run: python scripts/i18n_verify.py
+      - name: Verify Markdown relative links and formatting
+        run: npm run docs:check
+      - name: Commit revised translated draft files to localization branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          find . -type f \( -name '*.ru.md' -o -name '*.en.md' \) ! -path './_i18n_staging/*' -print0 | xargs -0 git add --
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(i18n): harden RU/EN safety terminology and status wording"
+            git push origin HEAD:docs/pr31-bilingual-ru-en
+          fi
