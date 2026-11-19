@@ -1,50 +1,51 @@
-<!-- Generated en companion for docs/json_persistence_safety.md; review required. -->
-> **English** · [Русский](json_persistence_safety.ru.md) · [English](json_persistence_safety.en.md) · [Original / Оригинал](json_persistence_safety.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against json_persistence_safety.md -->
+> **Language / Язык:** [English](json_persistence_safety.en.md) · [Русский](json_persistence_safety.ru.md) · [Original](json_persistence_safety.md)
+>
+> **Evidence and safety:** This is a technical translation of the original PR #24–#29 persistence contract, **not** an independent filesystem-security certification. Native `CIOPRG.LST` and `IONAME.DAT` are **read-only**; HSES/FTP/native writer/deployment remain **BLOCKED**. WindowsCI does not establish manual `UserSmoke=PASS` or OEMBench; both are **NOT RUN** absent separate reports.
 
-# MLAD is the JSON Conservation Safety Model.PR #24)
+# MLAD — JSON Save-Safety Model (PR #24)
 
-**Date:** 18.11.2026. Status:** PR #24 merged in main 18.11.2026; Windows MSVC regression CI SUCCESS, but a separate Windows binary with the change has not yet been published. The M2 extension does not change the CIOPRG grammar.
+**Date:** 18 November 2026. **Historical status:** PR #24 merged into `main` on 18 November; the Windows MSVC regression CI succeeded, but no separate published Windows binary yet included this change at that checkpoint. This extends milestone M2 and **does not change CIOPRG grammar**.
 
-## Objective and reason
+## Problem and motivation
 
-In the original `main` later PR #23 All three types of user JSON were saved through direct circumcision/target path recording.`tokio::fs::write` / `std::fs::write`), and backups were created by a simple copy. This created the risk of losing the previous version if the recording operation was interrupted or mistaken.
+Before PR #24, the `main` following PR #23 saved all three user-owned JSON formats by directly truncating/writing the target path (`tokio::fs::write` / `std::fs::write`). Backups were produced by a simple copy. If writing was interrupted or failed, that approach could destroy the previous version.
 
-## Contract in progress
+## Implemented persistence contract
 
-- Only **individual* files. `*.graph.json`, `*.advanced.json` и legacy `*.json` Independently validate the name before calling a single `draft_io::write_atomic`. Writer is also testing the extension. `.json`. `CIOPRG.LST` и `IONAME.DAT` They don't get written command.
-- Reading all three formats: limit 2 MiB, failure with direct symlink and the wrong file type; it is impossible to read the replaced large file without checking the size of the result.
-- Recording: check size up to 2 MiB, create a new *unique* temporary file in the same directory with `create_new(true)`recording and `sync_all`Replacement of the initial path through `rename`. Until the last step, the original is not cut.
-- For existing JSON, its previous bytes are pre-read and similarly prepared. `*.bak`Copying via overwriting to an existing symlink is prohibited. If the staging/backup ended in an error, the old JSON remains in place; the event of a final rename error should also not trim it.
-- In case of failure, temporary files are deleted in `Drop`Conservation is launched in `tokio::task::spawn_blocking`Not to block async runtime.
-- Positive/negative Rust tests do not contain data from real robots. `npm run test:security` Checks that Tauri handlers have not returned to direct `fs::write`.
+- Only **independent** `*.graph.json`, `*.advanced.json` and legacy `*.json` files pass their respective filename validation before the common `draft_io::write_atomic` writer. The writer additionally requires the `.json` extension. `CIOPRG.LST` and `IONAME.DAT` are **never** targets of these write commands.
+- Reads of all three JSON formats have a **2 MiB limit**, reject a direct symlink and an incorrect filesystem object type, and validate the actual returned data size to avoid an unbounded read after a file swap.
+- Writes validate the maximum **2 MiB** payload, create a new **unique staged file** in the destination directory using `create_new(true)`, write the bytes and call `sync_all`, then replace the target path through `rename`. The original target is **not truncated before the final replacement**.
+- For an existing JSON target, the old bytes are read first and a separate `*.bak` file is staged. Overwriting an existing symlink as the backup is prohibited. Failure during staging or backup preparation must leave the old JSON target in place; a final rename failure must not truncate it.
+- Temporary files are cleaned up in `Drop` when an operation fails. Writes use `tokio::task::spawn_blocking` so filesystem work does not block the async runtime.
+- Positive and negative Rust tests use **synthetic**, not production robot data. `npm run test:security` detects any accidental return to direct `fs::write` from Tauri handlers.
 
-## Limitations: What is NOT guaranteed
+## Limitations: what is **NOT** guaranteed
 
-1. **No Total Atomic Transaction* Between Updates n `*.bak` and the main JSON. An interruption after installing the backup but before replacing the target will leave the old target and the new backup.
-2. **TOCTOU and parental directory interception not eliminated**: standard path-based `metadata/open/rename` Not secure directory-handle APIs; maliciously modifiable symlink ancestors, hardlinks, and cross-process racing require a separate threat review.
-3. Windows. `rename` When the target file is occupied/protected, it can return the error; the task is to save the old file and report the failure, rather than promising a seamless replacement on any volume.
-4. There is no JSON encryption and individual guaranteed rights to directories, profiles or backups. The user is responsible for access rights to his folder. Without Windows smoke, power outage simulations, and NTFS verification, you can’t promise crash-consistent durable commit.
-5. The content of the legacy project passes the existing validation and format limitations model, not the native CIO model.
-6. PR #24 did not change the CSP, but later merged PR #25 and #26 added CSP/path checks and guarded JSON conflict detection: [CSP review](csp_path_hardening.en.md), [guarded I/O](guarded_io_review.en.md). This does not promise to eliminate TOCTOU and is not included in the released rc.9.
+1. **No single atomic transaction** spans both the `*.bak` backup and the main JSON target. An interruption after installing the backup but before replacing the target can leave the original target together with the newly prepared backup.
+2. **TOCTOU and parent-directory path substitution were not eliminated** by PR #24. Ordinary path-based `metadata/open/rename` is not a secure directory-handle API. Maliciously changeable symlink ancestors, hardlinks and interprocess races require separate threat assessment. **Later PR #25–#29 reduce specific risks, but do not close all final check→rename races.**
+3. On Windows, `rename` can fail if the target is opened with incompatible sharing or protected. The correct response is preserving the old content and reporting failure, **not** promising seamless replacement on every volume.
+4. JSON content is **not encrypted**; there are no additional guaranteed ACLs for directories, profiles or backup files. The user remains responsible for access controls. Without actual Windows smoke, simulated power loss and NTFS assessment, no crash-consistent durable-commit guarantee can be claimed.
+5. A legacy JSON project is validated under its own existing format and limits, **not** the native CIO format.
+6. PR #24 itself did not modify CSP. Later merged PR #25 and #26 introduced CSP/path checks and guarded JSON conflict detection: [CSP review](csp_path_hardening.en.md), [guarded I/O](guarded_io_review.en.md). These do not eliminate TOCTOU and were not part of the older published rc.9.
 
-## Reception.
+## Acceptance
 
-- Cargo tests, including synthetic files, symlink negative cases and verification `copy_original == source_bytes` For native LST, must pass.
-- TypeScript/frontend и `npm run test:security` must pass without regression; control of direct write targets is mandatory.
-- Windows user acceptance checks for two saves for each JSON `*.bak`No overwrites of robot files, and the ability to reopen.
-- Separate security PR for true file-handle/dir-handle and CSP, interprocess lock/versions, atomic backup protocol, permission audit.
+- Cargo tests, including synthetic inputs, negative symlink cases and `copy_original == source_bytes` for the native LST, must pass.
+- TypeScript/frontend checks and `npm run test:security` must pass with no regression; detection of direct writes to target paths is mandatory.
+- Manual Windows user acceptance must cover two successive saves of each JSON format, `*.bak` contents, a locked target file, prevention of overwriting robot-native files and reopening the saved draft.
+- Separate security work is still needed for secure file-handle/directory-handle usage and CSP, cross-process locking/versioning, a truly atomic backup protocol and an ACL/permission audit.
 
-M2 status remains PARTIAL even after merged PR #24 and a successful Rust CI. For PR #24 separate [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), without release. It checks file saving behavior on Windows runner; user smoke on a particular machine remains a standalone gate.
+**M2 remains PARTIAL** despite merged PR #24 and successful Rust CI. PR #24 added a separate [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml) **without publishing a new release**. It checks persistence behavior on a Windows runner, while real GUI smoke on an end-user machine remains a separate gate.
 
+## PR #26 (merged): concurrent editing
 
-## PR #26 (merged): Competitive editing
+Before replacing an existing JSON target, the backend compares it with a snapshot of the previously read version. Unexpected appearance of a file during first save also triggers refusal. The staged-writing/backup model from PR #24 remains. **Neither protection against every race after the last check nor an atomic backup+target transaction is guaranteed.** See [guarded I/O review](guarded_io_review.en.md).
 
-Before the final update, JSON is compared to the snapshot of the old version; the appearance of another file during the initial saving also causes a failure. Staging/backup from PR #24 It persists. **Not guaranteed** exclusion of races after the last check and backup+target transaction. [Study](guarded_io_review.en.md).
+**Historical baseline checks:** [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776) and [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Manual Windows WebView2 smoke and power-loss testing were **NOT RUN**. [Unified verification gates](verification_gates.en.md).
 
-** Check the current baseline:** [main CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [PR #26 Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Manual Windows WebView2 Smoke and power failure check – NOT RUN [Unified gates](verification_gates.en.md).
+## Update after PR #28–#29 (merged, 18 November 2026)
 
-## Addition after PR #28–#29 (merged, 18.11.2026)
+[PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) introduced Windows NTFS regressions (junctions, exclusive locks) and the formal manual UserSmoke checklist. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) added target-snapshot comparisons of **File ID + original bytes**, rejection of multiply hard-linked JSON targets/backups, staged File ID + SHA-256 verification, and rejection of Windows ADS/UNC/device-style paths.
 
-[PR #28](https://github.com/uzbatsu-beep/MLAD/pull/28) Added Windows NTFS regression (junction, exclusive lock) and a formal UserSmoke checklist. [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) added snapshot comparison by **File ID + bytes**, failure for hardlinked JSON target/backup, staged file ID verification +SHA-256 Windows ADS/UNC/device paths. `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` passed [Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) CI. In other words, the contract PR #24 * new regressions**, but the full atomic backup+target, ACL-preservation or final check→rename TOCTOU guarantee is still not available. [Current threat model](filesystem_security_pr29.en.md). manually WebView2 smoke = `NOT RUN`.
+The baseline `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` passed [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Thus PR #24's safeguards have **additional regressions and checks**, but complete atomic backup+target replacement, ACL preservation and elimination of the final check→rename TOCTOU window **are still not guaranteed**. See [the current threat model](filesystem_security_pr29.en.md). Manual WebView2 smoke = `NOT RUN`.
