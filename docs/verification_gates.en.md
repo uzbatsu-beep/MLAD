@@ -43,7 +43,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-The [validation workflow](../.github/workflows/validation.yml) runs `frontend-build` and `rust-tests`. Changes to Rust, Tauri, filesystem behavior or security require a corresponding Windows MSVC/Tauri check unless an equivalent current workflow already covers them. A documentation-only PR does not require manual Windows or hardware testing, but must report it as **`NOT RUN (docs-only)`**, not PASS.
+The [validation workflow](../.github/workflows/validation.yml) (`.github/workflows/validation.yml`) runs `frontend-build` and `rust-tests`. Changes to Rust, Tauri, filesystem behavior or security require a corresponding Windows MSVC/Tauri check unless an equivalent current workflow already covers them. A documentation-only PR does not require manual Windows or hardware testing, but must report it as **`NOT RUN (docs-only)`**, not PASS.
 
 ## 3. Change-specific checks
 
@@ -105,7 +105,7 @@ Related: [development workflow](development_workflow.en.md), [implementation bac
 
 The [Windows regression workflow](../.github/workflows/windows-security-acceptance.yml) runs for relevant PRs/pushes to `main` and can be launched manually. It checks Node security contracts, Rust filesystem integrity, NTFS exclusive locks and junctions, lockfiles, production Tauri EXE build and PE/hash evidence. Its **temporary unsigned artifact**, retained for 14 days, **is not a GitHub release**. See the [manual acceptance protocol](windows_acceptance_pr28.en.md).
 
-On baseline `f85ddfc`, `WindowsCI=PASS` ([workflow](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621)). Each **new PR** must establish its own WindowsCI result on the new HEAD SHA. Only WindowsCI changes to PASS after CI. Manual `UserSmoke` (WIN-01–WIN-12) and OEMBench remain `NOT RUN` without independent reports. Running `cargo test` or `tauri build` does not establish real GUI behavior, controller connectivity, complete TOCTOU protection or atomic backup+target behavior.
+On baseline `f85ddfc`, `WindowsCI=PASS` ([workflow](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621)). Each **new PR** must establish its own WindowsCI result on the new HEAD SHA. Only WindowsCI changes to `PASS` after CI. Manual `UserSmoke` (WIN-01–WIN-12) and OEMBench remain `NOT RUN` without independent reports. Running `cargo test` or `tauri build` does not establish real GUI behavior, controller connectivity, complete TOCTOU protection or atomic backup+target behavior.
 
 ## 9. PR #29 — File ID / Hardlinks / Staging (merged)
 
