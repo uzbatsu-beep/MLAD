@@ -36,7 +36,7 @@ Before PR #24, the `main` following PR #23 saved all three user-owned JSON forma
 - Manual Windows user acceptance must cover two successive saves of each JSON format, `*.bak` contents, a locked target file, prevention of overwriting robot-native files and reopening the saved draft.
 - Separate security work is still needed for secure file-handle/directory-handle usage and CSP, cross-process locking/versioning, a truly atomic backup protocol and an ACL/permission audit.
 
-**M2 remains PARTIAL** despite merged PR #24 and successful Rust CI. PR #24 added a separate [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml) **without publishing a new release**. It checks persistence behavior on a Windows runner, while real GUI smoke on an end-user machine remains a separate gate.
+**M2 remains PARTIAL** despite merged PR #24 and successful Rust CI. PR #24 added a separate [Windows MSVC regression workflow](../.github/workflow-archive/windows-json-persistence-pr24.yml) **without publishing a new release**. It checks persistence behavior on a Windows runner, while real GUI smoke on an end-user machine remains a separate gate.
 
 ## PR #26 (merged): concurrent editing
 
