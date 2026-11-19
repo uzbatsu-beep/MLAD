@@ -1,100 +1,151 @@
 #!/usr/bin/env python3
-"""Conservative RU/EN docs gate: do not mistake translation coverage for validation.
+"""Verify RU/EN document coverage and source/meaning safety boundaries.
 
-The script intentionally fails only on mechanical or high-impact semantic
-regressions. A PASS is not a substitute for bilingual engineer/OEM review.
+This check does NOT certify the remaining machine-translated documents.
+A passing status is not OEM validation, a human translation review,
+a controller safety authorization or a Windows UserSmoke result.
 """
 from __future__ import annotations
 
 import re
 import sys
 from pathlib import Path
-from i18n_translate import ROOT, localized, sources
 
-# These pairs were directly compared and re-edited against their originals.
-EDITORIALLY_REVISED = {
-    Path("README.md"),
-    Path("docs/README.md"),
+from i18n_translate import ROOT, localized, sources, strip_nav
+
+# Russian originals copied without machine paraphrase; only local .md links
+# were pointed at corresponding .ru.md variants.
+SOURCE_ALIGNED_RU = {
+    "README.md",
+    "docs/README.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "ACCESSIBILITY.md",
+    "docs/roadmap.md",
+    "docs/implementation_plan.md",
+    "docs/project_status.md",
+    "docs/verification_gates.md",
+    "docs/engineering_decisions.md",
+    "docs/development_workflow.md",
+    "docs/architecture.md",
+    "docs/filesystem_security_pr29.md",
+    "docs/windows_acceptance_pr28.md",
+    "docs/licensing.md",
+    "docs/json_persistence_safety.md",
+    "docs/guarded_io_review.md",
+    "docs/csp_path_hardening.md",
+    "docs/hse_protocol.md",
+    "docs/documentation_audit_2026-11-17.md",
+    "docs/documentation_inventory_2026-11-18.md",
+    "docs/oem_5_opcode_analysis.md",
+    "docs/semantic_verification_matrix.md",
+    "docs/roadmap_v2_archive.md",
+    "docs/implementation_plan_v2_archive.md",
+    "docs/controller_fixture_intake.md",
 }
 
-# Important: keep these claims precise even after future NMT regeneration.
+EDITORIAL_EN = {"README.md", "docs/README.md"}
+
 EN_RELEASE_NEGATION = re.compile(
     r"(?:does\s+not\s+(?:include|contain)|(?:not|never)\s+included)"
     r".{0,35}PR\s*#24[–-]#29",
     flags=re.IGNORECASE | re.DOTALL,
 )
-BAD_EN = (
-    "This is a *****",
+RU_RELEASE_NEGATION = re.compile(
+    r"(?:не\s+(?:содержит|включает)|без)\s+PR\s*#24[–-]#29",
+    flags=re.IGNORECASE,
+)
+UNSAFE_EN = (
     "** Preservation and protection of JSONPR",
     "Parental File Paths",
     "unconducted ** robot tests",
     "the last leaked PR project",
 )
-BAD_RU = (
-    "Не бегать",
-    "OEM скамейка",
-    "Проект JON Graph",
-    "мотоманской лестницы",
-    "Сохранение и защита JSON (PR #24#29",
+DRAFT_MARKERS = (
+    "machine-generated draft",
+    "автоматический черновик",
+    "editorial review required",
 )
 
-def check_reviewed(path: Path, lang: str, text: str) -> list[str]:
-    failures=[]
-    name=localized(path,lang).as_posix()
-    if "MLAD-I18N:EDITORIAL" not in text:
-        failures.append(f"{name}: reviewed companion missing editorial provenance")
-    if "CIOPRG.LST" not in text or "IONAME.DAT" not in text:
-        failures.append(f"{name}: mandatory native source names absent")
-    if "NOT RUN" not in text or "rc.9" not in text:
-        failures.append(f"{name}: release/manual evidence status missing")
-    if lang=="en":
-        if not EN_RELEASE_NEGATION.search(text):
-            failures.append(f"{name}: missing explicit PR24–29 NOT-IN-RC9 negation")
-        for fragment in BAD_EN:
-            if fragment in text:
-                failures.append(f"{name}: known damaged English translation: {fragment!r}")
-    else:
-        if not re.search(r"(?:не\s+(?:содержит|включает)|без)\s+PR\s*#24[–-]#29",text,re.I):
-            failures.append(f"{name}: missing Russian PR24–29 NOT-IN-RC9 statement")
-        for fragment in BAD_RU:
-            if fragment in text:
-                failures.append(f"{name}: known damaged Russian translation: {fragment!r}")
-    return failures
+
+def canonical_body(localized_text: str) -> str:
+    # The header is navigation/provenance; the actual localized document
+    # starts at its first ATX H1 heading.
+    match = re.search(r"(?m)^#\s+", localized_text)
+    if not match:
+        raise ValueError("missing document H1")
+    prose = localized_text[match.start():]
+    # Undo RU companion link routing, while preserving all other bytes.
+    return re.sub(
+        r"(\]\((?!https?:|//|#)[^)\s]+?)\.ru\.md(\))",
+        r"\1.md\2",
+        prose,
+    )
+
 
 def main() -> None:
-    failures=[]
-    draft_count=0
-    reviewed_count=0
-    files=sources()
-    for source in files:
-        for lang in ("ru","en"):
-            name=localized(source,lang)
-            file=ROOT/name
-            if not file.is_file():
-                failures.append(f"{name}: companion missing")
-                continue
-            text=file.read_text(encoding="utf-8")
-            if source in EDITORIALLY_REVISED:
-                reviewed_count+=1
-                failures.extend(check_reviewed(source,lang,text))
-            else:
-                draft_count+=1
-                if not any(
-                    tag in text for tag in (
-                        "machine-generated draft",
-                        "автоматический черновик",
-                        "editorial review required",
-                        "MLAD-I18N:EDITORIAL",
-                    )
-                ):
-                    failures.append(f"{name}: missing machine-draft/editorial review disclosure")
-    if failures:
-        for issue in failures:
-            print("I18N SEMANTIC ERROR:", issue, file=sys.stderr)
-        raise SystemExit(f"I18N semantic guard FAILED: {len(failures)} errors")
-    print(f"I18N semantic guard PASS: {len(files)} sources; "
-          f"{reviewed_count} editorial companions and {draft_count} "
-          "unreviewed draft companions. This is NOT an OEM/linguistic certification.")
+    failures = []
+    count_ru = 0
+    count_en = 0
+    drafts = 0
+    found = sources()
 
-if __name__=="__main__":
+    if len(found) != 53:
+        failures.append(f"source inventory changed: expected 53, found {len(found)}; update review register")
+
+    for src in found:
+        original = strip_nav((ROOT / src).read_text(encoding="utf-8"))
+        for lang in ("ru", "en"):
+            target = localized(src, lang)
+            full_path = ROOT / target
+            if not full_path.is_file():
+                failures.append(f"{target}: missing companion")
+                continue
+            text = full_path.read_text(encoding="utf-8")
+            if src.as_posix() in SOURCE_ALIGNED_RU and lang == "ru":
+                count_ru += 1
+                if "MLAD-I18N:EDITORIAL" not in text:
+                    failures.append(f"{target}: missing source-alignment provenance")
+                try:
+                    if canonical_body(text).rstrip("\n") != original.rstrip("\n"):
+                        failures.append(f"{target}: source-aligned Russian content diverged")
+                except ValueError as err:
+                    failures.append(f"{target}: {err}")
+            elif src.as_posix() in EDITORIAL_EN and lang == "en":
+                count_en += 1
+                if "MLAD-I18N:EDITORIAL" not in text:
+                    failures.append(f"{target}: missing English editorial provenance")
+                if not EN_RELEASE_NEGATION.search(text):
+                    failures.append(f"{target}: rc.9 PR24–29 NOT-IN-RELEASE claim absent/reversed")
+                if "NOT RUN" not in text:
+                    failures.append(f"{target}: independent Windows/OEM test status missing")
+                if "CIOPRG.LST" not in text or "IONAME.DAT" not in text:
+                    failures.append(f"{target}: immutable source identifiers missing")
+                if any(bad in text for bad in UNSAFE_EN):
+                    failures.append(f"{target}: known damaged English technical phrase present")
+            else:
+                drafts += 1
+                if not any(marker in text for marker in DRAFT_MARKERS):
+                    failures.append(f"{target}: unreviewed machine draft lacks warning")
+
+    if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
+        failures.append("review register lists missing Russian sources")
+    if (count_ru, count_en, drafts) != (27, 2, 77):
+        failures.append(f"incorrect review totals: ru={count_ru}, en={count_en}, drafts={drafts}")
+
+    if failures:
+        for problem in failures:
+            print("I18N SEMANTIC ERROR:", problem, file=sys.stderr)
+        raise SystemExit(f"I18N semantic guard FAILED ({len(failures)} issues)")
+
+    print(
+        f"I18N semantic guard OK: {len(found)} source docs / {len(found)*2} companions; "
+        f"{count_ru} Russian source-aligned, {count_en} English editorial, "
+        f"{drafts} explicitly unreviewed machine drafts."
+    )
+    print("Structural/semantic guard != bilingual engineering validation or OEM certification.")
+
+
+if __name__ == "__main__":
     main()
