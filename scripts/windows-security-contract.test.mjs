@@ -8,12 +8,19 @@ const backend = read("src-tauri/src/main.rs");
 const draft = read("src-tauri/src/draft_io.rs");
 const guarded = read("src-tauri/src/guarded_read.rs");
 const workflow = read(".github/workflows/windows-security-acceptance.yml");
+const caller = read(".github/workflows/validation.yml");
 const harness = read("scripts/windows-acceptance.ps1");
 
-test("Windows regression runs on PRs and main, with minimal token permissions", () => {
-  assert.match(workflow, /^\s*pull_request:/m);
-  assert.match(workflow, /^\s*push:/m);
+test("Windows regression is invoked from the PR/main CI gate, with minimal token permissions", () => {
+  assert.match(caller, /^\s*pull_request:/m);
+  assert.match(caller, /^\s*push:/m);
+  assert.match(caller, /uses:\s*\.\/\.github\/workflows\/windows-security-acceptance\.yml/);
+  assert.match(caller, /if:\s*needs\.scope\.outputs\.runtime_required == 'true'/);
+  assert.match(caller, /^  ci-gate:/m);
+  assert.match(caller, /needs:\s*\[scope, frontend-build, rust-tests, windows-security\]/);
+  assert.match(workflow, /^\s*workflow_call:/m);
   assert.match(workflow, /^\s*workflow_dispatch:/m);
+  assert.doesNotMatch(workflow, /^\s*(?:pull_request|push):/m);
   assert.match(workflow, /runs-on:\s*windows-2022/);
   assert.match(workflow, /permissions:\s*\n\s*contents:\s*read/);
   assert.doesNotMatch(workflow, /pull_request_target:|contents:\s*write/);
