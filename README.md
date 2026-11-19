@@ -54,7 +54,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-GitHub Actions: [MLAD validation](.github/workflows/validation.yml) и постоянно действующий [Windows Acceptance & Security Regression](.github/workflows/windows-security-acceptance.yml). [Ручной протокол WIN-01…WIN-12](docs/windows_acceptance_pr28.md) ещё не закрыт. Windows rc.9 проверен [историческим release workflow](.github/workflows/windows-oem-reference-rc9.yml); после PR #29 опубликован только временный unsigned non-release EXE. CI **не** означает прохождение пользовательского GUI/WebView2 smoke или OEM-эквивалентность.
+GitHub Actions: [MLAD validation](.github/workflows/validation.yml) и постоянно действующий [Windows Acceptance & Security Regression](.github/workflows/windows-security-acceptance.yml). [Ручной протокол WIN-01…WIN-12](docs/windows_acceptance_pr28.md) ещё не закрыт. Windows rc.9 проверен [историческим release workflow](.github/workflow-archive/windows-oem-reference-rc9.yml); после PR #29 опубликован только временный unsigned non-release EXE. CI **не** означает прохождение пользовательского GUI/WebView2 smoke или OEM-эквивалентность.
 
 ## Начать работу
 

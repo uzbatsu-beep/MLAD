@@ -35,7 +35,7 @@
 - Windows user acceptance проверит два сохранения каждого JSON, содержимое `*.bak`, занятый файл, no overwrites of robot files, и возможность повторного открытия.
 - Отдельный security PR для true file-handle/dir-handle и CSP, межпроцессной блокировки/версий, atomic backup protocol, permission audit.
 
-**Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflows/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
+**Статус M2 остаётся PARTIAL** даже после merged PR #24 и успешного Rust CI. Для PR #24 добавлен отдельный [Windows MSVC regression workflow](../.github/workflow-archive/windows-json-persistence-pr24.yml), без публикации релиза. Он проверяет поведение файлового сохранения на Windows runner; пользовательский smoke на конкретной машине остаётся самостоятельным gate.
 
 
 ## PR #26 (merged): конкурентное редактирование

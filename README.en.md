@@ -55,7 +55,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-GitHub Actions includes [MLAD validation](.github/workflows/validation.yml) and the permanent [Windows Acceptance & Security Regression workflow](.github/workflows/windows-security-acceptance.yml). The [WIN-01–WIN-12 manual Windows acceptance protocol](docs/windows_acceptance_pr28.en.md) has **not** been independently completed. Release rc.9 used its own [historical Windows workflow](.github/workflows/windows-oem-reference-rc9.yml). A passing CI job is **not** equivalent to a GUI test on the end user's Windows installation or to verified OEM behavior.
+GitHub Actions includes [MLAD validation](.github/workflows/validation.yml) and the permanent [Windows Acceptance & Security Regression workflow](.github/workflows/windows-security-acceptance.yml). The [WIN-01–WIN-12 manual Windows acceptance protocol](docs/windows_acceptance_pr28.en.md) has **not** been independently completed. Release rc.9 used its own [historical Windows workflow](.github/workflow-archive/windows-oem-reference-rc9.yml). A passing CI job is **not** equivalent to a GUI test on the end user's Windows installation or to verified OEM behavior.
 
 ## First steps
 
