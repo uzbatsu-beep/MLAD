@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "origin": "SYNTHETIC",
+  "description": "Fictional CIOPRG byte-exact regression snippets. Never OEM/controller validation.",
+  "cases": [
+    {
+      "id": "F01",
+      "description": "Empty source",
+      "controller": "YRC1000",
+      "source_hex": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_classes": [],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F02",
+      "description": "Boolean rung plus END",
+      "controller": "YRC1000",
+      "source_hex": "535452202337303031300a4f5554202337303032300a454e440a",
+      "sha256": "041612341fcea8040c760fbbde31c31928d03675a248977e85add1c850b1a78b",
+      "expected_classes": [
+        "Recognized",
+        "Recognized",
+        "Recognized"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F03",
+      "description": "UTF8 BOM and mixed EOL",
+      "controller": "YRC1000",
+      "source_hex": "efbbbf535452202337303031300d0a4f5554202337303032300d454e44",
+      "sha256": "ba438596fbe58688334d7a9bd11e5f776bb43ff66c9b702340e4a1dc341ed1db",
+      "expected_classes": [
+        "Recognized",
+        "Recognized",
+        "Recognized"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F04",
+      "description": "Non UTF8 mnemonic preserved",
+      "controller": "YRC1000",
+      "source_hex": "ff4241440d0a535452202337303031300a",
+      "sha256": "6b1b7865aa6568eef54fbc670c1bb6d39c53935e733f02974e9ba6012e9664eb",
+      "expected_classes": [
+        "Opaque",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "OpaqueLine"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F05",
+      "description": "Directive and LF CRLF CR",
+      "controller": "YRC1000",
+      "source_hex": "2f2f4d4f44452c554e4b4e4f574e0d0a535452202337303031300a414e442d4e4f54202337303031310d4f555420233730303230",
+      "sha256": "1386358a7a2ee94b69e2d9ff755ef0809d11bec77cfa57445ad7dcbb47bd84be",
+      "expected_classes": [
+        "Structural",
+        "Recognized",
+        "Recognized",
+        "Recognized"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F06",
+      "description": "Valid M header",
+      "controller": "YRC1000",
+      "source_hex": "2f2f244d0a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a302c302c302c302c302c302c302c302c302c300a535452202337303031300a",
+      "sha256": "8a7cd60c171bc0ab1d641a26b9dbaa915dcb69455b56cfd9962d0b1d926282fe",
+      "expected_classes": [
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Structural",
+        "Recognized"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F07",
+      "description": "Invalid M header kept visible",
+      "controller": "YRC1000",
+      "source_hex": "2f2f244d0a312c322c330a535452202337303031300a",
+      "sha256": "9ccb71b5422878a7e92a55f0981a11003e8c9d6514c4d16f16cc1708f3c0f76a",
+      "expected_classes": [
+        "Structural",
+        "Opaque",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "MHeaderInvalidRow",
+        "MHeaderIncomplete",
+        "OpaqueLine"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F08",
+      "description": "PART END and ALARM data",
+      "controller": "YRC1000",
+      "source_hex": "5041525420310a535452202337303031300a4f5554202337303032300a454e440a2f2f414c41524d310a6d657373616765207061796c6f61640a",
+      "sha256": "90aff5d04dae98e91ed9a6d71dae3a4b7310db154d14731f73e7709006a17770",
+      "expected_classes": [
+        "Recognized",
+        "Recognized",
+        "Recognized",
+        "Recognized",
+        "PostEndData",
+        "PostEndData"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F09",
+      "description": "Invalid END does not hide source",
+      "controller": "YRC1000",
+      "source_hex": "454e44206a756e6b0a535452202337303031300a4f5554202337303032300a",
+      "sha256": "55af6010b51291dc7d8b43d53f2f2645a071de0a251f957aa36caa239310b00f",
+      "expected_classes": [
+        "Malformed",
+        "Recognized",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "OperandCount",
+        "InvalidOperand"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F10",
+      "description": "Unsupported mnemonic is semantic barrier",
+      "controller": "YRC1000",
+      "source_hex": "535452202337303031300a424d4f56202337303031302c2337303032300a4f5554202337303032300a454e440a",
+      "sha256": "a4e623a8e0c7ea6ebc54d44bff407e3b47d320b51452b5a80bf1f9425a6233c3",
+      "expected_classes": [
+        "Recognized",
+        "Unsupported",
+        "Recognized",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "UnsupportedMnemonic"
+      ],
+      "no_fabricated_rungs": true
+    },
+    {
+      "id": "F11",
+      "description": "Valid typed candidates",
+      "controller": "YRC1000",
+      "source_hex": "4d4f56204d3031302c4d3031310a414444204d3031312c312c4d3031320a53484c204d3031302c312c4d3032300a454e440a",
+      "sha256": "b82131309b1ef99f352685c869d1833f04ad23c06da6c52914a486ea8521ee5d",
+      "expected_classes": [
+        "TypedCandidate",
+        "TypedCandidate",
+        "TypedCandidate",
+        "Recognized"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F12",
+      "description": "Malformed typed candidates",
+      "controller": "YRC1000",
+      "source_hex": "4d4f56204d3031302c4641494c0a53554220312c322c4d3939390a534852204d3031302c31372c4d3032300a454e440a",
+      "sha256": "084c4d22d3576e774688187afc1fa8b40feae4c5d280812a004d8f052ee1e321",
+      "expected_classes": [
+        "Malformed",
+        "Malformed",
+        "Malformed",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "TypedOperandForm"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F13",
+      "description": "Embedded NUL not accepted",
+      "controller": "YRC1000",
+      "source_hex": "53545220233730303130000a454e440a",
+      "sha256": "f1e64d8fc6c7dbb2be3dc0e37786b0227e371400a8ef2d2713a250b426cea4a9",
+      "expected_classes": [
+        "Opaque",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "EmbeddedNul"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F14",
+      "description": "Unknown postEND remains opaque",
+      "controller": "YRC1000",
+      "source_hex": "454e440d0a2f2f464f4f390d0a7061796c6f61640d0a",
+      "sha256": "54900126f153b17c78025a53db99304e08f17fd24d70115f073e23d66a6f1e3e",
+      "expected_classes": [
+        "Recognized",
+        "Opaque",
+        "Opaque"
+      ],
+      "expected_diagnostics": [
+        "PostEndUnknownStructure"
+      ],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F15",
+      "description": "Comments and blank line",
+      "controller": "YRC1000",
+      "source_hex": "2a2073796e7468657469630a3b2073796e746865746963320a0a",
+      "sha256": "ff27f67f32e2c3c4f5befccf474cfdca5bf9a99887de34180d9337b43e1f10fe",
+      "expected_classes": [
+        "Structural",
+        "Structural",
+        "Structural"
+      ],
+      "expected_diagnostics": [],
+      "no_fabricated_rungs": false
+    },
+    {
+      "id": "F16",
+      "description": "DX200 rejects YRC-specific relay",
+      "controller": "DX200",
+      "source_hex": "535452202338373031300a454e440a",
+      "sha256": "0f9c55b976437e7df16ad99a555458b421fcbd291c74c56ffcdc20eaa9c9ed16",
+      "expected_classes": [
+        "Malformed",
+        "Recognized"
+      ],
+      "expected_diagnostics": [
+        "InvalidOperand"
+      ],
+      "no_fabricated_rungs": false
+    }
+  ]
+}

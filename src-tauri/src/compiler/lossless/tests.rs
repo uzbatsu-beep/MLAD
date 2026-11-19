@@ -405,3 +405,104 @@ fn synthetic_four_opcode_distribution_is_documented_shape_only() {
     assert_eq!(doc.original_bytes(),source.as_slice());
     assert_eq!(doc.copy_original(),source);
 }
+
+ 
+/// Every source is synthetic; no OEM/customer data or hardware approval.
+#[derive(serde::Deserialize)]
+struct SyntheticCorpus {
+    schema_version: u32,
+    origin: String,
+    cases: Vec<SyntheticFixture>,
+}
+#[derive(serde::Deserialize)]
+struct SyntheticFixture {
+    id: String,
+    controller: String,
+    source_hex: String,
+    sha256: String,
+    expected_classes: Vec<String>,
+    expected_diagnostics: Vec<String>,
+    no_fabricated_rungs: bool,
+}
+#[test]
+fn synthetic_corpus_classifies_all_lines_without_modifying_original_bytes() {
+    let corpus: SyntheticCorpus = serde_json::from_str(
+        include_str!("fixtures/synthetic_cases.json")
+    ).expect("valid fixture manifest");
+    assert_eq!(corpus.schema_version, 1);
+    assert_eq!(corpus.origin, "SYNTHETIC");
+    assert!(corpus.cases.len() >= 12);
+    let mut identifiers = std::collections::BTreeSet::new();
+    for f in corpus.cases {
+        assert!(identifiers.insert(f.id.as_str()), "duplicate fixture {}", f.id);
+        let bytes = hex::decode(&f.source_hex).expect("valid hex source");
+        let family = match f.controller.as_str() {
+            "DX100" => ControllerFamily::DX100,
+            "DX200" => ControllerFamily::DX200,
+            "YRC1000" => ControllerFamily::YRC1000,
+            _ => panic!("Unexpected controller in {}", f.id),
+        };
+        let doc = parse_document(bytes.clone(), family);
+        assert_eq!(doc.source_sha256, f.sha256, "{}", f.id);
+        assert_eq!(doc.original_bytes(), bytes.as_slice(), "{}", f.id);
+        assert_eq!(doc.copy_original(), bytes, "{}", f.id);
+        assert_eq!(doc.lines.len(), f.expected_classes.len(), "{}", f.id);
+        let mut next = 0;
+        for (index, line) in doc.lines.iter().enumerate() {
+            assert_eq!(line.number, index + 1);
+            assert_eq!(line.full_span.start, next, "{}", f.id);
+            assert!(line.body_span.start >= line.full_span.start);
+            assert!(line.body_span.end <= line.full_span.end);
+            assert_eq!(format!("{:?}", SyntaxClass::of(&line.kind)),
+                f.expected_classes[index], "{}:L{}", f.id, line.number);
+            next = line.full_span.end;
+        }
+        assert_eq!(next, bytes.len(), "{} all raw bytes accounted for", f.id);
+        for code in &f.expected_diagnostics {
+            assert!(doc.diagnostics.iter().any(|d| d.code == code.as_str()),
+                "{} missing diagnostic {}", f.id, code);
+        }
+        let report = doc.inspection_report(1, 1);
+        let c = &report.syntax_coverage;
+        assert_eq!(c.total_lines, doc.lines.len());
+        assert!(c.all_source_lines_counted);
+        assert!(!c.semantics_verified);
+        assert!(report.original_round_trip_only);
+        assert!(!report.edited_export_allowed);
+        assert!(!report.system_user_boundaries_verified);
+        let count = |name: &str| f.expected_classes.iter().filter(|s| s.as_str() == name).count();
+        assert_eq!(c.recognized, count("Recognized"), "{}", f.id);
+        assert_eq!(c.typed_candidate, count("TypedCandidate"), "{}", f.id);
+        assert_eq!(c.unsupported, count("Unsupported"), "{}", f.id);
+        assert_eq!(c.malformed, count("Malformed"), "{}", f.id);
+        assert_eq!(c.opaque, count("Opaque"), "{}", f.id);
+        assert_eq!(c.post_end_data, count("PostEndData"), "{}", f.id);
+        assert_eq!(c.structural, count("Structural"), "{}", f.id);
+        assert_eq!(c.recognized + c.typed_candidate + c.unsupported + c.malformed +
+            c.opaque + c.post_end_data + c.structural, doc.lines.len());
+        for line in doc.line_preview_range(1, doc.lines.len()) {
+            assert_eq!(format!("{:?}", line.syntax_class),
+                f.expected_classes[line.line - 1], "preview class {}", f.id);
+            assert_eq!(line.body_span, doc.lines[line.line - 1].body_span);
+        }
+        if f.no_fabricated_rungs {
+            assert!(crate::compiler::semantic::analyze(&doc).rungs.is_empty(),
+                "{} unsupported instruction synthesized a rung", f.id);
+        }
+    }
+}
+#[test]
+fn full_source_coverage_is_unaffected_by_bounded_previews() {
+    let mut bytes = b"// synthetic\n".repeat(1500);
+    bytes.extend_from_slice(b"STR #70010\nUNKNOWN_OP X\nOUT #70020\nEND\n");
+    let doc = parse(&bytes);
+    let report = doc.inspection_report(1, 1);
+    assert_eq!(report.line_count, 1504);
+    assert!(report.preview_truncated);
+    assert_eq!(report.lines.len(), 1);
+    assert_eq!(report.syntax_coverage.total_lines, 1504);
+    assert_eq!(report.syntax_coverage.structural, 1500);
+    assert_eq!(report.syntax_coverage.recognized, 3);
+    assert_eq!(report.syntax_coverage.unsupported, 1);
+    assert!(!report.syntax_coverage.semantics_verified);
+}
