@@ -1,11 +1,11 @@
-<!-- Generated ru companion for docs/roadmap.md; review required. -->
-> **Русский** · [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Оригинал](roadmap.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Исходный текст / Original](roadmap.md)
+>
+> **Примечание:** русскоязычный исходник сохранён без машинного пересказа; технические имена, ограничения и команды не переводились произвольно. / Source fidelity is preserved; OEM validation is independent.
 
 # MLAD — дорожная карта v3: Native CIO Workspace → Offline Engineering IDE
 
-**Контрольная точка:** 18.11.2026, `main` = `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 объединены. [Успешная проверка Linux](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Восприятие и регрессия безопасности Windows](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Windows GitHub Release: [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) — старый артефакт, **не содержит PR #24–#29**. Отдельное прохождение тестов на ПК пользователя и на роботе **не подтверждено**.
+**Контрольная точка:** 18.11.2026, `main` = `f85ddfcce3063dd087425be981a9d2b7a16d6309`. PR #1–#29 merged. [Linux validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows Acceptance & Security Regression SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Windows GitHub Release: [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) — старый артефакт, **не содержит PR #24–#29**. Отдельное прохождение тестов на ПК пользователя и на роботе **не подтверждено**.
 
 **Статус:** техническая дорожная карта; новые PR после #29 пока **предложены**, а не созданы, за исключением отдельного документационного PR #30 при его публикации. [Детальный backlog](implementation_plan.ru.md) · [Фактическое состояние](project_status.ru.md) · [Решения D1–D9](engineering_decisions.ru.md) · [Историческая roadmap v2](roadmap_v2_archive.ru.md).
 
@@ -27,14 +27,14 @@
 
 | Группа PR | Реализованная база | Ограничение |
 | --- | --- | --- |
-| #1–#12 | Типы адресов, lossless read-only, Boolean AST, отдельные Graph/Advanced JSON, Windows preview, GPL-3.0-onlynpm lockfile / `npm ci` | Ни scanner, ни native writer |
+| #1–#12 | Типы адресов, lossless read-only, Boolean AST, отдельные Graph/Advanced JSON, Windows preview, GPL-3.0-only, npm lockfile / `npm ci` | Ни scanner, ни native writer |
 | #13–#18 | Удалён компилируемый HSES/FTP runtime; paging/search; единый Native Workspace, IONAME и локальные annotations; post-`END` данные | UX/cross-ref и валидность OEM схемы не полные |
 | #19–#21 | TypedCandidate для пяти операций, static M-links, изолированные OEM manual-derived vectors | Нет подтверждённого исполнения/scan и firmware-level OEM bench |
 | #22–#23 | Оформление исходников/архитектурного контура и Community Standards | Не аппаратная сертификация |
-| #24–#26 | Staged JSON с `*.bak`; CSP; ограниченный охраняемый родной / JSON читает, проверяет идентификатор файла, обнаруживает конфликт JSON | Остаются directory races, ACL, crash recovery |
-| #27 | Синхронизация дорожной карты/проверки/инженерных решений | Документы не закрывают функциональные пробелы |
+| #24–#26 | Staged JSON с `*.bak`; CSP; bounded guarded native/JSON reads, File ID checks, JSON conflict detection | Остаются directory races, ACL, crash recovery |
+| #27 | Roadmap/verification/engineering decisions sync | Документы не закрывают функциональные пробелы |
 | #28 | Постоянный Windows regression workflow, NTFS junction/lock tests, temporary unsigned EXE, WIN-01…WIN-12 checklist | WebView2 UserSmoke не выполнялся |
-| #29 | File ID+bytes для JSON snapshots, hardlink rejection, staged File ID+SHA-256Windows ADS/UNC/device Path | Не полная TOCTOU/ACL/backup+target гарантия |
+| #29 | File ID+bytes для JSON snapshots, hardlink rejection, staged File ID+SHA-256, Windows ADS/UNC/device path deny | Не полная TOCTOU/ACL/backup+target гарантия |
 
 `GPL-3.0-only` и авторство оригинальных материалов MLAD остаются без изменений. Публикация кода не означает право включать в репозиторий материалы OEM/клиентов. Правовая база: [licensing.md](licensing.ru.md).
 
@@ -44,21 +44,21 @@
 
 | Этап | Приоритет | Статус на `f85ddfc` | Критерий перехода |
 | --- | --- | --- | --- |
-| M0 - Git/CI/legal baseline | P0 | **Сделано:** PR #1–#29, Windows+Linux CI успешны; branch `main` не защищён | Правила merge / опциональная Branch Protection отдельно |
-| M1 — OEM источник корпуса | P0 | **PARTIAL:** приватная предварительная инвентаризация; firmware/OEM provenance не полный | Правомерные private fixtures + controller/firmware + OEM результат; synthetic public corpus |
-| M2 - файловая система/безопасность | P0 | **PARTIAL:** #24–#29 снизили выявленные риски | Windows UserSmoke + согласованные остаточные ACL/races/crash risks и дополнительные security reviews |
-| M3 — рабочая область Native Workspace | P0 | **DONE (read-only базовый):** #15–#17 | Стабильное окно чтения, без native save |
+| M0 — Git/CI/legal baseline | P0 | **DONE:** PR #1–#29, Windows+Linux CI успешны; branch `main` не защищён | Правила merge / опциональная Branch Protection отдельно |
+| M1 — OEM source corpus | P0 | **PARTIAL:** приватная предварительная инвентаризация; firmware/OEM provenance не полный | Правомерные private fixtures + controller/firmware + OEM результат; synthetic public corpus |
+| M2 — filesystem/security | P0 | **PARTIAL:** #24–#29 снизили выявленные риски | Windows UserSmoke + согласованные остаточные ACL/races/crash risks и дополнительные security reviews |
+| M3 — Native Workspace | P0 | **DONE (read-only базовый):** #15–#17 | Стабильное окно чтения, без native save |
 | M4 — навигация/диагностика | P0 | **PARTIAL:** paging, source/search, список рунгов/группировка | Надёжный source↔rung/block/diagnostic jump, фильтры и large-file UX |
-| M5 — родной тип синтаксиса | P1 | **PARTIAL:** 5 opcodes + opaque для прочего | Синтетические edge cases + evidence-validated grammar increments |
-| M6 - статический семантический/поток данных | P1 | **PARTIAL:** Boolean AST, статичные M-ссылки, ссылки ручного производства | Verified references и честное unknown, без fake scan |
-| M7 - портативная офлайн-сессия | P1 | **OPEN:** local annotations есть, `*.mlad.json` нет | Версия коляски, хеш-связывание, миграция / конфликт / обработка ошибок |
-| M8 — единая инженерная IDE | P1 | **OPEN:** разные редакторы JSON работают отдельно | Общая навигация, связка source/notes/drafts без изменённого native |
-| M9 — сканирующий тренажер | P2 | **Открыт/не проверен** | Формально проверенный OEM scan/time contract + bench |
-| M10 - OEM-стенд | P1–P2 | **NOT RUN (не проводилось)** | Отдельный разрешённый изолированный стенд, точная модель и firmware |
-| M11 - только для чтения HSES | P2 | **BLOCKED (заблокировано)** | Независимый owner decision + протокол и risk review |
-| M12 — родной CIO писатель | P3 | **BLOCKED (заблокировано)** | Полная OEM grammar/System/User и golden round-trip, отдельный допуск |
-| M13 — развертывание роботов | P3 | **BLOCKED (заблокировано)** | M12, независимая safety/recovery процедура, явно согласованные права |
-| MX - выпуск/UX/качество | P0–P2 | **ONGOING:** CI и rc.9, но новый релиз не выпускался | Manual Windows acceptance, legal/assets, воспроизводимые SHA |
+| M5 — native typed syntax | P1 | **PARTIAL:** 5 opcodes + opaque для прочего | Синтетические edge cases + evidence-validated grammar increments |
+| M6 — static semantic/dataflow | P1 | **PARTIAL:** Boolean AST, static M-links, manual-derived reference | Verified references и честное unknown, без fake scan |
+| M7 — portable offline session | P1 | **OPEN:** local annotations есть, `*.mlad.json` нет | Versioned sidecar, hash binding, migration/conflict/error handling |
+| M8 — unified engineering IDE | P1 | **OPEN:** разные редакторы JSON работают отдельно | Общая навигация, связка source/notes/drafts без изменённого native |
+| M9 — scan simulator | P2 | **OPEN / NOT VERIFIED** | Формально проверенный OEM scan/time contract + bench |
+| M10 — OEM bench | P1–P2 | **NOT RUN** | Отдельный разрешённый изолированный стенд, точная модель и firmware |
+| M11 — read-only HSES | P2 | **BLOCKED** | Независимый owner decision + протокол и risk review |
+| M12 — native CIO writer | P3 | **BLOCKED** | Полная OEM grammar/System/User и golden round-trip, отдельный допуск |
+| M13 — robot deployment | P3 | **BLOCKED** | M12, независимая safety/recovery процедура, явно согласованные права |
+| MX — release/UX/quality | P0–P2 | **ONGOING:** CI и rc.9, но новый релиз не выпускался | Manual Windows acceptance, legal/assets, воспроизводимые SHA |
 
 ## 4. Стратегия v3 — что делать в каком порядке
 
@@ -93,10 +93,10 @@ PR #31–#37 — **предварительные номера**, не созд�
 ## 6. Точки контроля, которые нельзя скрывать
 
 - **Семантика:** `typed valid`, `manual-derived` и `OEM-verified` — три разные метки. Пять справочных арифметических команд не образуют scanner.
-- **Файлы:** Windows hardlink/ADS/UNC restrictions и File ID checks после PR #29 — полезная защита, но `check→rename`, parent directory handles, ACL inheritance, конкурентные writers и power-loss recovery остаются **OPEN**; [Обзор угроз](filesystem_security_pr29.ru.md).
-- **Окна:** [PR #28 Протокол о принятии](windows_acceptance_pr28.ru.md) — обязательный ручной этап; automation без WebView2 не переводит его в PASS.
+- **Файлы:** Windows hardlink/ADS/UNC restrictions и File ID checks после PR #29 — полезная защита, но `check→rename`, parent directory handles, ACL inheritance, конкурентные writers и power-loss recovery остаются **OPEN**; [threat review](filesystem_security_pr29.ru.md).
+- **Windows:** [PR #28 acceptance protocol](windows_acceptance_pr28.ru.md) — обязательный ручной этап; automation без WebView2 не переводит его в PASS.
 - **Данные Yaskawa:** `PART 1/2` и System/User, а также IONAME→CIO map не выводятся из одного файла.
 - **Правомочия:** HSES/read-only access, native writer и robot deployment — самостоятельные заблокированные решения. Разработка интерфейса их не активирует.
 - **Управление:** `main` при последней проверке `protected=false`. Рекомендуется GitHub Ruleset с обязательными CI; это отдельная настройка владельца, не тождественная согласию на merge.
 
-Исторические решения D1–D9 остаются утверждёнными. Новые форматы/изменения разрешений требуют отдельного ADR. Исходные формулировки и предыдущая таблица этапов сохранены в [Дорожная карта v2 архив](roadmap_v2_archive.ru.md).
+Исторические решения D1–D9 остаются утверждёнными. Новые форматы/изменения разрешений требуют отдельного ADR. Исходные формулировки и предыдущая таблица этапов сохранены в [roadmap v2 archive](roadmap_v2_archive.ru.md).

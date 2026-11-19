@@ -1,7 +1,7 @@
-<!-- Generated ru companion for ACCESSIBILITY.md; review required. -->
-> **Русский** · [Русский](ACCESSIBILITY.ru.md) · [English](ACCESSIBILITY.en.md) · [Original / Оригинал](ACCESSIBILITY.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](ACCESSIBILITY.ru.md) · [English](ACCESSIBILITY.en.md) · [Исходный текст / Original](ACCESSIBILITY.md)
+>
+> **Примечание:** русскоязычный исходник сохранён без машинного пересказа; технические имена, ограничения и команды не переводились произвольно. / Source fidelity is preserved; OEM validation is independent.
 
 # Доступность интерфейса MLAD
 
@@ -25,10 +25,10 @@
 - Поведение на экранах 1280×800 и при увеличении системного масштаба, поддержка high-contrast/reduced-motion.
 - Отдельные сценарии редактирования локальных комментариев и их объявление вспомогательными технологиями.
 
-Если обнаружено препятствие доступности, откройте [Функциональный запрос](https://github.com/uzbatsu-beep/MLAD/issues/new/choose) и опишите **синтетический** сценарий, ОС/масштаб/способ ввода. Не прикладывайте оригинальные программы роботов, private identifiers и данные предприятий. Для уязвимостей используйте [SECURITY.md](SECURITY.ru.md).
+Если обнаружено препятствие доступности, откройте [Feature Request](https://github.com/uzbatsu-beep/MLAD/issues/new/choose) и опишите **синтетический** сценарий, ОС/масштаб/способ ввода. Не прикладывайте оригинальные программы роботов, private identifiers и данные предприятий. Для уязвимостей используйте [SECURITY.md](SECURITY.ru.md).
 
 Документ — честное описание текущей доступности, **не сертификат соответствия**.
 
 ## Ближайшая дорожная карта доступности (предложение)
 
-[Дорожная карта v3](docs/roadmap.ru.md) и предварительный PR #32 предполагают keyboard navigation/focus для Native Workspace, поиск/диагностику больших файлов и проверку zoom. Это **не** реализованная гарантия на дату базового CI после #29. Независимая ручная Windows/WebView2 приёмка [WIN-01-WIN-12](docs/windows_acceptance_pr28.ru.md) остаётся `NOT RUN`; WCAG 2.2 AA не заявляется.
+[Roadmap v3](docs/roadmap.ru.md) и предварительный PR #32 предполагают keyboard navigation/focus для Native Workspace, поиск/диагностику больших файлов и проверку zoom. Это **не** реализованная гарантия на дату базового CI после #29. Независимая ручная Windows/WebView2 приёмка [WIN-01–WIN-12](docs/windows_acceptance_pr28.ru.md) остаётся `NOT RUN`; WCAG 2.2 AA не заявляется.
