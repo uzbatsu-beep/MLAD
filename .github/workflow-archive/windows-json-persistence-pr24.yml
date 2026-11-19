@@ -1,0 +1,56 @@
+name: MLAD PR24 JSON Draft Safety (Windows MSVC)
+
+on:
+  push:
+    branches: [feat/pr24-atomic-offline-json-drafts]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mlad-pr24-json-windows
+  cancel-in-progress: true
+
+jobs:
+  windows-draft-io:
+    runs-on: windows-2022
+    timeout-minutes: 100
+    env:
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Checkout exact PR commit
+        uses: actions/checkout@v4
+
+      - name: Rust MSVC toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Check offline security boundaries
+        shell: pwsh
+        run: |
+          $source = Get-Content -Raw "src-tauri/src/main.rs"
+          if ($source.Contains("pub mod network;")) { throw "No unverified robot network modules permitted" }
+          if (-not $source.Contains("cmd_deploy_to_robot")) { throw "Explicit deny-only controller upload stub missing" }
+          if (-not $source.Contains("draft_io::write_atomic")) { throw "Staged JSON writer missing" }
+          if (-not (Test-Path "src-tauri/src/draft_io.rs")) { throw "Draft IO module missing" }
+          if (-not (Test-Path "docs/json_persistence_safety.md")) { throw "Threat model missing" }
+
+      - name: Rust storage tests on Windows NTFS
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked draft_io::tests -- --nocapture
+
+      - name: Rust IPC and native file safety regressions
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Verify main JSON safety test with Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: No direct JSON writes / no robot network
+        run: node --test scripts/offline-boundary.test.mjs
