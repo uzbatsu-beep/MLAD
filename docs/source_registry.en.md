@@ -1,11 +1,11 @@
-<!-- Generated en companion for docs/source_registry.md; review required. -->
-> **English** · [Русский](source_registry.ru.md) · [English](source_registry.en.md) · [Original / Оригинал](source_registry.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against source_registry.md -->
+> **Language / Язык:** [English](source_registry.en.md) · [Русский](source_registry.ru.md) · [Original](source_registry.md)
+>
+> **Evidence:** Translation reviewed against MLAD's source registry, **not** an independent audit of every OEM PDF revision or controller firmware. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
 # Source register — Yaskawa Concurrent I/O / Ladder Editor
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not display permission for a native writer, HSES or performing a scan from the specification described herein.
+> **Status and applicability:** this records the documented subset and evidence available by PR #21, **not** the final stage of the whole project. See the [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM evidence levels. Nothing in this registry authorizes a native writer, HSES or actual controller scan execution.
 
 Updated 2026-11-18 (after merged PR #21). References are for **DX100, DX200, YRC1000** (not automatically YRC1000micro). Manufacturer instructions take precedence over MLAD prose and third-party mirrors.
 
@@ -63,12 +63,12 @@ Updated 2026-11-18 (after merged PR #21). References are for **DX100, DX200, YRC
 Do not commit proprietary customer ladder content or network credentials. Use private, access-controlled golden fixtures when available; publish only minimal synthetic snippets where permission allows. Record manufacturer manual/revision, software version, application type and source file SHA-256 for reproducibility.
 
 
-## Levels of confirmation and required evidence after PR #8
+## Evidence levels and required verification after PR #8
 
-- **MANUAL:** Document number, section and family are confirmed by operator and operand format** in the manual**. This is not proof of 100% compatibility. `CIOPRG.LST`.
-- **SOURCE/TEST:** Rust/TypeScript code plus CI confirms implemented logic and negative cases on synthetic data. Tests do not replace reading the original file or checking the hardware scan.
-- **REAL FILE:** hashed original copy, model/firmware/application and the result of a regular Ladder Editor. **Such golden fixtures are not yet in the public repository. **
-- **BENCH:** reproducible measurements DX100/DX200/YRC1000Protocol/test case/rights and OEM result. **There are no such results in the repository yet.**
-- **UNVERIFIED:** HSES framing/command map, full-scale CIOPRG grammar, System/User boundary, hardware semantic nuances and native deployment. It is forbidden to turn assumptions into a control record code.
+- **MANUAL:** a specific manual, section and controller family document an operator and operand form **in manufacturer literature**. This does **not** establish 100% compatibility with an executable `CIOPRG.LST`.
+- **SOURCE / TEST:** Rust/TypeScript implementation and CI confirm tested behavior and negative cases **on synthetic inputs**. Tests do not replace inspections of actual controller exports or hardware scan measurements.
+- **REAL FILE:** a hashed original export, exact model/firmware/application and OEM Ladder Editor acceptance. **No such golden fixtures are available in the public repository.**
+- **BENCH:** repeatable DX100/DX200/YRC1000 measurements, approved protocol, specific test case and OEM result. **No such results are available in the repository.**
+- **UNVERIFIED:** HSES framing/command map, complete CIOPRG grammar, System/User boundaries, firmware-specific effects and native deployment. Hypotheses must **not** become robot-writing code.
 
-See. [architecture.md](architecture.en.md), [controller_fixture_intake.md](controller_fixture_intake.en.md), [development_workflow.md](development_workflow.en.md).
+See [architecture.md](architecture.en.md), [controller_fixture_intake.md](controller_fixture_intake.en.md) and [development_workflow.md](development_workflow.en.md).

@@ -1,8 +1,8 @@
 # MLAD — translation coverage / Покрытие переводом
 
-> **Status:** all 53 source Markdown documents have Russian/English companions (106 files). After PR #32, 27 Russian files were source-aligned and six English documents editorially reviewed. This batch additionally reviewed **six RU/EN technical pairs** and **two English OEM semantic matrices**. Total **47 reviewed/source-aligned** and **59 machine drafts still requiring semantic review**. Translation accuracy is **not** a new OEM firmware/scan/authorization verification. The original source remains authoritative.
+> **Status:** all 53 original Markdown documents have RU/EN companions (106 localized files). PR #32 and PR #33 brought **47** companions to source-aligned/editorial status. This batch reviews four more **RU/EN technical pairs**: OEM source registry, post-END data, semantic AST and IONAME annotations. Total: **55 reviewed/source-aligned**, **51 machine drafts** still requiring semantic editing. Translation/source fidelity is **not** independent OEM firmware, scan, safety or write authorization. The original remains authoritative.
 
-> **Статус:** все 53 исходных MD имеют RU/EN-версии (106 файлов). После PR #32 было 27 русских сверенных версий и шесть английских редакционных. В этом пакете сверены **шесть технических пар RU/EN** и **две английские семантические OEM-матрицы**. Итого **47 сверенных переводов**, **59 машинных черновиков**, требующих редактуры. Сверка перевода **не** является новой верификацией Yaskawa, firmware, сканирования или прав записи. Исходник имеет приоритет.
+> **Статус:** все 53 исходных документа имеют RU/EN-версии (106 языковых файлов). После PR #32 и PR #33 было **47 сверенных файлов**. Этот пакет добавляет четыре технические пары RU/EN: реестр OEM-источников, post-END, семантический AST и аннотации IONAME. Итого **55 проверенных переводов**, **51 машинный черновик**, требующий смысловой редакции. Сверка перевода **не** является подтверждением прошивок, физического скана, безопасности или права записи на оборудовании. Приоритет имеет исходник.
 
 **Markdown sources:** 53. **RU/EN companions:** 106. **Total Markdown including this register:** 160.
 
@@ -33,13 +33,13 @@
 | [docs/implementation_plan.md](implementation_plan.md) | [Русский](implementation_plan.ru.md) | [English](implementation_plan.en.md) | SourceAligned | MachineDraft |
 | [docs/implementation_plan_v2_archive.md](implementation_plan_v2_archive.md) | [Русский](implementation_plan_v2_archive.ru.md) | [English](implementation_plan_v2_archive.en.md) | SourceAligned | MachineDraft |
 | [docs/inline_address_editing.md](inline_address_editing.md) | [Русский](inline_address_editing.ru.md) | [English](inline_address_editing.en.md) | MachineDraft | MachineDraft |
-| [docs/ioname_annotations.md](ioname_annotations.md) | [Русский](ioname_annotations.ru.md) | [English](ioname_annotations.en.md) | MachineDraft | MachineDraft |
+| [docs/ioname_annotations.md](ioname_annotations.md) | [Русский](ioname_annotations.ru.md) | [English](ioname_annotations.en.md) | EditorialPass | EditorialPass |
 | [docs/json_persistence_safety.md](json_persistence_safety.md) | [Русский](json_persistence_safety.ru.md) | [English](json_persistence_safety.en.md) | SourceAligned | MachineDraft |
 | [docs/ladder_spec.md](ladder_spec.md) | [Русский](ladder_spec.ru.md) | [English](ladder_spec.en.md) | MachineDraft | MachineDraft |
 | [docs/licensing.md](licensing.md) | [Русский](licensing.ru.md) | [English](licensing.en.md) | SourceAligned | MachineDraft |
 | [docs/memory_map.md](memory_map.md) | [Русский](memory_map.ru.md) | [English](memory_map.en.md) | MachineDraft | MachineDraft |
 | [docs/oem_5_opcode_analysis.md](oem_5_opcode_analysis.md) | [Русский](oem_5_opcode_analysis.ru.md) | [English](oem_5_opcode_analysis.en.md) | SourceAligned | EditorialPass |
-| [docs/post_end_data.md](post_end_data.md) | [Русский](post_end_data.ru.md) | [English](post_end_data.en.md) | MachineDraft | MachineDraft |
+| [docs/post_end_data.md](post_end_data.md) | [Русский](post_end_data.ru.md) | [English](post_end_data.en.md) | EditorialPass | EditorialPass |
 | [docs/project_status.md](project_status.md) | [Русский](project_status.ru.md) | [English](project_status.en.md) | SourceAligned | MachineDraft |
 | [docs/references.md](references.md) | [Русский](references.ru.md) | [English](references.en.md) | MachineDraft | MachineDraft |
 | [docs/releases/v0.5.0-rc.1-hardware.md](releases/v0.5.0-rc.1-hardware.md) | [Русский](releases/v0.5.0-rc.1-hardware.ru.md) | [English](releases/v0.5.0-rc.1-hardware.en.md) | MachineDraft | MachineDraft |
@@ -53,9 +53,9 @@
 | [docs/releases/v0.5.0-rc.9-oem-reference.md](releases/v0.5.0-rc.9-oem-reference.md) | [Русский](releases/v0.5.0-rc.9-oem-reference.ru.md) | [English](releases/v0.5.0-rc.9-oem-reference.en.md) | MachineDraft | MachineDraft |
 | [docs/roadmap.md](roadmap.md) | [Русский](roadmap.ru.md) | [English](roadmap.en.md) | SourceAligned | EditorialPass |
 | [docs/roadmap_v2_archive.md](roadmap_v2_archive.md) | [Русский](roadmap_v2_archive.ru.md) | [English](roadmap_v2_archive.en.md) | SourceAligned | MachineDraft |
-| [docs/semantic_ast.md](semantic_ast.md) | [Русский](semantic_ast.ru.md) | [English](semantic_ast.en.md) | MachineDraft | MachineDraft |
+| [docs/semantic_ast.md](semantic_ast.md) | [Русский](semantic_ast.ru.md) | [English](semantic_ast.en.md) | EditorialPass | EditorialPass |
 | [docs/semantic_verification_matrix.md](semantic_verification_matrix.md) | [Русский](semantic_verification_matrix.ru.md) | [English](semantic_verification_matrix.en.md) | SourceAligned | EditorialPass |
-| [docs/source_registry.md](source_registry.md) | [Русский](source_registry.ru.md) | [English](source_registry.en.md) | MachineDraft | MachineDraft |
+| [docs/source_registry.md](source_registry.md) | [Русский](source_registry.ru.md) | [English](source_registry.en.md) | EditorialPass | EditorialPass |
 | [docs/typed_memory_model.md](typed_memory_model.md) | [Русский](typed_memory_model.ru.md) | [English](typed_memory_model.en.md) | EditorialPass | EditorialPass |
 | [docs/typed_opcode_grammar.md](typed_opcode_grammar.md) | [Русский](typed_opcode_grammar.ru.md) | [English](typed_opcode_grammar.en.md) | EditorialPass | EditorialPass |
 | [docs/ui_multi_rung_state.md](ui_multi_rung_state.md) | [Русский](ui_multi_rung_state.ru.md) | [English](ui_multi_rung_state.en.md) | MachineDraft | MachineDraft |
@@ -64,17 +64,18 @@
 
 ## Editorial review register / Реестр редакторской проверки
 
-| Группа / Document group | RU | EN | Проверка / Evidence |
+| Group / Группа | Русский | English | Review evidence / Основание |
 | --- | --- | --- | --- |
-| [README](../README.md), [documentation index](README.md), [SECURITY](../SECURITY.md), [D1–D9](engineering_decisions.md), [roadmap](roadmap.md), [verification gates](verification_gates.md) | **SourceAligned (6)** | **EditorialPass (6)** | PR #32: safety, status, release chronology |
-| 21 other predominantly Russian sources / 21 другой русскоязычный исходник | **SourceAligned (21)** | MachineDraft | Source text identity; translated links |
-| [CIOPRG grammar](cioprg_lst_spec.md), [memory model](typed_memory_model.md), [TMR/CNT/GSTR/GOUT](advanced_blocks.md), [OEM bench matrix](advanced_hardware_test_matrix.md), [typed grammar](typed_opcode_grammar.md), [lossless parser](cioprg_lossless_parser.md) | **EditorialPass (6)** | **EditorialPass (6)** | PR #33: all sections, literal commands, limits, source spans, NOT RUN/BLOCKED/Unknown |
-| [Five-opcode reference](oem_5_opcode_analysis.md), [semantic matrix](semantic_verification_matrix.md) | Already SourceAligned (2 of the 21 above) | **EditorialPass (2)** | PR #33: manual-derived versus independently verified scan |
-| Remaining / Остальные | MachineDraft (20) | MachineDraft (39) | Full bilingual engineering editing still required |
+| README, documentation index, SECURITY, D1–D9, roadmap v3, verification gates | SourceAligned (6) | EditorialPass (6) | PR #32: rights, safety and release chronology |
+| 21 other predominantly Russian sources / 21 другой русскоязычный исходник | SourceAligned (21) | MachineDraft | Exact Russian source identity, localized links |
+| [CIOPRG grammar](cioprg_lst_spec.md), [memory](typed_memory_model.md), [advanced blocks](advanced_blocks.md), [hardware matrix](advanced_hardware_test_matrix.md), [typed grammar](typed_opcode_grammar.md), [lossless parser](cioprg_lossless_parser.md) | EditorialPass (6) | EditorialPass (6) | PR #33: numeric ranges, byte fidelity, instruction syntax, NOT RUN/BLOCKED |
+| [Five-opcode reference](oem_5_opcode_analysis.md), [semantic verification matrix](semantic_verification_matrix.md) | SourceAligned (2, already within the 21 above) | EditorialPass (2) | PR #33: ManualDerived versus OEMBench and unresolved flags |
+| [Source registry](source_registry.md), [post-END](post_end_data.md), [semantic AST](semantic_ast.md), [IONAME](ioname_annotations.md) | EditorialPass (4) | EditorialPass (4) | PR #34: OEM source provenance, exact tail markers, conservative Boolean AST, manual name mapping |
+| Remaining / Остальные | MachineDraft (16) | MachineDraft (35) | Full bilingual review not yet completed |
 
-**Totals / Итого:** 53 sources / 106 companions: **27 RU SourceAligned + 6 RU EditorialPass + 14 EN EditorialPass = 47 reviewed**, **59 MachineDraft**. The two OEM SourceAligned RU documents are already counted among the 27, **not counted twice**.
+**Totals / Итого:** **53 originals / 106 companions**; **27 RU SourceAligned + 10 RU EditorialPass + 18 EN EditorialPass = 55 reviewed**, **51 MachineDraft**. The two Russian OEM files listed twice by category are counted **only once** as SourceAligned.
 
-**Review levels / Уровни проверки:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified` where applicable. **EditorialPass establishes translation fidelity to MLAD source, not independent controller safety or OEM instruction verification.** Distinguish `NOT RUN`, `BLOCKED`, `Unknown` and `ManualDerived`.
+**Review labels / Уровни:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified`. **EditorialPass validates fidelity to the MLAD source, not real robot behavior or authorization to write.** `NOT RUN`, `BLOCKED`, `Unknown` and `ManualDerived` are distinct.
 
 ## Terminology contract / Терминологический контракт
 

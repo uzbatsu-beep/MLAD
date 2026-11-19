@@ -1,11 +1,11 @@
-<!-- Generated en companion for docs/ioname_annotations.md; review required. -->
-> **English** · [Русский](ioname_annotations.ru.md) · [English](ioname_annotations.en.md) · [Original / Оригинал](ioname_annotations.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against ioname_annotations.md -->
+> **Language / Язык:** [English](ioname_annotations.en.md) · [Русский](ioname_annotations.ru.md) · [Original](ioname_annotations.md)
+>
+> **Safety:** `CIOPRG.LST` and `IONAME.DAT` are immutable read-only inputs. Automatic label-to-address mapping is **unverified**. HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 
-**Status on 18.11.2026:** functionality PR #16 slug in `main`**; read-only import `IONAME.DAT`Local comments and manual associations are available on Native Workspace. **No native writer and IONAME verified automatic card #XXXXX. [Certified status](project_status.en.md).
+**Status as of 18 November 2026:** PR #16 was **merged into `main`**. Native Workspace offers read-only `IONAME.DAT` import, local annotations and **manual** associations. There is **no** native writer or verified automatic IONAME→#XXXXX mapping. See the [project status](project_status.en.md).
 
 ## Input evidence and unknowns
 
@@ -34,6 +34,6 @@ References:
 5. Full Ladder list is limited to all SemanticPreview rungs, with explicit warning if results were truncated.
 6. No HSES/FTP, device I/O, source translation, or System/User authorization is activated.
 
-## Next step: Portable annotations (offer, not implementation)
+## Next step: portable annotations (proposal, not implementation)
 
-В [roadmap v3](roadmap.en.md) merged PR #29 Versioned sidecar offered `*.mlad.json` conditional PR #33), linked to source SHA, with migrations and rejection to stale source. At the moment, localStorage remains a local mechanism, not a portable project and not a guaranteed backup. Native. `IONAME.DAT` Read-only remains; automatic name mapping to **n* addresses is approved.
+Following merged PR #29, [roadmap v3](roadmap.en.md) proposes a versioned `*.mlad.json` sidecar (originally assigned a **provisional** PR #33), bound to the source SHA and supporting migrations and rejection of stale source files. The provisional number is historical: PR #33 was subsequently assigned to translation work. For now, `localStorage` remains local, **not** a portable project and **not** guaranteed backup. Native `IONAME.DAT` remains read-only, and automatic name/address mapping is **not** verified.
