@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LadderCircuit } from "./LadderCircuit.tsx";
 import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
 import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
@@ -148,6 +148,13 @@ function toReadOnlyAdvanced(b:AdvancedSourceBlock):AdvancedBlock|null{
 type NativeSection = {line:number;category:string;label:string};
 type SearchHit = {line:number;preview:string};
 type SearchResponse = {source_sha256:string;hits:SearchHit[];truncated:boolean};
+type NativeFilterHit = {
+  line:number;byte_offset:number;syntax_class:SyntaxClass;preview:string;
+};
+type NativeFilterPage = {
+  source_sha256:string;line_count:number;offset:number;total_matches:number;
+  next_offset:number|null;hits:NativeFilterHit[];
+};
 type StaticCandidateSite={
   spelling:string;kind:string;span:{start:number;end:number};
   role:"Source"|"ShiftAmount"|"Destination";
@@ -287,6 +294,7 @@ export function NativeWorkspace() {
   const [selectedLine,setSelectedLine]=useState<number|null>(null);
   const [goto,setGoto]=useState("");
   const [rung,setRung]=useState(1);
+  const [selectedBlockLine,setSelectedBlockLine]=useState<number|null>(null);
   const [zoom,setZoom]=useState(1);
   const [blockZoom,setBlockZoom]=useState(1);
   const [ionamePath,setIonamePath]=useState("");
@@ -302,17 +310,40 @@ export function NativeWorkspace() {
   const [hits,setHits]=useState<SearchHit[]>([]);
   const [searchTruncated,setSearchTruncated]=useState(false);
   const [searchBusy,setSearchBusy]=useState(false);
+  const [sourceClass,setSourceClass]=useState<""|SyntaxClass>("");
+  const [sourceOpcode,setSourceOpcode]=useState("");
+  const [sourceAddress,setSourceAddress]=useState("");
+  const [sourceFilterResult,setSourceFilterResult]=useState<NativeFilterPage|null>(null);
+  const [sourceFilterBusy,setSourceFilterBusy]=useState(false);
+  const nativeRequestEpoch=useRef(0);
+  const activeSourceLineRef=useRef<HTMLButtonElement|null>(null);
   const [filter,setFilter]=useState<"all"|"Error"|"Warning">("all");
   const [groupedDiagnostics,setGroupedDiagnostics]=useState(true);
   const [json,setJson]=useState("");
 
   const visibleRungs=useMemo(()=>{
     if(!report)return [];
-    return report.semantic.rungs.map(sourceRung=>{
+    return report.semantic.rungs.filter(sourceRung=>sourceRung.number===rung).map(sourceRung=>{
       try{return {rung:sourceRung,expr:semanticToExpression(report.semantic.nodes,sourceRung.expression_root),error:""};}
       catch(error){return {rung:sourceRung,expr:null,error:String(error)};}
     });
-  },[report]);
+  },[report,rung]);
+  const activeBlock=useMemo(()=>
+    report?.advanced.blocks.find(block=>block.line===selectedBlockLine)??null,
+  [report,selectedBlockLine]);
+  const selectedRung=useMemo(()=>{
+    if(!report||selectedLine===null)return null;
+    return report.semantic.rungs.find(candidate=>
+      selectedLine>=candidate.first_line&&selectedLine<=candidate.output_line)??null;
+  },[report,selectedLine]);
+  const selectedRelatedBlock=useMemo(()=>{
+    if(!report||selectedLine===null)return null;
+    return report.advanced.blocks.find(candidate=>
+      selectedLine>=candidate.line&&selectedLine<=candidate.end_line)??null;
+  },[report,selectedLine]);
+  useEffect(()=>{
+    if(tab==="source"&&selectedLine!==null)activeSourceLineRef.current?.focus();
+  },[tab,selectedLine,pageStart,pageLines]);
   const selectedTyped=useMemo(()=>{
     if(selectedLine===null)return null;
     return getTypedCandidate(pageLines.find(l=>l.line===selectedLine)?.kind);
@@ -343,9 +374,12 @@ export function NativeWorkspace() {
   const diagnosticGroups=useMemo(()=>groupDiagnostics(diags),[diags]);
 
   async function openSource(selectedPath:string=path){
+    const epoch=++nativeRequestEpoch.current;
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
+    setSourceFilterResult(null);
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.syntax_coverage.total_lines!==value.line_count ||
           !value.syntax_coverage.all_source_lines_counted ||
           value.syntax_coverage.semantics_verified){
@@ -355,10 +389,12 @@ export function NativeWorkspace() {
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
       setPageStart(1);setSelectedLine(null);
-      setRung(value.semantic.rungs[0]?.number??1);setTab("source");
+      setRung(value.semantic.rungs[0]?.number??1);
+      setSelectedBlockLine(value.advanced.blocks[0]?.line??null);setTab("source");
       setAnnotations(loadLocalAnnotations(value.source_sha256));
       setIoname(null);setLinkEntry(null);
-    }catch(error){setIssue(String(error));}finally{setBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setBusy(false);}
   }
 
   /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
@@ -378,6 +414,7 @@ export function NativeWorkspace() {
   async function showLine(line:number){
     if(!report||pageBusy||!Number.isInteger(line)||line<1||line>report.line_count)return;
     const start=Math.floor((line-1)/PAGE_SIZE)*PAGE_SIZE+1;
+    const epoch=nativeRequestEpoch.current;
     setIssue("");setTab("source");
     if(start+PAGE_SIZE-1<=report.lines.length){
       setPageLines(report.lines.slice(start-1,start-1+PAGE_SIZE));
@@ -386,25 +423,54 @@ export function NativeWorkspace() {
     setPageBusy(true);
     try{
       const value=await invoke<ReadPage>("cmd_read_cioprg_page",{
-        filePath:path.trim(),controller,expectedSha256:report.source_sha256,startLine:start,
+        filePath:path.trim(),controller:report.controller,expectedSha256:report.source_sha256,startLine:start,
       });
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.source_sha256!==report.source_sha256||value.line_count!==report.line_count||value.start_line!==start){
         throw Error("Контрольная сумма исходного файла изменилась");
       }
       setPageLines(value.lines);setPageStart(start);setSelectedLine(line);
-    }catch(error){setIssue(String(error));}finally{setPageBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setPageBusy(false);}
   }
   async function searchAll(){
     if(!report||searchBusy||search.trim().length<2)return;
+    const epoch=nativeRequestEpoch.current;
     setSearchBusy(true);setIssue("");
     try{
       const value=await invoke<SearchResponse>("cmd_search_cioprg",{
-        filePath:path.trim(),controller,expectedSha256:report.source_sha256,query:search,
+        filePath:path.trim(),controller:report.controller,expectedSha256:report.source_sha256,query:search,
       });
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.source_sha256!==report.source_sha256)throw Error("Снимок файла изменился");
       setHits(value.hits);setSearchTruncated(value.truncated);
-    }catch(error){setIssue(String(error));setHits([]);}
-    finally{setSearchBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current){setIssue(String(error));setHits([]);}}
+    finally{if(epoch===nativeRequestEpoch.current)setSearchBusy(false);}
+  }
+  async function filterFullSource(offset:number=0){
+    if(!report||sourceFilterBusy)return;
+    if(!sourceClass&&!sourceOpcode.trim()&&!sourceAddress.trim()){
+      setIssue("Укажите класс синтаксиса, opcode или адрес");return;
+    }
+    const epoch=nativeRequestEpoch.current;
+    setIssue("");setSourceFilterBusy(true);
+    try{
+      const value=await invoke<NativeFilterPage>("cmd_filter_cioprg_lines",{
+        filePath:path.trim(),controller:report.controller,
+        expectedSha256:report.source_sha256,
+        syntaxClass:sourceClass||null,opcode:sourceOpcode.trim()||null,
+        address:sourceAddress.trim()||null,offset,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      if(value.source_sha256!==report.source_sha256||
+        value.line_count!==report.line_count||value.offset!==offset ||
+        value.hits.some(hit=>hit.line<1||hit.line>report.line_count)){
+        throw Error("Фильтр не соответствует открытому снимку CIOPRG");
+      }
+      setSourceFilterResult(value);
+    }catch(error){
+      if(epoch===nativeRequestEpoch.current){setIssue(String(error));setSourceFilterResult(null);}
+    }finally{if(epoch===nativeRequestEpoch.current)setSourceFilterBusy(false);}
   }
   function persistAnnotations(next:Annotations) {
     if(!report)return;
