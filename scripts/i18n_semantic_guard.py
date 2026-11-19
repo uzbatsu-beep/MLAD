@@ -45,7 +45,7 @@ SOURCE_ALIGNED_RU = {
     "docs/controller_fixture_intake.md",
 }
 
-EDITORIAL_EN = {"README.md", "docs/README.md"}
+EDITORIAL_EN = {"README.md", "docs/README.md", "SECURITY.md", "docs/engineering_decisions.md"}
 
 EN_RELEASE_NEGATION = re.compile(
     r"(?:does\s+not\s+(?:include|contain)|(?:not|never)\s+included)"
@@ -116,9 +116,9 @@ def main() -> None:
                 count_en += 1
                 if "MLAD-I18N:EDITORIAL" not in text:
                     failures.append(f"{target}: missing English editorial provenance")
-                if not EN_RELEASE_NEGATION.search(text):
+                if src.as_posix() in {"README.md", "docs/README.md"} and not EN_RELEASE_NEGATION.search(text):
                     failures.append(f"{target}: rc.9 PR24–29 NOT-IN-RELEASE claim absent/reversed")
-                if "NOT RUN" not in text:
+                if src.as_posix() in {"README.md", "docs/README.md", "SECURITY.md"} and "NOT RUN" not in text:
                     failures.append(f"{target}: independent Windows/OEM test status missing")
                 if "CIOPRG.LST" not in text or "IONAME.DAT" not in text:
                     failures.append(f"{target}: immutable source identifiers missing")
@@ -131,7 +131,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_en, drafts) != (27, 2, 77):
+    if (count_ru, count_en, drafts) != (27, 4, 75):
         failures.append(f"incorrect review totals: ru={count_ru}, en={count_en}, drafts={drafts}")
 
     if failures:
