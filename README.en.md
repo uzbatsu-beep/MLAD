@@ -60,7 +60,7 @@ GitHub Actions includes [MLAD validation](.github/workflows/validation.yml) and 
 ## First steps
 
 1. In the main **Robot Program** tab, select DX100, DX200 or YRC1000. Using **Browse…**, open a **copy** of `CIOPRG.LST` and record its SHA-256.
-2. Inspect the paginated source, supported Ladder rungs, blocks and diagnostics. The MOV/ADD/SUB/SHL/SHR reference material does **not** calculate real I/O states.
+2. Inspect the paginated source, supported Ladder rungs, blocks and diagnostics. The `MOV/ADD/SUB/SHL/SHR` reference material does **not** calculate real I/O states.
 3. Optionally open a separate copy of `IONAME.DAT`. Do not assume that the name-to-address mapping is OEM-verified; use only explicit local manual associations.
 4. To edit a logic model, work in a **separate Graph/Advanced JSON draft**, never in the controller's native program file.
 
