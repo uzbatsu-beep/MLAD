@@ -494,7 +494,7 @@ fn synthetic_corpus_classifies_all_lines_without_modifying_original_bytes() {
 #[test]
 fn full_source_coverage_is_unaffected_by_bounded_previews() {
     let mut bytes = b"// synthetic\n".repeat(1500);
-    bytes.extend_from_slice(b"STR #70010\nUNKNOWN_OP X\nOUT #70020\nEND\n");
+    bytes.extend_from_slice(b"STR #70010\nUNKNOWN-OP X\nOUT #70020\nEND\n");
     let doc = parse(&bytes);
     let report = doc.inspection_report(1, 1);
     assert_eq!(report.line_count, 1504);
