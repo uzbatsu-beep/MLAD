@@ -1,14 +1,14 @@
-<!-- Generated en companion for docs/typed_memory_model.md; review required. -->
-> **English** · [Русский](typed_memory_model.ru.md) · [English](typed_memory_model.en.md) · [Original / Оригинал](typed_memory_model.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against typed_memory_model.md -->
+> **Language / Язык:** [English](typed_memory_model.en.md) · [Русский](typed_memory_model.ru.md) · [Original](typed_memory_model.md)
+>
+> **Scope:** Source-aligned engineering explanation, **not** an independent OEM firmware audit. Source `CIOPRG.LST`/`IONAME.DAT` remain read-only. HSES/FTP, native writer and deployment are **BLOCKED**; OEMBench is **NOT RUN**.
 
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
-> ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not give permission to a native writer, HSES or perform a scan from the specification described herein.
+> **Status and scope:** this document describes the constrained feature subset and evidence available by PR #21; this **does not** imply the whole project stopped at PR #21. See the [current project status](project_status.en.en.md) for merged PR #29 and independent CI/UserSmoke/OEM evidence levels. This specification does **not** authorize a native writer, HSES or execution of a controller scan.
 
 **Implementation:** [`src-tauri/src/compiler/memory.rs`](../src-tauri/src/compiler/memory.rs).
-**Version:** 0.1 address-baseline; validated main implementation as of 18.11.2026, but new OEM firmware-level clearance not received. Do not use this table to authorize HSES writes or deployments.
+**Version:** 0.1 address baseline. The implementation in main was checked as of 18 November 2026, but **no new OEM approval for specific firmware** was obtained. Do not use these tables to authorize HSES writes or robot deployment.
 **Evidence:** DX100 `RE-CKI-A453` §2 table 2-1; DX200 `RE-CKI-A465` §2 table 2-1; YRC1000 Concurrent I/O §2 table 2-1. See [source_registry.md](source_registry.en.md).
 
 ## 1. Addressing model
@@ -75,15 +75,15 @@ LadderWritePolicy = Denied | Candidate | RequiresReview
 - `relay_write_policy` is deliberately conservative: certain classes are denied as `OUT` targets, and specific control inputs require review. **Candidate is not permission to write to hardware**, only that the generic category may be the destination of some ladder instructions.
 - System Ladder ownership is not inferred from the address. A user program may reference system signals without owning their definitions. **System vs User** is a file/program region property, not a relay address property.
 
-The legacy validator `validate_rungs` assumes YRC1000 only for backward compatibility; callers working with DX100/DX200 **must** use `validate_rungs_for_controller(rungs, family)`. **In new tabs UI selection DX100/DX200/YRC1000 already implemented (Graph Workspace, Advanced CIO and Inspector). The old JSON interface retains legacy limitations. Selecting the **not* family automatically specifies the exact firmware, set options, physical configuration, and right to write to the robot; export/deployment is still prohibited.
+The legacy validator `validate_rungs` assumes YRC1000 for backward compatibility; callers handling DX100/DX200 **must** use `validate_rungs_for_controller(rungs, family)`. **The current UI already allows DX100/DX200/YRC1000 selection** in Graph Workspace, Advanced CIO and Inspector. The older JSON interface retains its legacy limitations. Selecting a controller family **does not** automatically specify the firmware, installed options, physical configuration or permission to write to a robot; export and deployment remain prohibited.
 
-## Current use of profiles after PR #8
+## Current controller-profile integration after PR #8
 
-- `graph_draft.rs` Checks JSON addresses and output classes for the selected family.
-- `advanced.rs` further limits current M000–M559 for TMR/CNT, preset M000–M999, or 0–65535, and addresses `GSTR/GOUT` Byte groups with bit 0.
-- `inlineOperand.ts` does **only** pre-check syntax in the frontend; controller-dependent ranges check Rust. Successful inline input is not hardware confirmation.
-- `lossless.rs` и `semantic.rs` Work on an explicitly specified profile when reading the original `CIOPRG.LST`Keeping unidentified parts unmodified.
-- The exact model/firmware/application profile and limitations of physical I/O have yet to be confirmed by actual downloads and documentation.
+- `graph_draft.rs` validates JSON addresses and output classes against the selected controller family.
+- `advanced.rs` additionally restricts TMR/CNT current-value registers to M000–M559, presets to M000–M999 or 0–65535, and `GSTR/GOUT` operands to byte groups starting at bit 0.
+- `inlineOperand.ts` performs **preliminary syntax validation only** in the frontend; Rust validates controller-specific ranges. Successful inline entry is **not** hardware verification.
+- `lossless.rs` and `semantic.rs` use the explicitly selected controller profile while reading the original `CIOPRG.LST`, leaving unrecognized fragments unchanged.
+- Exact model/firmware/application properties and physical I/O constraints still require verification with authorized controller exports and manufacturer documentation.
 
 ## 5. Validation checklist
 
