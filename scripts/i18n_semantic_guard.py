@@ -74,9 +74,9 @@ def canonical_body(localized_text: str) -> str:
     # archive sources start with a warning blockquote BEFORE their H1 heading;
     # do not strip those meaningful paragraphs.
     prefix = "<!-- MLAD-I18N:EDITORIAL:"
-    if not localized_text.startswith(prefix) or "\\n\\n" not in localized_text:
+    if not localized_text.startswith(prefix) or "\n\n" not in localized_text:
         raise ValueError("missing editorial navigation block")
-    prose = localized_text.split("\\n\\n", 1)[1]
+    prose = localized_text.split("\n\n", 1)[1]
     # Undo RU companion link routing, while preserving all other bytes.
     return re.sub(
         r"(\]\((?!https?:|//|#)[^)\s]+?)\.ru\.md(\))",
