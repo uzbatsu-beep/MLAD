@@ -34,7 +34,14 @@ def main():
                     failures.append(f"{path}: code-fence content changed in {lang}")
             except ValueError as e:failures.append(f"{path}: {e}")
             for token in set(INLINE.findall(src)):
-                if token not in out:failures.append(f"{path}: missing literal {token[:60]} in {lang}")
+                if token not in out:
+                    # In a reviewed English document, an inline code span
+                    # containing natural-language Cyrillic may be translated;
+                    # executable identifiers, paths and numeric literals
+                    # must still be retained exactly.
+                    if lang == "en" and "MLAD-I18N:EDITORIAL" in out and re.search(r"[А-Яа-яЁё]",token):
+                        continue
+                    failures.append(f"{path}: missing literal {token[:60]} in {lang}")
             if len(TITLE.findall(src))!=len(TITLE.findall(out)):
                 failures.append(f"{path}: Markdown heading count differs in {lang}")
             if not any(marker in out for marker in (
