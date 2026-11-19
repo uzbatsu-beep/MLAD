@@ -9,8 +9,59 @@ on:
 permissions:
   contents: read
 
+# Avoid spending runners on superseded revisions of a pull request.
+concurrency:
+  group: validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime_required: ${{ steps.classify.outputs.runtime_required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Classify changes (fail closed to full tests)
+        id: classify
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          runtime_required=true
+          if [[ -n "$BASE_SHA" && ! "$BASE_SHA" =~ ^0+$ ]] &&
+             git cat-file -e "$BASE_SHA^{commit}" &&
+             git cat-file -e "$HEAD_SHA^{commit}"; then
+            changed="$RUNNER_TEMP/mlad-changed-files.txt"
+            if git diff --no-renames --name-only "$BASE_SHA" "$HEAD_SHA" > "$changed" &&
+               [[ -s "$changed" ]]; then
+              runtime_required=false
+              while IFS= read -r file; do
+                case "$file" in
+                  *.md|scripts/i18n_*.py|scripts/check-docs.mjs)
+                    # Documentation and localization only; keep docs checks.
+                    ;;
+                  *)
+                    runtime_required=true
+                    break
+                    ;;
+                esac
+              done < "$changed"
+            fi
+          fi
+          echo "runtime_required=$runtime_required" >> "$GITHUB_OUTPUT"
+          echo "Native/frontend compilation required: $runtime_required"
+          if [[ -f "$RUNNER_TEMP/mlad-changed-files.txt" ]]; then
+            cat "$RUNNER_TEMP/mlad-changed-files.txt"
+          fi
+
   rust-tests:
+    needs: scope
+    # Always test Rust when any non-doc file changes or the diff is unknown.
+    if: needs.scope.outputs.runtime_required == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +77,7 @@ jobs:
         run: cargo test --manifest-path src-tauri/Cargo.toml --locked
 
   frontend-build:
+    needs: scope
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,33 +85,46 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Ensure npm install did not mutate dependency manifests
-        run: git diff --exit-code -- package.json package-lock.json
-      - name: GitHub Community Standards and Issue Form contract
-        run: npm run test:community
-      - name: Offline controller safety invariants
-        run: npm run test:security
-      - name: Native integrated workspace regressions
-        run: npm run test:native
-      - name: Diagnostic grouping model tests
-        run: npm run test:diagnostics
-      - name: OEM manual reference labels (no execution)
-        run: npm run test:oem-reference
+      # These checks use Node built-ins/Python stdlib and need no npm install.
       - name: Markdown internal links and formatting
         run: npm run docs:check
       - name: Verify bilingual Markdown structure, code, identifiers and language switchers
         run: python3 scripts/i18n_verify.py
       - name: Check reviewed translation safety semantics and editorial status
         run: python3 scripts/i18n_semantic_guard.py
+      - name: Install locked frontend dependencies
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Ensure npm install did not mutate dependency manifests
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: git diff --exit-code -- package.json package-lock.json
+      - name: GitHub Community Standards and Issue Form contract
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm run test:community
+      - name: Offline controller safety invariants
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm run test:security
+      - name: Native integrated workspace regressions
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm run test:native
+      - name: Diagnostic grouping model tests
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm run test:diagnostics
+      - name: OEM manual reference labels (no execution)
+        if: needs.scope.outputs.runtime_required == 'true'
+        run: npm run test:oem-reference
       - name: Graph layout and editor model tests
+        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:graph
       - name: Advanced CIO block UI model tests
+        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:advanced
       - name: Tri-state visualization tests
+        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:visual
       - name: Inline operand validation tests
+        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run test:inline
       - name: Typecheck and build
+        if: needs.scope.outputs.runtime_required == 'true'
         run: npm run build
