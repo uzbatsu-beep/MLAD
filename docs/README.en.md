@@ -89,7 +89,7 @@ The [latest published GitHub Release](https://github.com/uzbatsu-beep/MLAD/relea
 
 ## Markdown maintenance policy
 
-The authoritative current-status documents are this index, `project_status.md`, `roadmap.md`, `implementation_plan.md`, `verification_gates.md`, `engineering_decisions.md`, `SECURITY.md` and `architecture.md`. Technical specification documents are authoritative **only within their explicitly stated evidence scope**. An old PR number in a title denotes the origin of a feature, not the project's latest state.
+The authoritative current-status documents are this index, `project_status.md`, `roadmap.md`, `implementation_plan.md`, `verification_gates.md`, `engineering_decisions.md`, `SECURITY.md` and `architecture.md`. Technical specification documents are authoritative **only within their explicitly stated evidence scope**. An old PR number such as `PR #21` in a title denotes the origin of a feature, not the project's latest state.
 
 Historical release notes and dated audits are preserved, including their original context. Following a new merge, update relevant status-bearing documents and the translation counterparts without altering historical tag claims. See the [Markdown inventory](documentation_inventory_2026-11-18.en.md) and the [translation coverage report](translation_coverage.md).
 
