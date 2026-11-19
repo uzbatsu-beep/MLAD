@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/csp_path_hardening.md; review required. -->
-> **Русский** · [Русский](csp_path_hardening.ru.md) · [English](csp_path_hardening.en.md) · [Original / Оригинал](csp_path_hardening.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](csp_path_hardening.ru.md) · [English](csp_path_hardening.en.md) · [Исходный текст / Original](csp_path_hardening.md)
+>
+> **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
 # MLAD — CSP и проверки безопасности файловых путей (PR #25)
 
@@ -9,9 +9,9 @@
 
 ## Первичные основания
 
-- [Таури 2 CSP](https://v2.tauri.app/security/csp/) — Tauri при сборке добавляет hash/nonce источники для локальных ресурсов, если CSP явно задана; при `csp:null` эта защита отключена.
-- [Конфигурация SecurityConfig](https://v2.tauri.app/reference/config/#securityconfig) - производство `csp` и отдельный `devCsp`, по умолчанию dev наследует production.
-- [Оригинальное название: Tauri Vite Guide](https://v2.tauri.app/start/frontend/vite/) — локальный Vite сервер и HMR через WebSocket.
+- [Tauri 2 CSP](https://v2.tauri.app/security/csp/) — Tauri при сборке добавляет hash/nonce источники для локальных ресурсов, если CSP явно задана; при `csp:null` эта защита отключена.
+- [Tauri SecurityConfig](https://v2.tauri.app/reference/config/#securityconfig) — production `csp` и отдельный `devCsp`, по умолчанию dev наследует production.
+- [Tauri Vite Guide](https://v2.tauri.app/start/frontend/vite/) — локальный Vite сервер и HMR через WebSocket.
 
 ## 1. Реализованная production CSP
 
@@ -19,7 +19,7 @@
 
 **Осознанное исключение:** `style-src 'self' 'unsafe-inline'` необходимо существующим inline-style React и стартовому HTML. Это **не** разрешение inline JavaScript и **не** идеальный CSP; следующий UX/security этап может перевести стили в классы и убрать это исключение.
 
-## 2. КСП развития
+## 2. Development CSP
 
 Отдельный `devCsp` добавляет локальный `http://localhost:5173` и `ws://localhost:5173` только для Vite/HMR; remote HTTP/WSS отсутствуют. Production policy не включает localhost:5173, не допускает создание произвольных сетевых запросов и сохраняет локальный Tauri IPC.
 
@@ -46,11 +46,11 @@
 
 | Проверка | Автоматическая/ручная | Статус |
 | --- | --- | --- |
-| Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | PASS - PR #25/#26 CI |
-| Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | PASS - основной /PR #26 CI |
-| Windows Tauri с компилированным CSP | GitHub Windows workflow, не публикует релиз | [PASS - PR #26 Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031) |
-| В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | NOT RUN (не проводилось) |
-| Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Регрессия ржавчины | PASS — автоматические тесты; независимый UserSmoke NOT RUN |
+| Node tests на CSP, отсутствие remote/unsafe eval | Автоматическая | PASS — PR #25/#26 CI |
+| Rust проверка обычных/небезопасных путей | Автоматическая Linux + Windows MSVC | PASS — main/PR #26 CI |
+| Windows Tauri build with compiled CSP | GitHub Windows workflow, не публикует релиз | [PASS — PR #26 Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031) |
+| В WebView2 открываются Native Workspace/IONAME/Ladder/Advanced, работает IPC и zoom | Ручной Windows smoke | NOT RUN |
+| Отсутствие изменения CIOPRG/IONAME на байтовом уровне | Rust regression | PASS — автоматические тесты; независимый UserSmoke NOT RUN |
 | File-handle/no-follow, symlink race testing, policy для Windows junction | Отдельная задача | OPEN |
 
 **Решение:** PR #25 устраняет `csp:null` и снижает класс рисков symlink-ancestor, но **M2 остаётся PARTIAL**, а robot writer и HSES/FTP запрещены.
@@ -59,4 +59,4 @@
 
 ## Текущее дополнение после PR #28–#29
 
-В `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) Тесты восстановления / соединения Windows, отказ от жесткой ссылки, поэтапный файл SHA-256, File ID snapshot and Windows ADS/UNC/device deny реализованы и [Windows CI PASS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Этот раздел **не переписывает исторический объём PR #25**: final check→rename, parent directory races, ACL, crash durability и ручной WebView2 CSP/IPC acceptance всё ещё открыты. [Обновлённый threat review](filesystem_security_pr29.ru.md).
+В `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) Windows reparse/junction tests, hardlink rejection, staged-file SHA-256, File ID snapshot and Windows ADS/UNC/device deny реализованы и [Windows CI PASS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Этот раздел **не переписывает исторический объём PR #25**: final check→rename, parent directory races, ACL, crash durability и ручной WebView2 CSP/IPC acceptance всё ещё открыты. [Обновлённый threat review](filesystem_security_pr29.ru.md).

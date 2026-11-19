@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/licensing.md; review required. -->
-> **Русский** · [Русский](licensing.ru.md) · [English](licensing.en.md) · [Original / Оригинал](licensing.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](licensing.ru.md) · [English](licensing.en.md) · [Исходный текст / Original](licensing.md)
+>
+> **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
 # Правовая политика MLAD — GNU GPL-3.0-only
 
@@ -10,9 +10,9 @@
 ## 1. Какая именно лицензия
 
 - **Идентификатор SPDX:** `GPL-3.0-only`.
-- **Точный текст:** [../LICENSE](../LICENSE) GNU General Public License, Version 3, 29 June 2007.
+- **Точный текст:** [../LICENSE](../LICENSE) — GNU General Public License, Version 3, 29 June 2007.
 - **Важное различие:** `GPL-3.0-only` разрешает использовать именно версию 3. **Опция «or any later version» не предоставляется**. Для будущего перехода на `GPL-3.0-or-later` понадобится отдельное решение авторов/правообладателей, имеющих такие полномочия.
-- **Источники полного текста и правил использования:** [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html), [GNU: как использовать лицензии GNU](https://www.gnu.org/licenses/gpl-howto.html), [SPDX: GPL-3.0-only](https://spdx.org/licenses/GPL-3.0-only.html).
+- **Источники полного текста и правил использования:** [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html), [GNU: How to use GNU licenses](https://www.gnu.org/licenses/gpl-howto.html), [SPDX: GPL-3.0-only](https://spdx.org/licenses/GPL-3.0-only.html).
 - **Метаданные:** `package.json` / `src-tauri/Cargo.toml` должны содержать `GPL-3.0-only`.
 
 В частности, при распространении исполняемого MLAD или модифицированных бинарных сборок возникают обязательства по предоставлению соответствующего исходного кода и сохранению необходимых уведомлений согласно GPLv3. Нельзя считать размещение исходников на GitHub автоматическим исполнением **всех** условий каждого способа поставки.
@@ -52,7 +52,7 @@
 
 - **Не менять лицензии сторонних модулей** в их исходных каталогах. Соблюдать их условия и необходимые copyright/NOTICE файлы.
 - Для следующих релизов сформировать машинно-проверяемый SBOM/реестр пакетов npm и Rust с версиями, SPDX license ID, источником и указанием о распространении бинарников. **RC9 уже опубликован; наличие архива исходников и LICENSE не доказывает полноту правовых уведомлений.**
-- **PR #12 слияние** `package-lock.json` и `npm ci` действуют в CI; также в Git хранится `Cargo.lock`. Это база учёта зависимостей, но не готовый third-party NOTICE/SBOM.
+- **PR #12 merged:** `package-lock.json` и `npm ci` действуют в CI; также в Git хранится `Cargo.lock`. Это база учёта зависимостей, но не готовый third-party NOTICE/SBOM.
 - Для Windows NSIS/portable ZIP добавить текст `LICENSE`, подходящие сторонние уведомления и ясную ссылку на **исходники именно выпущенного commit/tag**. Учитывать соответствующие обязательства GPLv3 при передаче бинарных файлов.
 - Ранее выпущенный `v0.5.0-rc.1-hardware` создан **до** этого изменения; нельзя считать, что его ZIP автоматически пополнился лицензией или уведомлениями. Не переписывать tag/релиз задним числом.
 - Проверить лицензии Tauri, WebView2 Runtime и других обязательных средств дистрибуции отдельно; не полагаться на предположение о совместимости без перечня зависимостей.
@@ -68,4 +68,4 @@
 
 ## 6. Актуальный релизный gate после PR #29
 
-Готовность `main` (PR #1–#29 merged, CI SUCCESS) **не** равна завершённому лицензированию дистрибутива. Последний опубликованный Windows rc.9 собран до PR #24–#29; новые temporary unsigned CI artifacts не являются релизами. Для будущей версии 0.6.x отдельно требуются GPL source archive точного tag, third-party notices/license/SBOM review, Windows code-signing status, source asset/hash integrity и решение владельца о публикации. Договорные права на материалы Yaskawa/клиентов из лицензии MLAD не следуют. [Текущее состояние](project_status.ru.md) · [Освободите ворота](verification_gates.ru.md).
+Готовность `main` (PR #1–#29 merged, CI SUCCESS) **не** равна завершённому лицензированию дистрибутива. Последний опубликованный Windows rc.9 собран до PR #24–#29; новые temporary unsigned CI artifacts не являются релизами. Для будущей версии 0.6.x отдельно требуются GPL source archive точного tag, third-party notices/license/SBOM review, Windows code-signing status, source asset/hash integrity и решение владельца о публикации. Договорные права на материалы Yaskawa/клиентов из лицензии MLAD не следуют. [Current status](project_status.ru.md) · [Release gates](verification_gates.ru.md).
