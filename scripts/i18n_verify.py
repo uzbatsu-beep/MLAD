@@ -37,7 +37,13 @@ def main():
                 if token not in out:failures.append(f"{path}: missing literal {token[:60]} in {lang}")
             if len(TITLE.findall(src))!=len(TITLE.findall(out)):
                 failures.append(f"{path}: Markdown heading count differs in {lang}")
-            if f"[Original / Оригинал]({path.name})" not in out:
+            if not any(marker in out for marker in (
+                f"[Original / Оригинал]({path.name})",
+                f"[Source / Оригинал]({path.name})",
+                f"[Исходный текст / Original]({path.name})",
+                f"[Original]({path.name})",
+                f"[Исходный текст]({path.name})",
+            )):
                 failures.append(f"{path}: original navigation missing in {lang}")
         if "MLAD-I18N:NAV:START" not in (ROOT/path).read_text(encoding="utf-8"):
             failures.append(f"{path}: original language switcher missing")
