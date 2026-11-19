@@ -69,14 +69,15 @@ DRAFT_MARKERS = (
 )
 
 
-def canonical_body(localized_text: str) -> str:
-    # The editorial header ends at the first blank line. Some historical
-    # archive sources start with a warning blockquote BEFORE their H1 heading;
-    # do not strip those meaningful paragraphs.
-    prefix = "<!-- MLAD-I18N:EDITORIAL:"
-    if not localized_text.startswith(prefix) or "\n\n" not in localized_text:
-        raise ValueError("missing editorial navigation block")
-    prose = localized_text.split("\n\n", 1)[1]
+def canonical_body(localized_text: str, original: str) -> str:
+    # Find the exact start of the source body. A document can begin with an
+    # archival warning BEFORE H1, while a language header may contain several
+    # explanatory blockquotes/blank lines before the source begins.
+    prefix = original[:min(72, len(original))]
+    index = localized_text.find(prefix)
+    if index < 0:
+        raise ValueError("source body prefix missing")
+    prose = localized_text[index:]
     # Undo RU companion link routing, while preserving all other bytes.
     return re.sub(
         r"(\]\((?!https?:|//|#)[^)\s]+?)\.ru\.md(\))",
@@ -109,7 +110,7 @@ def main() -> None:
                 if "MLAD-I18N:EDITORIAL" not in text:
                     failures.append(f"{target}: missing source-alignment provenance")
                 try:
-                    if canonical_body(text).rstrip("\n") != original.rstrip("\n"):
+                    if canonical_body(text, original).rstrip("\n") != original.rstrip("\n"):
                         failures.append(f"{target}: source-aligned Russian content diverged")
                 except ValueError as err:
                     failures.append(f"{target}: {err}")
