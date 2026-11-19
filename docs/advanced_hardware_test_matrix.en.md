@@ -1,13 +1,13 @@
-<!-- Generated en companion for docs/advanced_hardware_test_matrix.md; review required. -->
-> **English** · [Русский](advanced_hardware_test_matrix.ru.md) · [English](advanced_hardware_test_matrix.en.md) · [Original / Оригинал](advanced_hardware_test_matrix.md)
-> **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
-> **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
+<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against advanced_hardware_test_matrix.md -->
+> **Language / Язык:** [English](advanced_hardware_test_matrix.en.md) · [Русский](advanced_hardware_test_matrix.ru.md) · [Original](advanced_hardware_test_matrix.md)
+>
+> **Safety/evidence:** This is a **not-yet-executed OEM bench test matrix**. Expected values are *manual-model predictions*, not measured DX100/DX200/YRC1000 outputs. `OEMBench=NOT RUN`; HSES/FTP, native CIO export and deployment **BLOCKED**.
 
 # MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.
 
-**Safety / setup gate (update 18.11.2026, after PR #21):** No MLAD CIOPRG export, deployment or live I/O control exists in the current `main`. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
+**Safety / setup gate (updated 18 November 2026, after PR #21):** No MLAD CIOPRG export, deployment or live I/O control exists in the current `main`. Use manufacturer-supported editing/backup, an isolated nonhazardous test rig, independent functional safety, physical motion inhibition and the site's test procedure. Never substitute this matrix for an OEM commissioning checklist or use production safety-related signals as test points.
 
 ## Reference instructions under test
 
@@ -105,35 +105,35 @@ Comments and snippets above are explanatory, **not** a validated controller-nati
 
 For each completed case, capture controller family, exact firmware, application/installed options, case ID, approved test configuration, source and destination addresses, initial register state, input edge timestamps, actual monitored register/output values, expected result, pass/fail, anomalies and restoration evidence. Store any OEM program exports privately until sanitization and approvals are complete.
 
-**The repository does not publish the results of these hardware tests.** Cases are considered **unconfirmed** unless the bench protocol, exact model/firmware and measured values are attached. Local MLAD/CI tests are not counted for hardware execution.
+**The repository contains no published results from executing these hardware tests.** Every case remains **unverified / NOT RUN** until a bench report, precise model/firmware and measured values are attached. Local MLAD/CI tests must **not** be counted as hardware execution.
 
 
-## Additional UI and source immutability (after PR #7/#8)
+## Additional UI scenarios and native source immutability (after PR #7/#8)
 
-| ID | Action. | Expected output |
+| ID | Action | Expected result |
 |---|---|---|
-| U-01 | Create several chains in `*.graph.json` | All chains are displayed simultaneously |
-| U-02 | Manually switch `? / 0 / 1` в Graph Workspace | The color NO/NC/OUT is calculated locally; **not** LIVE |
-| U-03 | Double click on NO/NC/OUT in JSON | Changes to JSON, Enter/Esc and Undo/Redo |
-| U-04 | Double-click on M-register/TMR or CNT C/R | Editing only individual `*.advanced.json`reset of an old sample |
-| U-05 | Modify GSTR/GOUT address `#20010` на `#20011` | UI rejects incorrect alignment of byte |
-| U-06 | Double-click on Native Workspace `CIOPRG.LST` | Allow **only local comment**, not change address or original |
-| U-07 | Compare. SHA-256 Original copy before/after Inspector | Values are identical; modified LST is not created |
+| U-01 | Create multiple rungs in `*.graph.json` | All rungs are shown simultaneously |
+| U-02 | Manually toggle `? / 0 / 1` in Graph Workspace | Local NO/NC/OUT coloring; **not LIVE** |
+| U-03 | Double-click NO/NC/OUT in a JSON draft | Only the JSON project changes; Enter/Esc and Undo/Redo work |
+| U-04 | Double-click the M-register/preset of TMR or CNT C/R | Only `*.advanced.json` changes; the stale sample is reset |
+| U-05 | Change GSTR/GOUT address `#20010` to `#20011` | UI rejects incorrect byte-group alignment |
+| U-06 | Double-click an address in an actual read-only `CIOPRG.LST` workspace | **Only a local annotation** is permitted; the address and source file remain unchanged |
+| U-07 | Compare the source-copy SHA-256 before and after using Inspector | Identical; no edited LST is produced |
 
-UI test results are documented separately from T/C/B/N hardware cases. Procedure for obtaining and anonymizing source files: [controller_fixture_intake.md](controller_fixture_intake.en.md).
+UI tests are recorded **separately** from the T/C/B/N hardware cases. See [controller fixture intake](controller_fixture_intake.en.md) for authorized data collection and sanitization.
 
-## Additional tests after PR #21 Not executed on equipment
+## Additional tests after PR #21 — not executed on hardware
 
-| ID | Isolated bench | Confirmation |
+| ID | Isolated bench scenario | Evidence required |
 | --- | --- | --- |
-| EN-01 | MOV/ADD/SUB/SHL/SHR at EN=0/1 | Record D and flags in scan context |
-| MOV-01 | 255/256/257 in byte and word | Carry truncation at border 256 |
-| SHIFT-01 | n=0/1/8/15/16 | Carry and the Last Repressed Bit |
-| SCAN-01 | Two Influencers on #51400/#51401/#51402 | Procedure for cleaning/updating scans |
-| GEN-01 | DX100/DX200/YRC1000individual firmware | Generational differences |
+| EN-01 | MOV/ADD/SUB/SHL/SHR with EN=0/1 | Destination D writes and scan-level flag behavior |
+| MOV-01 | Values 255/256/257 in byte and word cases | Truncation/Carry at the 256 boundary |
+| SHIFT-01 | n=0/1/8/15/16 | Carry and the last shifted-out bit |
+| SCAN-01 | Two instructions affecting `#51400/#51401/#51402` | Reset/update ordering across scans |
+| GEN-01 | DX100/DX200/YRC1000 with distinct firmware versions | Generation-specific differences |
 
-Lack of access to robots means **NOT RUN* for all of these tests, regardless of the CI and manual reference model. [Details.](oem_5_opcode_analysis.en.md).
+Lack of authorized robot access means **NOT RUN** for all these cases, irrespective of CI and offline manual-derived reference results. [Details](oem_5_opcode_analysis.en.md).
 
-## Status of hardware verification after PR #29
+## Hardware verification status after PR #29
 
-As of the reconciliation date `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` passed [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621)**No test of this hardware matrix is confirmed to have been performed on DX100, DX200 or YRC1000**: `OEMBench=NOT RUN`. Verification on Windows runner is not a bench test. The future will be held only with a separate permitted insulated stand, OEM tool and a separate security procedure. [Verification gates](verification_gates.en.md).
+At the historical checkpoint, `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309` passed [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621), but **none of the matrix cases had documented execution on DX100, DX200 or YRC1000**: `OEMBench=NOT RUN`. A Windows runner is not a robot controller. Any future test requires a separately authorized isolated rig, OEM tools and an independent safety procedure. [Verification gates](verification_gates.en.md).
