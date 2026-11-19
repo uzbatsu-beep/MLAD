@@ -50,3 +50,9 @@ MLAD — локальная OFFLINE/BENCH среда `DX100`/`DX200`/`YRC1000` �
 **PR #40:** Native CIOPRG Parser Fidelity / Coverage, начало с документационного baseline в Draft PR. **PR #41–#47:** UX, security, portable sidecar, typed grammar, static analysis, Unified IDE и условный offline release. Готовность PR #40 не определяется одним изменением Markdown.
 
 [Roadmap v4](roadmap.md) · [План PR #40+](implementation_plan.md) · [Verification gates](verification_gates.md) · [Security risk review](filesystem_security_pr29.md) · [Протокол ручной приёмки](windows_acceptance_pr28.md).
+
+## Проверяемое изменение статуса — PR #41 (20.11.2026)
+
+PR #40 уже слит как документация, без внедрения парсера. В Draft PR #41 добавлены синтетический корпус CIOPRG, полная покомпонентная классификация физических строк и отображение исходных byte spans в Native Workspace. Это состояние ветки разработки, а не внедрение в main и не проверка реального контроллера. Фактическое принятие PR #41 требует завершения Linux/Windows CI и согласия владельца на merge.
+
+Отдельные статусы: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP/native writer/deployment **BLOCKED**. Старый опубликованный rc.9 не включает PR #40/#41. Настройки required checks Ruleset не менялись.
