@@ -4,6 +4,7 @@
 pub mod compiler;
 mod draft_io;
 mod guarded_read;
+mod native_filter;
 // Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
@@ -169,6 +170,27 @@ async fn cmd_search_cioprg(
         }
     }
     Ok(CioprgSearchResult { source_sha256: doc.source_sha256, hits, truncated })
+}
+
+
+#[tauri::command]
+async fn cmd_filter_cioprg_lines(
+    file_path: String,
+    controller: compiler::memory::ControllerFamily,
+    expected_sha256: String,
+    syntax_class: Option<String>,
+    opcode: Option<String>,
+    address: Option<String>,
+    offset: usize,
+) -> Result<native_filter::NativeFilterPage, String> {
+    let bytes = read_cioprg_bytes(&file_path).await?;
+    let doc = compiler::lossless::parse_document(bytes, controller);
+    if doc.source_sha256 != expected_sha256 {
+        return Err("Исходный CIOPRG.LST изменился: фильтрация старого снимка запрещена".into());
+    }
+    native_filter::filter_source(
+        &doc, syntax_class.as_deref(), opcode.as_deref(), address.as_deref(), offset
+    )
 }
 
 /// Import only a *display snapshot* of IONAME.DAT, without editing source or
@@ -493,6 +515,7 @@ fn main() {
             cmd_pick_native_file,
             cmd_read_cioprg_page,
             cmd_search_cioprg,
+            cmd_filter_cioprg_lines,
             cmd_inspect_ioname,
             cmd_validate_advanced_draft,
             cmd_load_advanced_draft,
