@@ -83,3 +83,9 @@ No controller-native writer, deployment, network runtime, automatic IONAME→rel
 `Documented` ≠ `SyntheticTested` ≠ `WindowsCI` ≠ `UserSmoke` ≠ `OEMBenchVerified` ≠ `Authorized`. Each step records SHA, positive/negative tests, failure boundaries, and lawful OEM material use independently.
 
 [Roadmap v4](roadmap.en.md) · [Verification gates](verification_gates.en.md) · [Controller fixture intake](controller_fixture_intake.en.md) · [Filesystem review](filesystem_security_pr29.en.md) · [Engineering decisions](engineering_decisions.en.md).
+
+## Implementation update after PR #40 (20 November 2026)
+
+Documentation PR #40 is already merged; parser fidelity and corpus implementation are now in PR #41. Deliverables include fully synthetic bytes, SHA-256, expected physical-line classes, complete non-lossy classification, unknown/opaque retention, malformed diagnostics and original byte spans in Native Workspace. Successful CI does not replace UserSmoke or OEMBench and cannot authorize HSES/FTP, native writer or deployment. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, controller actions **BLOCKED**.
+
+The former PR #41 UX task moves to PR #42 or later; further numbers are tentative. The current PR remains Draft until explicit owner approval.

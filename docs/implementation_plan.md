@@ -83,3 +83,9 @@
 `Documented` ≠ `SyntheticTested` ≠ `WindowsCI` ≠ `UserSmoke` ≠ `OEMBenchVerified` ≠ `Authorized`. Каждый шаг фиксирует SHA, positive/negative tests, состояние отказов и право на использование OEM материалов отдельно.
 
 [Roadmap v4](roadmap.md) · [Verification gates](verification_gates.md) · [Исходные реальные данные](controller_fixture_intake.md) · [Filesystem review](filesystem_security_pr29.md) · [Engineering decisions](engineering_decisions.md).
+
+## Уточнение исполнения после PR #40 (20.11.2026)
+
+Документационный PR #40 уже слит; реализация parser fidelity и corpus вынесена в PR #41. Этот этап включает синтетические тестовые байты, SHA-256, ожидаемые классы строк, проверку полной классификации без потерь, сохранение unknown/opaque, диагностику malformed и физические byte spans в Native Workspace. Факт успешного CI не заменяет UserSmoke или OEMBench, а также не разрешает HSES/FTP/native writer/deployment. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, controller actions **BLOCKED**.
+
+Ранее запланированный PR #41 по UX переносится на PR #42 или позднее; дальнейшие номера условны. Текущий PR остаётся Draft без слияния до явного согласования.
