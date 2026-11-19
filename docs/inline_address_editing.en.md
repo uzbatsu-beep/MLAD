@@ -5,7 +5,7 @@
 
 # Inline editing of operand addresses — merged PR #8
 
-> **Status and applicability:** this describes the functionality and evidence available up to PR #21; **it does not imply all project development ended with PR #21**. See [project_status.md](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and separate CI/UserSmoke/OEM evidence levels. This specification authorizes **no** native writer, HSES or actual controller scan.
+> **Status and applicability:** `main` is the evolving primary branch; this describes the functionality and evidence available up to PR #21; **it does not imply all project development ended with PR #21**. See [project_status.md](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and separate CI/UserSmoke/OEM evidence levels. This specification authorizes **no** native writer, HSES or actual controller scan.
 
 **Status (18 November 2026):** PR #8 merged. Changing the **operand address itself** is allowed **only in JSON drafts**. In Native Workspace (PR #16), a double-click may edit **a local annotation only**, **not** an address in the original CIOPRG.LST or IONAME.DAT.
 
