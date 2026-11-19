@@ -86,3 +86,9 @@ MLAD — независимая OFFLINE/BENCH среда для анализа �
 ## 7. Документы и traceability
 
 [Исполнимый план](implementation_plan.md) · [Фактический статус](project_status.md) · [Решения](engineering_decisions.md) · [Verification gates](verification_gates.md) · [Приватные fixtures](controller_fixture_intake.md) · [Файловые риски](filesystem_security_pr29.md).
+
+## Актуализация после слияния PR #40 — 20.11.2026
+
+PR #40 слит как документационная актуализация в main (2f28d5c0941c7495c2577fa4839eabc28d52298e). Техническая реализация Parser Fidelity выполняется отдельным PR #41: синтетические фикстуры, классификация полного исходника по физическим строкам, исходные байтовые позиции и диагностика неизвестного синтаксиса. Ранее предложенная задача Native Workspace UX PR #41 откладывается на PR #42 или позднее. Номера задач Security, Sidecar, Typed Grammar, Static Analysis, Unified IDE и Windows Preview — предварительные, не закреплены за открытыми PR.
+
+Обязательны проверки на окончательном HEAD и отдельное согласование слияния. CIOPRG.LST/IONAME.DAT строго read-only. HSES/FTP, native writer и deployment — **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Синтетические тесты не подтверждают OEM scan или права System/User.
