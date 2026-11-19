@@ -1,15 +1,15 @@
-<!-- Generated ru companion for docs/roadmap_v2_archive.md; review required. -->
-> **Русский** · [Русский](roadmap_v2_archive.ru.md) · [English](roadmap_v2_archive.en.md) · [Original / Оригинал](roadmap_v2_archive.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](roadmap_v2_archive.ru.md) · [English](roadmap_v2_archive.en.md) · [Исходный текст / Original](roadmap_v2_archive.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
-> **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.ru.md), [План осуществления](implementation_plan.ru.md), [статус проекта](project_status.ru.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
+> **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.ru.md), [implementation plan](implementation_plan.ru.md), [project status](project_status.ru.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
 
 ---
 
 # MLAD — дорожная карта v2: Native CIO Workspace → Engineering IDE → Verified Controller Integration
 
-**Актуализация:** 18.11.2026; `main` `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1#28 слияние; [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). PR #29 - Проект. Windows [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен до PR #24–#29. [Backlog](implementation_plan.ru.md).
+**Актуализация:** 18.11.2026; `main` `3c184cd36e076dc2e5c9aed7a663b601b4899dea`, PR #1–#28 merged; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314264), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44365314173). PR #29 — Draft. Windows [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) выпущен до PR #24–#29. [Backlog](implementation_plan.ru.md).
 **Статус:** базовый Native Workspace и read-only parser работают; пять команд типизированы и снабжены автономными OEM-reference векторами, но scan/dataflow, System/User, стенд и native writer **не подтверждены/заблокированы**. [Текущий статус](project_status.ru.md).
 
 ## 1. Продуктовая цель и ограничения
@@ -29,9 +29,9 @@
 | PR | Реализовано и слито в `main` | Не следует считать доказанным |
 |---|---|---|
 | #1–#5 | Профили памяти, lossless, Boolean AST, JSON Graph Draft и TMR/CNT/GSTR/GOUT | Нет native writer и OEM-измерений |
-| #6–#9 | Windows preview, multi-rung, inline JSON, аудит документации | CI ≠ аппаратная валидация |
-| #10–#12 | Дорожная карта v2, GPL-3.0-onlynpm lockfile/`npm ci` | Юридический и security аудит открыты |
-| #13–#14 | Удалён неподтверждённый HSES/FTP Runtime, исходный код / поиск | Безопасность filesystem ещё требует аудита |
+| #6–#9 | Windows preview, multi-rung, inline JSON, аудит документации | CI ≠ hardware validation |
+| #10–#12 | Roadmap v2, GPL-3.0-only, npm lockfile/`npm ci` | Юридический и security аудит открыты |
+| #13–#14 | Удалён неподтверждённый HSES/FTP runtime, source paging/search | Безопасность filesystem ещё требует аудита |
 | #15–#17 | Native Workspace, IONAME overlay, системные Open dialogs, компактный UI | OEM IONAME mapping и writer не подтверждены |
 | #18 | Post-END ALARM/MESSAGE как данные, группировка diagnostics | Не универсальная OEM-грамматика |
 | #19 | TypedCandidate MOV/ADD/SUB/SHL/SHR | Не исполняемые операции |
@@ -46,21 +46,21 @@
 
 | ID | Этап | Приоритет | Зависит от | Проверяемый результат | Статус |
 |---|---|---|---|---|---|
-| M0 | Baseline PR #1–#28 | DONE | — | В main объединены #1–#28, основной и Windows CI успешны | Сделано: главное `3c184cd3`; PR #29 — отдельный Draft |
-| M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000Синтетическая публичная регрессия | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
+| M0 | Baseline PR #1–#28 | DONE | — | В main объединены #1–#28, основной и Windows CI успешны | DONE: main `3c184cd3`; PR #29 — отдельный Draft |
+| M1 | Корпус реальных `CIOPRG.LST` | P0 | Разрешение на получение/хранение | Hash+metadata+OEM evidence, закрытые golden fixtures DX100/DX200/YRC1000, synthetic public regression | PARTIAL: пять закрытых исходников изучены; нет полной controller/firmware/OEM evidence |
 | M2 | Безопасность и воспроизводимость | P0 | M0 | HSES/FTP runtime удалён; lockfiles; #24 staged JSON, #25 CSP/path checks, #26 file identity/conflict guard | PARTIAL: Windows CI успешен; user smoke, TOCTOU/directory handles, ACL/backup transaction открыты |
-| M3 | Оффлайн рабочее пространство | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | (только для чтения): PR #15–#17 |
+| M3 | Native Offline Workspace | P0 | M0, интерфейс чтения M1 может расширяться параллельно | Открытие `CIOPRG.LST` в **главном рабочем окне**, полностью read-only, без потерь байтов | DONE (read-only): PR #15–#17 |
 | M4 | Навигация и диагностика native файла | P0 | M3 | Полный исходник, фильтры/поиск/переход к строке, cross-links, компактные блоки/ошибки | PARTIAL: paging/search/diagnostics; расширенные cross-ref/UX открыты |
 | M5 | Typed Syntax расширение | P1 | M1, M3/M4 | MOV/ADD/SUB/SHL + иные встреченные команды: typed operands, source spans, неизвестное opaque | PARTIAL: пять typed opcodes; иные команды unknown |
-| M6 | Семантический анализ потоков данных v2 | P1 | M5, M1 | READ/WRITE refs, конфликтные записи, таймеры/счётчики, неполные ветви, trace source→graph | ЧАСТЬ: Булевая АСТ + статические M-ссылки + опорные векторы; сканирование / поток данных неизвестны |
-| M7 | Единый проект Offline Engineering | P1 | M3, M6 | Сессия `native snapshot + sidecar + separate editable drafts`; поиск, заметки, сравнение изменений | OPEN: native snapshot и local annotations есть, portable sidecar не создан |
+| M6 | Semantic / Dataflow Analysis v2 | P1 | M5, M1 | READ/WRITE refs, конфликтные записи, таймеры/счётчики, неполные ветви, trace source→graph | PARTIAL: Boolean AST + static M-links + reference vectors; scan/dataflow unknown |
+| M7 | Unified Offline Engineering Project | P1 | M3, M6 | Сессия `native snapshot + sidecar + separate editable drafts`; поиск, заметки, сравнение изменений | OPEN: native snapshot и local annotations есть, portable sidecar не создан |
 | M8 | Редактор и статическая проверка инженерного проекта | P1 | M7, M6 | Общие компоненты Ladder/advanced, история изменений, правила адресации, диагностика до сохранения | OPEN: отдельные JSON drafts есть; единого native engineering project нет |
-| M9 | Воспроизводимая offline-модель | P2 | M6, M1, OEM доказательства | Тест-кейсы логики и ограниченные stateful сценарии с явно описанным scan/time контрактом | OPEN: автономные векторы отсчета ≠ моделирование OEM-сканирования |
+| M9 | Воспроизводимая offline-модель | P2 | M6, M1, OEM evidence | Тест-кейсы логики и ограниченные stateful сценарии с явно описанным scan/time контрактом | OPEN: offline reference vectors ≠ OEM scan simulation |
 | M10 | OEM bench validation и сравнительная матрица | P1–P2 | M1, M5/M6, разрешённый стенд | Сопоставление MLAD↔OEM Ladder Editor по каждому controller/firmware, измеренные результаты | NOT DONE: доступа к стенду нет |
 | M11 | Read-only HSES диагностика | P2, независимо от writer | M2, OEM HSES specification, M10 для I/O mapping | Проверяемое read-only чтение, timestamps/quality/staleness, безопасный UNKNOWN | BLOCKED: HSES read-only не разрешён |
-| M12 | Родной автор CIOPRG + проверенный кругосветный тур | P3 | M1, M5-M10, Системные/пользовательские границы | Доказанная точность native формата и независимая OEM проверка; отдельное решение о доступе | BLOCKED: native CIO writer не разрешён |
-| M13 | Контролируемый deployment и recovery | P3 | M12, оценка рисков, утверждение OEM | Отдельно разрешённая процедура загрузки, backup, rollback, право записи, трассировка | BLOCKED: deployment не разрешён |
-| MX | UX/Quality/Release engineering (сквозной поток) | P0–P2 | В каждом этапе | Versioned releases, CI, Windows smoke, логирование, performance, подписывание, docs | CI / docs / Windows rc.9 |
+| M12 | Native CIOPRG writer + verified round-trip | P3 | M1, M5–M10, System/User boundaries | Доказанная точность native формата и независимая OEM проверка; отдельное решение о доступе | BLOCKED: native CIO writer не разрешён |
+| M13 | Контролируемый deployment и recovery | P3 | M12, risk assessment, OEM approvals | Отдельно разрешённая процедура загрузки, backup, rollback, право записи, трассировка | BLOCKED: deployment не разрешён |
+| MX | UX/Quality/Release engineering (сквозной поток) | P0–P2 | В каждом этапе | Versioned releases, CI, Windows smoke, логирование, performance, подписывание, docs | ONGOING: CI / docs / Windows rc.9 |
 
 **Новые источники (закрытая обработка, 17.11.2026):** локально изучены ещё пять пользовательских `.LST`-выгрузок без публикации файлов, хешей, адресов и конфигурации. Отмечены варианты заголовков, `//$M` и отдельные разделы после `END`; точные контроллеры/firmware и результаты OEM проверки не предоставлены. Для parser v2 подготовить синтетические тесты различающихся заголовков и недопустимости интерпретации ALARM/MESSAGE как Ladder.
 
@@ -76,9 +76,9 @@
 
 ### Фаза B — основное рабочее окно для настоящего файла (M3, M4)
 
-**M3 — Offline Workspace: **
+**M3 — Native Offline Workspace:**
 - Команда `Открыть проект → CIOPRG.LST (только чтение)` открывает **основную** рабочую область, не модальное окно инспектора.
-- Унифицированная модель зрения: `NativeSnapshot{source_hash, controller, source_lines, spans, recognized/opaque, diagnostics}`. Источник лежит отдельно от любых редактируемых данных.
+- Unified view-model: `NativeSnapshot{source_hash, controller, source_lines, spans, recognized/opaque, diagnostics}`. Источник лежит отдельно от любых редактируемых данных.
 - Слева дерево по `PART`, цепям, регистрам/переменным и типам блоков; **PART 1/2 — метки анализа, не проверенная схема прав System/User**.
 - Центр — все достоверно распознанные цепи и блоки с компактным/расширенным видом; неполные и unknown сегменты явно помечены. Справа — свойства, подробный source fragment и предупреждения.
 - Возвращение к файлу по хешу, прозрачное сообщение при изменении источника, без трансляции обратно в `.LST` и без edit callbacks.
@@ -129,9 +129,9 @@
 
 | Вариант | Первые этапы | Главный выигрыш | Ограничение |
 |---|---|---|---|
-| **A — Workspace first** | M3 → M4; M1/M2 параллельно | Быстро получить удобный read-only инженерный просмотр настоящих LST | Начальное число opaque остаётся большим |
+| **A — Workspace-first** | M3 → M4; M1/M2 параллельно | Быстро получить удобный read-only инженерный просмотр настоящих LST | Начальное число opaque остаётся большим |
 | **B — Parser-first** | M1 → M5 → M6; M2 параллельно | Быстрее повышается достоверность typed разборов и dataflow | Пользователь продолжает работать в неудобном Inspector |
-| **С — Надежность прежде всего** | M2 → M1 → M3/M4 | Меньше риска security/сборки перед расширением функций | Позднее появится заметный новый UX |
+| **C — Reliability-first** | M2 → M1 → M3/M4 | Меньше риска security/сборки перед расширением функций | Позднее появится заметный новый UX |
 | **D — Баланс (рекомендуется к обсуждению)** | Короткий M2 safety baseline + M3/M4; M1 параллельно; M5/M6 по оригиналам | Ранний полезный workspace без заявлений о полной грамматике; к parser этапу накапливаются fixtures | Требует дисциплины в статусах поддержки и едином source-span контракте |
 
 **Ранее обсуждавшаяся рекомендация (выбран и принят путь D):** открывать native `CIOPRG.LST` в главном окне и делать поиск/связи, **пока** собираются файлы и фиксируются тесты; но не объединять это с необоснованным разрешением редактирования native файла.
@@ -146,7 +146,7 @@
 | D4 | Как показывать unknown | **Текст source + span + unsupported**, без графической реконструкции | Честность анализа |
 | D5 | Набор корпусов | Закрытые реальные fixtures, публичные только синтетические/разрешённые | Конфиденциальность |
 | D6 | Достоверность инструкции | Сначала grammar, затем verified effects; никакого «поддерживается» только по имени | Риски MOV/ADD/SUB/SHL |
-| D7 | Аппаратная связь | **Читать только HSES отдельно и позднее**; writer/deploy без одобрения не делать | Безопасность |
+| D7 | Аппаратная связь | **Read-only HSES отдельно и позднее**; writer/deploy без одобрения не делать | Безопасность |
 | D8 | Что считать offline MVP | Полный read-only source, navigation ↔ diagrams, filtered diagnostics, exact hash | Критерий завершения |
 | D9 | Технический долг до новых UX | Минимальный safety barrier сейчас, остальное постепенно | Объём первого PR |
 
@@ -167,20 +167,20 @@
 
 **Настоящий документ — карта решений, а не согласие на запуск M11–M13.**
 
-### PR #19 — Typed Syntax (слияние 17.11.2026)
+### PR #19 — Typed Syntax (merged 17.11.2026)
 
 - Предложено: `MOV`, `ADD`, `SUB`, `SHL`, `SHR` как типизированные, но **не исполняемые** формы; сохранение неизменных raw bytes/source spans и отчёт по opcode в Native Workspace.
 - Не входит: семантическая эмуляция, flags, влияние на выходные цепи, изменение System/User, OEM writer, FTP/HSES.
 - Валидация: синтетические Rust fixtures + документация + Windows rc7 preview. Проверка на настоящих файлах — только в локальном приватном корпусе, без публикации.
 
-### PR #20 Статические доказательства (слиты 17.11.2026)
+### PR #20 — Static evidence (merged 17.11.2026)
 
-- Ограниченная инвентаризация синтаксически типизированных позиций источника / назначения; точное совпадение M-регистра может предлагать только исходные ссылки *.
-- Любая неподдерживаемая/деформированная, известная булевая/продвинутая граница PART, END или post-END нарушает предварительную непрерывность.
-- Никаких значений времени выполнения, арифметических флагов, семантики цикла сканирования, моделирования потока управления, загрузки аппаратного ввода/вывода или контроллера.
+- Read-only, bounded inventory of syntactically typed source/destination operand positions; exact M-register match may propose *source-order-only* predecessor links.
+- Any unsupported/malformed, known boolean/advanced, PART, END or post-END boundary breaks tentative continuity.
+- No runtime values, arithmetic flags, scan-cycle semantics, control-flow simulation, hardware I/O or controller upload.
 - OEM semantic verification остаётся отдельным gate: PR #20 слит, документальные формулы не заменяют измерений.
 
-### PR #21 — OEM-ссылка для пяти кодов операций (слита 17.11.2026)
+### PR #21 — OEM reference for five opcodes (merged 17.11.2026)
 
 - Проанализированы MOV/ADD/SUB/SHL/SHR параллельно, по разделам YRC1000 R12 и DX100 Rev.0; DX200 всё ещё требует отдельного source verification.
 - Отдельная ручная 16-bit reference-модель Rust с тестами пределов 0/16 и 255/256 и явно неопределёнными флагами.
@@ -196,9 +196,9 @@
 **Организация:** каждый будущий этап в отдельном Draft PR, с тестами и согласованием владельца до слияния. Разделы с вариантами приоритетов выше сохранены как история обсуждения, а не текущая задача по первому запуску UI.
 
 
-### PR #24 — Atomic Offline JSON Draft Persistence (слияние, 18.11.2026)
+### PR #24 — Atomic Offline JSON Draft Persistence (merged, 18.11.2026)
 
-- Сохраняются только отдельные `*.graph.json`, `*.advanced.json`Наследие `*.json`; оригиналы `CIOPRG.LST` и `IONAME.DAT` всегда read-only.
+- Сохраняются только отдельные `*.graph.json`, `*.advanced.json`, legacy `*.json`; оригиналы `CIOPRG.LST` и `IONAME.DAT` всегда read-only.
 - Перед записью ограничение размера 2 МиБ; запись во вновь создаваемый файл в той же директории, `sync_all`, переименование/замена; предыдущая версия при перезаписи переносится в `*.bak` через отдельный staging/rename.
 - Защита от **прямых** symlink у JSON и backup; Rust-тесты на первоначальную запись, последовательные сохранения, отказ, oversized и symlink. Ошибка backup/rename не должна обрезать старый JSON.
 - **Остаётся M2 PARTIAL:** backup и target не образуют единую транзакцию; Windows replacement зависит от правил файловой системы/ACL, нет межпроцессной блокировки, не устранены гонки parent path, hardlinks и TOCTOU; CSP `null` без изменений. Следующий security PR должен рассматривать доступ по file handle, directory trust/locks и CSP отдельно.
@@ -213,7 +213,7 @@
 - **Не заявлять полноту M2:** путь может быть заменён между проверкой и open/rename; недоверенные Windows junction/reparse points и hardlinks, concurrent writers, permission ACL и CSP runtime smoke проверяются отдельно. Без аппаратного интерфейса.
 
 
-### PR #26 Снимки защищенных файлов и обнаружение конфликтов (слиты, 18.11.2026)
+### PR #26 — Guarded File Snapshots and Conflict Detection (merged, 18.11.2026)
 
 - Дескрипторные чтения CIOPRG/IONAME/JSON с 2/4/16 МиБ пределами, `symlink_metadata → File::metadata` сравнение ID (Unix dev/inode, Windows volume/index), проверка ID после чтения. Reparse point detection включая Windows junction.
 - JSON staged/backup из PR #24 сохраняется; перед финальным `rename` байты ещё раз сопоставляются с исходными; при конфликте — отказ без перезаписи изменённого JSON. Новое создание тоже запрещает silent overwrite при появлении файла во время staging.
@@ -226,10 +226,10 @@
 
 Подробные зависимости, проверяемые результаты и ограничения — [implementation_plan.md](implementation_plan.ru.md). Независимые тестовые gates — [verification_gates.md](verification_gates.ru.md). Принятые решения D1–D9 — [engineering_decisions.md](engineering_decisions.ru.md). **M11–M13 остаются BLOCKED** независимо от завершения этих PR.
 
-## 10. Текущий PR #28Восприятие Windows и регрессия безопасности
+## 10. Текущий PR #28: Windows Acceptance & Security Regression
 
 PR #28 разрабатывает воспроизводимые тесты NTFS exclusive lock, Windows junction/reparse, CSP/IPC contract, сборку unsigned Windows EXE с SHA-256 evidence и отдельную [ручную матрицу Windows UserSmoke](windows_acceptance_pr28.ru.md). [Границы CI и release](verification_gates.ru.md). **М2 остаётся PARTIAL**: успешный Windows runner не означает проверку пользовательского WebView2, OEM bench, power-loss durability или устранение всех filesystem races. Merge/release — только с отдельного согласия владельца.
 
-## 11. PR #29 Граница файловой системы (Draft)
+## 11. PR #29 — filesystem boundary (Draft)
 
 [Новый review](filesystem_security_pr29.ru.md) описывает усиление обнаружения **same-content file swap**, hardlink-target/backup и staged-file corruption. Это частичный прогресс M2, не закрытие абсолютных TOCTOU/ACL/power-loss рисков. Windows WebView2 UserSmoke и OEMBench отдельно `NOT RUN`; контроллерные функции по-прежнему заблокированы.

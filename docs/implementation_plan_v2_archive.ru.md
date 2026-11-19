@@ -1,17 +1,17 @@
-<!-- Generated ru companion for docs/implementation_plan_v2_archive.md; review required. -->
-> **Русский** · [Русский](implementation_plan_v2_archive.ru.md) · [English](implementation_plan_v2_archive.en.md) · [Original / Оригинал](implementation_plan_v2_archive.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](implementation_plan_v2_archive.ru.md) · [English](implementation_plan_v2_archive.en.md) · [Исходный текст / Original](implementation_plan_v2_archive.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
-> **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.ru.md), [План осуществления](implementation_plan.ru.md), [статус проекта](project_status.ru.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
+> **ИСТОРИЧЕСКАЯ КОПИЯ.** Содержимое ниже зафиксировано перед актуализацией после merge PR #29 (18.11.2026). Указанные в нём «текущие» SHA, Draft-статусы и номера предполагаемых PR отражают прошлую дату. **Действующие версии:** [roadmap](roadmap.ru.md), [implementation plan](implementation_plan.ru.md), [project status](project_status.ru.md). Не использовать этот архив как актуальную задачу или допуск безопасности.
 
 ---
 
 # MLAD — план дальнейшей разработки после PR #26
 
-**Контрольная точка:** 18.11.2026, `main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28`. PR #1#26 сливается; [основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Последняя **опубликованная** Windows-сборка — [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference). Изменения PR #24–#26 присутствуют в `main`, но не в rc.9.
+**Контрольная точка:** 18.11.2026, `main` @ `2092db1825880d251c87efcb7c331d78cb5e4d28`. PR #1–#26 merged; [основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776). Последняя **опубликованная** Windows-сборка — [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference). Изменения PR #24–#26 присутствуют в `main`, но не в rc.9.
 
-**Назначение:** исполнимый backlog для [Дорожная карта М0-М13](roadmap.ru.md). Номера PR ниже — **проектная последовательность**, а не созданные задачи/обязательство выпуска. Каждый этап — отдельная ветка, Draft PR, обязательные тесты, review и **никакого слияния без отдельного согласия владельца**.
+**Назначение:** исполнимый backlog для [roadmap M0–M13](roadmap.ru.md). Номера PR ниже — **проектная последовательность**, а не созданные задачи/обязательство выпуска. Каждый этап — отдельная ветка, Draft PR, обязательные тесты, review и **никакого слияния без отдельного согласия владельца**.
 
 ## 1. Текущая граница продукта
 
@@ -24,21 +24,21 @@ MLAD — автономная инженерная IDE для просмотра
 | Предложение | Вехи | Приоритет | Конкретный результат | Критерий приёмки / запрет |
 | --- | --- | --- | --- | --- |
 | **PR #27 (merged)** — синхронизация документации | M0/MX | P0 | Настоящий план, [матрица проверок](verification_gates.ru.md), [реестр решений](engineering_decisions.ru.md); устранение устаревших Draft/CI статусов | `docs:check` и полная CI; docs-only, никаких runtime изменений |
-| **PR #28 (слияние)** Принятие Windows / регрессия безопасности | M2/MX | P0 | Скриптуемые негативные проверки Tauri CSP/IPC и JSON на Windows; документированный ручной чек-лист | Windows MSVC+Tauri build, ручные Windows тесты отмечены PASS/FAIL/NOT RUN; исходные файлы неизменны |
+| **PR #28 (merged)** — Windows acceptance / security regression | M2/MX | P0 | Скриптуемые негативные проверки Tauri CSP/IPC и JSON на Windows; документированный ручной чек-лист | Windows MSVC+Tauri build, ручные Windows тесты отмечены PASS/FAIL/NOT RUN; исходные файлы неизменны |
 | **PR #29 (Draft)** — модель угроз и filesystem hardening | M2 | P0 | Отдельный threat review для directory handles, Windows reparse, hardlinks, ACL, гонок final check→rename, backup/target; исправления в пределах проверенного контракта | Тесты на отказ при подмене, потере доступа, конфликте; нельзя заявлять устранение всех TOCTOU без доказательств |
 | **PR #30** — синтетический parser regression corpus | M1/M5 | P0 | Версионированные синтетические кейсы вариантов заголовков, `//$M`/`PART`/`END`, tail ALARM/MESSAGE, границы размера/кодировки и malformed блоков; приватный реестр настоящих файлов вне Git | Byte-preservation и корректные spans, fail-closed unknown, ни одного реального OEM файла в Git/CI |
-| **PR #31** Навигация и диагностика в рабочем пространстве | M4 | P1 | Source↔rung↔advanced block, навигация по адресам/мнёмоникам, фильтры severity/support/confidence, компактный список блоков и раскрытие, закладки | Все строки доступны; точные offsets/spans; выбор не синтезирует неподтверждённую диаграмму; UI performance regression |
+| **PR #31** — Native Workspace navigation & diagnostics | M4 | P1 | Source↔rung↔advanced block, навигация по адресам/мнёмоникам, фильтры severity/support/confidence, компактный список блоков и раскрытие, закладки | Все строки доступны; точные offsets/spans; выбор не синтезирует неподтверждённую диаграмму; UI performance regression |
 | **PR #32** — portable sidecar проекта (спецификация и read-only привязка) | M7 | P1 | Версионированный `*.mlad.json` с source SHA, профилем, bookmarks/annotations и ссылками на отдельные JSON drafts; схема миграции/отказа | Несовпадение source hash — явная ошибка/предупреждение; неизвестные поля не повреждаются молча; native LST не сериализуется |
 | **PR #33** — parser/typed syntax по evidence | M5/M6 | P1 | TypedCandidate только для форм из synthetic+подтверждённых OEM данных; категории результата `recognized / partial / opaque`; граф зависимостей с provenance | Отдельные положительные/отрицательные vector tests для DX100/DX200/YRC1000; нет исполнения неподтверждённых команд |
-| **PR #34** Единый проект автономной инженерии | M7/M8 | P1 | Основное окно объединяет native snapshot, sidecar, диагностические переходы и **отдельные** editable Graph/Advanced JSON | Явное отличие source vs draft; отмена/повтор, безопасное сохранение, конфликтные JSON изменения обработаны |
-| **PR #35** — кандидат `0.6.x` offline-preview | M3-M8/MX | P1 | Согласованный release candidate с changelog, hash/source/legal notices, Windows checks, пользовательским smoke-отчётом | Публикация **только по решению владельца**; CI ≠ OEM bench; не объявлять industrial-ready |
+| **PR #34** — Unified Offline Engineering Project | M7/M8 | P1 | Основное окно объединяет native snapshot, sidecar, диагностические переходы и **отдельные** editable Graph/Advanced JSON | Явное отличие source vs draft; отмена/повтор, безопасное сохранение, конфликтные JSON изменения обработаны |
+| **PR #35** — кандидат `0.6.x` offline-preview | M3–M8/MX | P1 | Согласованный release candidate с changelog, hash/source/legal notices, Windows checks, пользовательским smoke-отчётом | Публикация **только по решению владельца**; CI ≠ OEM bench; не объявлять industrial-ready |
 
 **Зависимости:** PR #28/#29 — security foundation; #30 — база для #33; #31 зависит от текущего Native Workspace, может идти параллельно #30; #32 — до #34; #33 и #32 — до #34; #35 — после принятых функциональных PR и ручной проверки Windows. Если проверка выявит дефект — выпуск откладывается, создаётся отдельный bugfix PR; номера не являются жёстким календарём.
 
 ## 3. Что требуется от инженерного результата каждого этапа
 
 1. **Контракт:** что допустимо делать с source, draft и сторонними файлами; каковы отказ и recovery; поддерживаемое семейство/версия контроллера.
-2. ** Происхождение:** `Documented`, `SyntheticTested`, `ManualDerived`, `OEMBenchVerified`, `Authorized` — раздельные поля, ни одна метка не выводится из другой автоматически.
+2. **Provenance:** `Documented`, `SyntheticTested`, `ManualDerived`, `OEMBenchVerified`, `Authorized` — раздельные поля, ни одна метка не выводится из другой автоматически.
 3. **Сохранность:** `original_bytes_before == original_bytes_after`; SHA-256 до/после открытия/повторного открытия. Для opaque — точный span исходника и источник ошибки.
 4. **Тесты:** unit/regression/negative, frontend build, Rust `--locked`, docs check, отдельный Windows Tauri runner при затрагивании IPC/filesystem.
 5. **Ограничения:** непроверенные форматы, покрытие контроллеров, Windows smoke, real OEM bench — явно `NOT RUN`, а не `PASS`.
@@ -58,10 +58,10 @@ MLAD — автономная инженерная IDE для просмотра
 
 | Веха | Состояние | Что необходимо, прежде чем даже обсуждать разрешение |
 | --- | --- | --- |
-| M9 — сканирование | НЕ ВЫПОЛНЕНО | Подтверждённый scan/time contract и OEM edge cases, отдельный design review |
-| M11 - только для чтения HSES | ЗАБЛОКИРОВАНО | Отдельное решение владельца, верифицированный OEM-протокол, read-only risk assessment, изолированный стенд |
-| M12 — родной писатель | ЗАБЛОКИРОВАНО | Полная доказанная грамматика, подтверждённые System/User boundaries и OEM round-trip, самостоятельное письменное разрешение |
-| M13 — развертывание роботов | ЗАБЛОКИРОВАНО | M12, отдельные права, safety/recovery plan, OEM approval и явное решение владельца |
+| M9 — scan simulation | НЕ ВЫПОЛНЕНО | Подтверждённый scan/time contract и OEM edge cases, отдельный design review |
+| M11 — read-only HSES | ЗАБЛОКИРОВАНО | Отдельное решение владельца, верифицированный OEM-протокол, read-only risk assessment, изолированный стенд |
+| M12 — native writer | ЗАБЛОКИРОВАНО | Полная доказанная грамматика, подтверждённые System/User boundaries и OEM round-trip, самостоятельное письменное разрешение |
+| M13 — robot deployment | ЗАБЛОКИРОВАНО | M12, отдельные права, safety/recovery plan, OEM approval и явное решение владельца |
 
 Ни документирование этих требований, ни успешные CI/Windows tests **не предоставляют** разрешения на HSES, native writer или deployment.
 
@@ -71,7 +71,7 @@ MLAD — автономная инженерная IDE для просмотра
 
 ## 7. Текущая работа PR #28
 
-После [merge PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27) baseline `main` — `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, [Главный успех валидации](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). В отдельном **Draft PR #28** добавляется [Рабочий процесс Windows](../.github/workflows/windows-security-acceptance.yml), регрессии эксклюзивного замка / соединения NTFS, [синтетический ремень](../scripts/windows-acceptance.ps1) и [ручная матрица проверки](windows_acceptance_pr28.ru.md). Результат WindowsCI фиксируется только после успешного workflow на реальном SHA PR; `UserSmoke`, `OEMBench` и публикация релиза остаются `NOT RUN`/`BLOCKED`, без автоматического перехода в DONE.
+После [merge PR #27](https://github.com/uzbatsu-beep/MLAD/pull/27) baseline `main` — `bdb443eb65dc134edc2e11ffc3230c9dfa6257df`, [main validation SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44237125310). В отдельном **Draft PR #28** добавляется [Windows workflow](../.github/workflows/windows-security-acceptance.yml), NTFS exclusive-lock/junction Rust regressions, [synthetic harness](../scripts/windows-acceptance.ps1) и [ручная матрица проверки](windows_acceptance_pr28.ru.md). Результат WindowsCI фиксируется только после успешного workflow на реальном SHA PR; `UserSmoke`, `OEMBench` и публикация релиза остаются `NOT RUN`/`BLOCKED`, без автоматического перехода в DONE.
 
 ## 8. PR #29 — File ID и staged-file guards (только Draft)
 

@@ -1,13 +1,13 @@
-<!-- Generated ru companion for docs/documentation_inventory_2026-11-18.md; review required. -->
-> **Русский** · [Русский](documentation_inventory_2026-11-18.ru.md) · [English](documentation_inventory_2026-11-18.en.md) · [Original / Оригинал](documentation_inventory_2026-11-18.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](documentation_inventory_2026-11-18.ru.md) · [English](documentation_inventory_2026-11-18.en.md) · [Исходный текст / Original](documentation_inventory_2026-11-18.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
 # MLAD — аудит всего каталога Markdown после PR #29
 
 **Дата:** 18.11.2026. **Проверенный baseline:** `main` `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). Проверены все пути `*.md` из [дерева GitHub](https://github.com/uzbatsu-beep/MLAD/tree/f85ddfcce3063dd087425be981a9d2b7a16d6309). В исходном `main` — **50 Markdown**. В предлагаемой ветке этого документа — **53 Markdown**: два новых исторических архива и этот реестр. 38 Markdown-файлов имеют предложенные изменения (включая два архива), 14 исходных файлов сознательно оставлены без изменений. Ссылки ниже относятся к ветке PR #30 до merge.
 
-**Технический контрольный факт:** [Linux CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI Успех](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) для указанного `main`; новая документационная ветка требует **собственного** `docs:check` и `MLAD validation` на фактическом HEAD SHA. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, `HSES/native writer/deployment=BLOCKED`.
+**Технический контрольный факт:** [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) для указанного `main`; новая документационная ветка требует **собственного** `docs:check` и `MLAD validation` на фактическом HEAD SHA. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, `HSES/native writer/deployment=BLOCKED`.
 
 ## 1. Ключевые результаты ревизии
 
@@ -89,7 +89,7 @@
 
 ## 5. Правила для следующих обновлений
 
-- **Одна точка истины:** [project_status](project_status.ru.md) (реальные SHA/CI и release), [roadmap](roadmap.ru.md) (вехи), [implementation_plan](implementation_plan.ru.md) (сфера действия PR), [verification_gates](verification_gates.ru.md) (приёмка), [engineering_decisions](engineering_decisions.ru.md) (утверждённое).
+- **Одна точка истины:** [project_status](project_status.ru.md) (реальные SHA/CI и release), [roadmap](roadmap.ru.md) (вехи), [implementation_plan](implementation_plan.ru.md) (PR scope), [verification_gates](verification_gates.ru.md) (приёмка), [engineering_decisions](engineering_decisions.ru.md) (утверждённое).
 - Любая feature spec из раздела 2 описывает только **свою** область поддержки; по ней нельзя автоматически заявить полную OEM грамматику, настоящий scan или права на запись.
 - Release notes/historical audit не переписывать задним числом. Их навигационные упоминания старого `main` датированы соответствующей исторической проверкой; для нового состояния открывать ссылку на `project_status`.
 - После merge следующего PR фиксировать новый main SHA и CI; после ручного Windows теста отдельно обновить `UserSmoke`, не заменяя его автоматическим `WindowsCI`.

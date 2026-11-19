@@ -1,7 +1,7 @@
-<!-- Generated ru companion for docs/oem_5_opcode_analysis.md; review required. -->
-> **Русский** · [Русский](oem_5_opcode_analysis.ru.md) · [English](oem_5_opcode_analysis.en.md) · [Original / Оригинал](oem_5_opcode_analysis.md)
-> **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
-> **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
+<!-- MLAD-I18N:EDITORIAL:restored 2026-11-19 from predominantly Russian original -->
+> **Язык / Language:** [Русский](oem_5_opcode_analysis.ru.md) · [English](oem_5_opcode_analysis.en.md) · [Исходный текст / Original](oem_5_opcode_analysis.md)
+>
+> **Историческая доказательность:** исходный русскоязычный текст сохранён без машинных сокращений или смены статусов. / Historical scope and source facts are unchanged.
 
 # PR #21 — MOV, ADD, SUB, SHL, SHR: исследование по Yaskawa Concurrent I/O
 
@@ -19,11 +19,11 @@
 
 ## Таблица пяти команд
 
-| Opcode | Условие ON / результат (Manual) | Ноль / Ошибка (Руководство) | Unknown |
+| Opcode | Условие ON / результат (Manual) | Carry / Zero / Error (Manual) | Unknown |
 | --- | --- | --- | --- |
 | MOV S,D | При EN=ON значение S передаётся D; D = M000–M599 / byte / word, S = M000–M999 / 0–65535 / byte / word | Carry изменяется при передаче в байт; текст порога: «больше 256 (BCD)». Zero/Error не используются (0). | Поведение при ровно 256; точное усечение byte |
-| ADD S1, S2, D | D=(S1+S2) mod 65536; S1/S2 — unsigned 16-bit из M или 0..65535; D = M000..M599 | Carry=1 при сумме ≥65536; Zero=1 если результат D=0; Error не используется (0) | EN и поток флагов в полном скане |
-| SUB S1, S2, D | D=(S1−S2) mod 65536; аналогичные роли | Carry=1 если S1<S2; Zero=1 если D=0; Error не используется (0) | Конфликты назначений/скан |
+| ADD S1,S2,D | D=(S1+S2) mod 65536; S1/S2 — unsigned 16-bit из M или 0..65535; D = M000..M599 | Carry=1 при сумме ≥65536; Zero=1 если результат D=0; Error не используется (0) | EN и поток флагов в полном скане |
+| SUB S1,S2,D | D=(S1−S2) mod 65536; аналогичные роли | Carry=1 если S1<S2; Zero=1 если D=0; Error не используется (0) | Конфликты назначений/скан |
 | SHL S,n,D | Сдвиг 16-битного S влево, n=0..16, ввод нулей снизу | Carry — вытесняемый MSB. Zero/Error не используются (0) | Carry n=0/16, byte-результат |
 | SHR S,n,D | Сдвиг 16-битного S вправо, n=0..16, ввод нулей сверху | Carry — вытесняемый LSB. Zero/Error не используются (0) | Carry n=0/16, byte-результат |
 
@@ -52,7 +52,7 @@ SHL/SHR при EN=ON исполняются **каждый скан**; для о
 
 ## Стендовый план на будущее
 
-| Идентификатор | Проверка | Что подтвердить |
+| Test ID | Проверка | Что подтвердить |
 | --- | --- | --- |
 | EN-01 | EN=0/1 у всех пяти инструкций | Отсутствие записи D при EN=0, поведение при EN=1 |
 | SCAN-01 | Несколько влияющих на флаги инструкций подряд | Сброс/перезапись #51400/#51401/#51402 в рамках скана |
