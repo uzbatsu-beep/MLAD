@@ -26,7 +26,7 @@ test("Source, diagrams and diagnostics share the main work area",()=>{
   assert.doesNotMatch(native,/position:\s*"absolute".*inset:\s*0/);
 });
 
-test("every returned Ladder rung is rendered as its own diagram card",()=>{
+test("Ladder cards are read-only and selected from the bounded semantic preview",()=>{
   assert.match(native,/visibleRungs\.map\(\(\{rung:current,expr,error\}\)/);
   assert.match(native,/semantic\.rungs\.map/);
   assert.match(native,/LadderCircuit readOnly zoom=\{zoom\}/);
@@ -182,4 +182,47 @@ test("Native Workspace displays syntax-only counts and exact source byte offsets
   assert.match(native,/l\.body_span\.end/);
   assert.doesNotMatch(native,/title=\{"Byte offset: "\+l\.line\}/);
   assert.match(native,/Только синтаксис; исполнение OEM не проверено/);
+});
+
+test("Native Workspace shows exactly one selected rung or block",()=>{
+  assert.match(native,/semantic\.rungs\.filter\(sourceRung=>sourceRung\.number===rung\)/);
+  assert.match(native,/\(activeBlock\?\[activeBlock\]:\[\]\)\.map/);
+  assert.match(native,/setSelectedBlockLine/);
+  assert.match(native,/aria-current=\{rung===r\.number/);
+  assert.match(native,/aria-current=\{selectedBlockLine===b\.line/);
+  assert.match(native,/sections\.slice\(0,160\)/);
+  assert.match(native,/К исходной строке/);
+});
+test("Native source cross-navigation and keyboard remain physical-line based",()=>{
+  assert.match(native,/selectedRung=useMemo/);
+  assert.match(native,/selectedRelatedBlock=useMemo/);
+  assert.match(native,/К цепи R/);
+  assert.match(native,/К блоку L/);
+  assert.match(native,/onKeyDown=\{event=>\{/);
+  for(const key of ["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"]){
+    assert.ok(native.includes('event.key==="'+key+'"'),key);
+  }
+  assert.match(native,/activeSourceLineRef\.current\?\.focus\(\)/);
+  assert.match(native,/body_span\.start/);
+});
+test("Full-source opcode/address/class filter uses SHA-pinned bounded read-only pages",()=>{
+  const main=readFileSync("src-tauri/src/main.rs","utf8");
+  const filter=readFileSync("src-tauri/src/native_filter.rs","utf8");
+  assert.match(main,/async fn cmd_filter_cioprg_lines/);
+  assert.match(main,/expected_sha256/);
+  assert.match(main,/read_cioprg_bytes\(&file_path\)\.await/);
+  assert.match(main,/cmd_filter_cioprg_lines,/);
+  assert.match(native,/invoke<NativeFilterPage>\("cmd_filter_cioprg_lines"/);
+  assert.match(native,/expectedSha256:report\.source_sha256/);
+  assert.match(native,/controller:report\.controller/);
+  assert.match(native,/sourceFilterResult\.next_offset/);
+  assert.match(native,/Фильтрация всего CIOPRG/);
+  assert.match(native,/Фильтр класса синтаксиса/);
+  assert.match(native,/Фильтр opcode/);
+  assert.match(native,/Фильтр адреса/);
+  assert.match(filter,/const FILTER_PAGE_SIZE: usize = 100/);
+  assert.match(filter,/MAX_SOURCE_LINES: usize = 200_000/);
+  assert.match(filter,/fn contains_token/);
+  assert.match(filter,/pub fn filter_source/);
+  assert.doesNotMatch(filter,/TcpStream|UdpSocket|tauri::command|write\(|rename\(/);
 });
