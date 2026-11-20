@@ -87,3 +87,11 @@ Synthetic Rust positive/negative tests and raw byte spans are tracked. F10 chang
 
 Exact-final-HEAD `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` required. CI does not substitute for manual Windows UserSmoke or actual OEM controller bench: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. No public Windows Release for PR #45.
 Explicit implementation markers: `semantics_verified=false` for all newly typed forms; `BMOV` is the documented block-transfer mnemonic, while invented `BMOX` stays unsupported in the byte-exact F10 fixture.
+
+## PR #46 — source-linked static READ / WRITE / UNKNOWN (20 November 2026)
+
+PR #45 expanded OEM typed grammar merged into `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 is a separate **unmerged Draft**. `static_access` performs independent *syntactic operand-role* auditing: `READ`/`WRITE`/`UNKNOWN`, bound to a source checksum, physical line and original byte span. READ/WRITE are not actual device transfers or permission to control outputs. Unresolved instructions are `Unknown`.
+
+Native Workspace offers full-source counts, bounded previews, kind/exact address filters, 100 entries per page and original-source links guarded by SHA-256. Synthetic Rust, IPC and Node tests cover unverified families, immutable `CIOPRG.LST`, stale SHA rejection, no post-END access events and excluding numeric literals from memory events. CI must be reported against the exact final HEAD and never conflated with UserSmoke/OEMBench.
+
+Explicitly `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` remains read-only. HSES/FTP/live I/O/native writer/deployment **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. PR #46 has neither been merged nor issued as a Windows Release.

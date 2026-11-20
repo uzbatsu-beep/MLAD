@@ -87,3 +87,11 @@ PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af
 В ветке — Rust positive/negative synthetic tests и исходные byte spans; изменение F10 `BMOV`→`BMOX` сделано с точным SHA-256, так как `BMOV` теперь документирован. В Native Workspace справка OEM для всех новых форм содержит разделы руководства и не показывает расчёт реальных флагов или живых значений. Расширенные формы в DX100/DX200 не объявлены доказанными; для YRC1000 речь только о документации, не об OEMBench.
 
 Результаты `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` должны относиться к окончательному SHA. CI не заменяет ручной Windows UserSmoke и OEM аппаратный тест: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. Публичный Windows Release для PR #45 не выпускался.
+
+## PR #46 — source-linked static READ / WRITE / UNKNOWN (20.11.2026)
+
+PR #45 расширенной OEM-грамматики слит в `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 открыт как **Draft, не слит**. Новый `static_access` — самостоятельный синтаксический аудит ролей `READ`/`WRITE`/`UNKNOWN` с идентификатором снимка, физической строкой и абсолютным byte span. READ/WRITE не означают фактическую передачу данных или разрешение изменения выхода; в неопределённых случаях доступ `Unknown`.
+
+Выполнена интеграция Native Workspace: счётчики всего файла, ограниченный preview, фильтрация вида доступа и точного адреса, 100 результатов/страницу, переход к исходнику с проверкой SHA-256. Отдельные синтетические Rust/IPC/Node тесты проверяют неподтверждённые семейства, неизменность `CIOPRG.LST`, отказ при смене SHA, отсутствие пост-END-операций и отбрасывание числовых констант как memory events. Результаты CI отражать только по конечному SHA и не считать UserSmoke/OEMBench.
+
+В явном виде `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` остаётся read-only. HSES/FTP/live I/O/native writer/deployment **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Выпуска Windows Release или слияния PR #46 не производилось.
