@@ -19,7 +19,11 @@ function SHA([string]$path){
     return (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 function Rel([string]$root,[string]$path){
-    return [IO.Path]::GetRelativePath($root,$path).Replace("\","/")
+    # Compatible with stock Windows PowerShell 5.1, not only PowerShell 7.
+    $base=[IO.Path]::GetFullPath($root).TrimEnd([char]92,[char]47)+[IO.Path]::DirectorySeparatorChar
+    $full=[IO.Path]::GetFullPath($path)
+    Require ($full.StartsWith($base,[StringComparison]::OrdinalIgnoreCase)) "File escapes package root"
+    return $full.Substring($base.Length).Replace("\","/")
 }
 function WriteJSON([string]$path,[object]$value){
     [IO.File]::WriteAllText($path,(ConvertTo-Json -InputObject $value -Depth 12)+[Environment]::NewLine,
