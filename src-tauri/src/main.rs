@@ -828,6 +828,128 @@ mod source_linked_access_ipc_tests {
     }
 }
 
+
+#[cfg(test)]
+mod unified_offline_project_ipc_tests {
+    use super::*;
+    fn temporary()->std::path::PathBuf {
+        let folder=std::env::temp_dir().join(format!(
+            "mlad-unified-{}",uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&folder).unwrap();
+        folder
+    }
+
+    #[tokio::test]
+    async fn complete_project_roundtrip_recomputes_and_verifies_all_sources() {
+        let root=temporary();
+        let source=root.join("CIOPRG.LST");
+        let ioname=root.join("IONAME.DAT");
+        let notes=root.join("cell.mlad.json");
+        let manifest=root.join("cell.mladproj.json");
+        let source_bytes=b"STR #70010\r\nOUT #70020\nEND\n";
+        let ioname_bytes=b"/IONAME\n//IN\nSafety,,Motor,\n";
+        std::fs::write(&source,source_bytes).unwrap();
+        std::fs::write(&ioname,ioname_bytes).unwrap();
+        let source_path=source.to_string_lossy().into_owned();
+        let sidecar_path=notes.to_string_lossy().into_owned();
+        let manifest_path=manifest.to_string_lossy().into_owned();
+        let ioname_path=ioname.to_string_lossy().into_owned();
+        let family=compiler::memory::ControllerFamily::YRC1000;
+        let doc=compiler::lossless::parse_document(source_bytes.to_vec(),family);
+        let mut sidecar=sidecar::OfflineSidecar::new(&doc);
+        sidecar.annotations.addresses.insert("#70010".into(),"Safety".into());
+        sidecar.bookmarks.push(sidecar::Bookmark{line:1,label:"Entry".into()});
+        let saved_notes=cmd_save_offline_sidecar(
+            sidecar_path.clone(),source_path.clone(),family,
+            doc.source_sha256.clone(),sidecar.clone(),None
+        ).await.unwrap();
+        let saved=cmd_save_offline_project(
+            manifest_path.clone(),source_path.clone(),family,doc.source_sha256.clone(),
+            Some(ioname_path.clone()),Some(offline_project::sha256(ioname_bytes)),
+            Some(sidecar_path.clone()),Some(saved_notes.revision.clone()),None
+        ).await.unwrap();
+        assert_eq!(saved.project.source.relative_path,"CIOPRG.LST");
+        assert_eq!(saved.project.ioname.as_ref().unwrap().relative_path,"IONAME.DAT");
+        assert_eq!(saved.project.sidecar.as_ref().unwrap().relative_path,"cell.mlad.json");
+        assert!(!saved.project.analysis.execution_verified);
+        let manifest_bytes=std::fs::read(&manifest).unwrap();
+        assert!(!manifest_bytes.windows(source_bytes.len()).any(|s|s==source_bytes));
+        assert!(!String::from_utf8_lossy(&manifest_bytes).contains(source_path.as_str()),
+            "portable manifest cannot store original absolute paths");
+        let opened=cmd_open_offline_project(manifest_path.clone()).await.unwrap();
+        assert!(!opened.analysis_changed);
+        assert_eq!(opened.project,saved.project);
+        assert_eq!(opened.revision,saved.revision);
+        assert_eq!(opened.report.base.source_sha256,doc.source_sha256);
+        assert_eq!(opened.report.static_access.read_sites,1);
+        assert_eq!(opened.report.static_access.write_sites,1);
+        assert!(!opened.report.edited_export_allowed());
+        assert!(opened.ioname.as_ref().unwrap().entries.len()>=4);
+        assert_eq!(opened.sidecar.unwrap(),sidecar);
+        assert_eq!(opened.sidecar_revision,Some(saved_notes.revision));
+        assert_eq!(std::fs::read(&source).unwrap(),source_bytes);
+        assert_eq!(std::fs::read(&ioname).unwrap(),ioname_bytes);
+        assert!(cmd_save_offline_project(
+            manifest_path.clone(),source_path.clone(),family,doc.source_sha256.clone(),
+            None,None,None,None,None
+        ).await.is_err(),"existing manifest requires revision");
+        assert!(cmd_save_offline_project(
+            manifest_path.clone(),source_path.clone(),family,doc.source_sha256.clone(),
+            None,None,None,None,Some("0".repeat(64))
+        ).await.is_err(),"stale revision must not replace");
+        assert!(cmd_save_offline_project(
+            manifest_path.clone(),source_path.clone(),family,doc.source_sha256.clone(),
+            None,None,None,None,Some(saved.revision)
+        ).await.is_ok(),"explicitly removing optional components creates a new revision");
+        assert_eq!(std::fs::read(&source).unwrap(),source_bytes);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
+    async fn project_refuses_renamed_components_unknown_fields_and_changed_digests(){
+        let root=temporary();
+        let source=root.join("CIOPRG.LST");
+        let ioname=root.join("IONAME.DAT");
+        let manifest=root.join("cell.mladproj.json");
+        let raw=b"STR #70010\nOUT #70020\nEND\n";
+        std::fs::write(&source,raw).unwrap();
+        std::fs::write(&ioname,b"/IONAME\n//IN\none,,,\n").unwrap();
+        let path=manifest.to_string_lossy().into_owned();
+        let src=source.to_string_lossy().into_owned();
+        let family=compiler::memory::ControllerFamily::YRC1000;
+        let doc=compiler::lossless::parse_document(raw.to_vec(),family);
+        assert!(cmd_save_offline_project(
+            path.clone(),src.clone(),family,"0".repeat(64),None,None,None,None,None
+        ).await.is_err());
+        let saved=cmd_save_offline_project(
+            path.clone(),src.clone(),family,doc.source_sha256.clone(),
+            Some(ioname.to_string_lossy().into_owned()),
+            Some(offline_project::sha256(b"/IONAME\n//IN\none,,,\n")),
+            None,None,None
+        ).await.unwrap();
+        std::fs::write(&ioname,b"/IONAME\n//IN\ntwo,,,\n").unwrap();
+        assert!(cmd_open_offline_project(path.clone()).await.is_err(),
+            "modified IONAME cannot be silently matched by order");
+        std::fs::write(&ioname,b"/IONAME\n//IN\none,,,\n").unwrap();
+        let outside=root.parent().unwrap().join("outside").join("CIOPRG.LST");
+        assert!(cmd_save_offline_project(
+            path.clone(),outside.to_string_lossy().into_owned(),family,
+            doc.source_sha256.clone(),None,None,None,None,
+            Some(saved.revision.clone())
+        ).await.is_err(),"source outside project root must fail");
+        let mut text=serde_json::to_value(&saved.project).unwrap();
+        text["controller_ip"]=serde_json::json!("192.0.2.1");
+        std::fs::write(&manifest,serde_json::to_vec(&text).unwrap()).unwrap();
+        assert!(cmd_open_offline_project(path.clone()).await.is_err());
+        std::fs::write(&manifest,serde_json::to_vec(&saved.project).unwrap()).unwrap();
+        assert!(cmd_open_offline_project(path.clone()).await.is_ok());
+        std::fs::write(&source,b"END\n").unwrap();
+        assert!(cmd_open_offline_project(path).await.is_err(),
+            "native source drift must fail closed even with same filename");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
 #[cfg(test)]
 mod graph_write_safety_tests {
     use super::*;

@@ -185,7 +185,8 @@ test("PR46 static access is bounded, SHA-pinned, and distinct from a controller 
   const compiler=readFileSync("src-tauri/src/compiler/mod.rs","utf8");
   assert.match(compiler,/pub mod static_access;/);
   assert.match(rust,/static_access: compiler::static_access::AccessOverview/);
-  assert.match(rust,/compiler::static_access::inspect\(&doc,160\)/);
+  assert.match(rust,/compiler::static_access::inspect\(doc,160\)/);
+  assert.match(rust,/build_full_inspection\(&doc\)/);
   assert.match(rust,/async fn cmd_query_static_access\(/);
   assert.match(rust,/if doc\.source_sha256!=expected_sha256/);
   assert.match(rust,/compiler::static_access::query\(/);
