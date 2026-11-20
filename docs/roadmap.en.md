@@ -103,7 +103,7 @@ CIOPRG.LST/IONAME.DAT remain read-only; HSES/FTP, native writer and deployment *
 
 ## PR #43 — filesystem security and dependency review (Draft, 20 November 2026)
 
-**Current baseline:** PR #42 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`. Separate PR #43 remains Draft, not part of `main`. Concrete changes: remove unused FTP crate `suppaftp` and five exclusively reachable transitive dependencies from `Cargo.lock`; owner-only `0600` for new Unix staged JSON and backups; reject staged files with additional hardlinks; verify File ID before cleanup of a temporary file.
+**Current baseline:** PR #42 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`. Separate PR #43 remains Draft, not part of `main`. Concrete changes: remove unused FTP crate `suppaftp` and five exclusively reachable transitive dependencies from `Cargo.lock`, plus two unused direct requirements `anyhow` and `futures-util` (their transitive crate packages remain); owner-only `0600` for new Unix staged JSON and backups; reject staged files with additional hardlinks; verify File ID before cleanup of a temporary file.
 
 **M2 remains PARTIAL, not CLOSED.** `check→rename` remains non-atomic; Windows ACL/DACL/owner and replacement permission inheritance are unverified; target and `*.bak` are not an atomic transaction; multi-writer races, power-loss durability and file systems outside the local testing contract remain open. The `0600` mode intentionally makes previously shared Unix JSON drafts private.
 
