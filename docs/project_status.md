@@ -70,3 +70,11 @@ PR #42 Native Workspace UX v2 слит в `main` SHA `73e675f7df33c5751a35e29752
 **Критерии доказанности:** окончательные результаты Linux Rust/frontend, Windows NTFS/Tauri и `ci-gate` подтверждать строго по SHA финального HEAD; пока отчёт не принят, PR остаётся Draft. Отдельного аудита всех npm/Rust CVE и лицензий этот PR не заменяет. Риски родительского `check→rename` TOCTOU, Windows ACL/owner, согласованной записи `*.bak` и target, конкурентной записи и power-loss recovery — OPEN.
 
 `CIOPRG.LST`/`IONAME.DAT` строго read-only; `HSES/FTP`, native writer и deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; Windows Release не выпускался.
+
+## Фактическое состояние разработки — PR #44 (20.11.2026)
+
+PR #43 слит в `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 — новый Draft, **не слит**. Создан отдельный формат `*.mlad.json` / `MLAD_OFFLINE_SIDECAR` версии `schema_version=1`: привязка к SHA-256 и метаданным оригинала, комментарии по цепям/адресам/IONAME, закладки физических строк. Поддержаны load/save в Native Workspace и отдельные backend IPC `cmd_load_offline_sidecar` / `cmd_save_offline_sidecar`. Старый JSON editor запрещает запись `*.mlad.json`; нативные файлы не копируются и не изменяются.
+
+Сохранение использует `revision` и существующий staged JSON/`*.bak`; открытый источник перечитывается только для проверки SHA-256/профиля. Тесты фиксируют валидную схему, отказы при изменении исходника и sidecar, защиту источника и корректное сохранение комментариев/закладок. Результаты CI публиковать строго по окончательному HEAD; разработка в Draft сама по себе не означает release.
+
+Остаточные риски файловой системы из PR #43 остаются OPEN. `CIOPRG.LST`/`IONAME.DAT` read-only, native writer, FTP/HSES, live I/O, robot deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; Windows-релиз для PR #44 не выпускался.

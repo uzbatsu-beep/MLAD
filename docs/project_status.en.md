@@ -70,3 +70,11 @@ PR #42 Native Workspace UX v2 merged into `main` SHA `73e675f7df33c5751a35e29752
 **Evidence:** final Linux Rust/frontend, Windows NTFS/Tauri and `ci-gate` results must match the final HEAD SHA; PR remains Draft until approved. This change does not replace a full npm/Rust CVE and third-party license audit. Parent `check→rename` TOCTOU, Windows ACL/owner, coordinated target+`*.bak` writes, concurrent writers and power-loss recovery remain OPEN.
 
 `CIOPRG.LST`/`IONAME.DAT` stay read-only; `HSES/FTP`, native writer and deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; no Windows Release was published.
+
+## Implementation status — PR #44 (20 November 2026)
+
+PR #43 merged into `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 is a separate, **unmerged** Draft. It defines independent `*.mlad.json` / `MLAD_OFFLINE_SIDECAR` with `schema_version=1`: SHA-256/metadata source binding, rung/address/IONAME annotations and physical-line bookmarks. Native Workspace offers explicit load/save, backed by `cmd_load_offline_sidecar` / `cmd_save_offline_sidecar` IPC. The legacy JSON editor rejects `*.mlad.json`; native files are never serialized or modified.
+
+Saves use an optimistic `revision` and the established staged JSON/`*.bak` mechanism; the original is reread only to verify SHA-256 and controller profile. Tests cover schema correctness, changed native/sidecar refusal, unchanged original bytes and notes/bookmark round-trip. CI results must match the final commit SHA; Draft code is not a release.
+
+Residual filesystem hazards from PR #43 remain OPEN. `CIOPRG.LST`/`IONAME.DAT` stay read-only; native writer, FTP/HSES, live I/O and robot deployment remain **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; no Windows release for PR #44 was published.
