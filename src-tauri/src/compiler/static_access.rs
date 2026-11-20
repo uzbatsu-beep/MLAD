@@ -99,14 +99,11 @@ fn emit_operand(
     unknown_basis:AccessBasis, push:&mut impl FnMut(AccessSite),
     skipped:&mut usize,
 ) {
-    // Decimal literals and numeric shift/count operands do NOT read CIO memory.
-    // Do not create a fictitious memory access for a numeric constant.
-    if operand.kind==OperandKind::DecimalLiteral && valid {
-        *skipped+=1;return;
-    }
-    if !is_memory_operand(operand.kind) && valid && role.is_some() {
-        // A source token which resembles an unclassified address is kept
-        // UNKNOWN rather than promoted to a bogus READ/WRITE.
+    // Numeric literals are never memory addresses, including inside a
+    // malformed instruction: do not invent UNKNOWN memory-site events for them.
+    if operand.kind==OperandKind::DecimalLiteral {
+        *skipped+=1;
+        return;
     }
     let (access,basis)=if valid && family && is_memory_operand(operand.kind) {
         match role {
@@ -306,7 +303,7 @@ mod tests {
         let a=inspect(&dx,100);
         assert_eq!(a.read_sites,0);
         assert_eq!(a.write_sites,0);
-        assert!(a.unknown_sites>=6);
+        assert_eq!(a.unknown_sites,5);
         assert!(a.sites.iter().all(|x|x.access==AccessKind::Unknown));
         assert_eq!(a.sites[0].basis,AccessBasis::InvalidForm);
         assert!(a.sites.iter().any(|x|x.basis==AccessBasis::UnverifiedFamily));
