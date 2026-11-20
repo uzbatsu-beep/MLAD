@@ -65,7 +65,7 @@ PR #41 Parser Fidelity слит в `main` `0c1b233354564d9fd3c242675a78a45417fea
 
 ## Текущая разработка: PR #43 (20.11.2026)
 
-PR #42 Native Workspace UX v2 слит в `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 — отдельный Draft, пока не находится в `main`. Реализованы owner-only `0600` для новых Unix staged JSON/backup, `verify_single_link` перед переименованием временного файла, проверка File ID при уборке staged-файла и удаление неиспользуемого `suppaftp` с пятью эксклюзивными транзитивными пакетами из `Cargo.lock`. Добавлены синтетические положительные/отрицательные тесты и offline-security проверки.
+PR #42 Native Workspace UX v2 слит в `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 — отдельный Draft, пока не находится в `main`. Реализованы owner-only `0600` для новых Unix staged JSON/backup, `verify_single_link` перед переименованием временного файла, проверка File ID при уборке staged-файла и удаление неиспользуемого `suppaftp` с пятью эксклюзивными транзитивными пакетами из `Cargo.lock`, а также исключение прямых неиспользуемых `anyhow` / `futures-util` из манифеста и root lock dependencies. Добавлены синтетические положительные/отрицательные тесты и offline-security проверки.
 
 **Критерии доказанности:** окончательные результаты Linux Rust/frontend, Windows NTFS/Tauri и `ci-gate` подтверждать строго по SHA финального HEAD; пока отчёт не принят, PR остаётся Draft. Отдельного аудита всех npm/Rust CVE и лицензий этот PR не заменяет. Риски родительского `check→rename` TOCTOU, Windows ACL/owner, согласованной записи `*.bak` и target, конкурентной записи и power-loss recovery — OPEN.
 

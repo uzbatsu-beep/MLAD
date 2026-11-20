@@ -65,7 +65,7 @@ CI evidence must match the final PR #42 HEAD. Passing CI does not imply a manual
 
 ## Current development: PR #43 (20 November 2026)
 
-PR #42 Native Workspace UX v2 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 is a separate Draft and is not yet in `main`. Implemented: owner-only `0600` on new Unix staged JSON/backup, `verify_single_link` before staged rename, File ID check before staged cleanup, and removal of unused `suppaftp` with five exclusive transitive packages from `Cargo.lock`. Added synthetic positive/negative regression tests and offline security contract checks.
+PR #42 Native Workspace UX v2 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 is a separate Draft and is not yet in `main`. Implemented: owner-only `0600` on new Unix staged JSON/backup, `verify_single_link` before staged rename, File ID check before staged cleanup, and removal of unused `suppaftp` with five exclusive transitive packages from `Cargo.lock`, and removal of unused direct `anyhow` / `futures-util` from the manifest and root lock dependency list. Added synthetic positive/negative regression tests and offline security contract checks.
 
 **Evidence:** final Linux Rust/frontend, Windows NTFS/Tauri and `ci-gate` results must match the final HEAD SHA; PR remains Draft until approved. This change does not replace a full npm/Rust CVE and third-party license audit. Parent `check→rename` TOCTOU, Windows ACL/owner, coordinated target+`*.bak` writes, concurrent writers and power-loss recovery remain OPEN.
 
