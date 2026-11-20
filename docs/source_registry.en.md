@@ -72,3 +72,11 @@ Do not commit proprietary customer ladder content or network credentials. Use pr
 - **UNVERIFIED:** HSES framing/command map, complete CIOPRG grammar, System/User boundaries, firmware-specific effects and native deployment. Hypotheses must **not** become robot-writing code.
 
 See [architecture.md](architecture.en.md), [controller_fixture_intake.md](controller_fixture_intake.en.md) and [development_workflow.md](development_workflow.en.md).
+
+## PR #45 sources — expansion limited to manual-described forms
+
+PR #45 is grounded in **Yaskawa Motoman YRC1000 OPTIONS INSTRUCTIONS FOR CONCURRENT I/O R12 (178648-1CD / RE-CKI-A467)**: [official OEM index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), [accessible §12.2 transcription (third party)](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual). Formats were checked against §§12.2.15–16, 19–23, 25–28 and 31–34, NOT interpolated from general PLC languages. See [typed_opcode_grammar.md](typed_opcode_grammar.md) for role-specific constraints.
+
+**Documented forms:** `MUL`, `DIV`, `MOD`, `BIN`, `BCD`, `WAND`, `WOR`, `WXOR`, `WNOT`, `ROL`, `ROR`, `BMOV`, `CMP`, `PLS`, `PLF`. A third-party manual transcription does not constitute OEM certification. Transcription/example typos (e.g. ROR section example showing `ROL`) must not introduce additional parser variants; use each subsection's explicit **Format** line. The expanded forms are **UNVERIFIED** for DX100/DX200 until separately compared with their exact manuals; actual YRC1000 firmware is **UNVERIFIED**.
+
+**Evidence ladder:** `MANUAL: documented operand shape` → `SYNTHETIC: positive/negative parser tests` → `WindowsCI` → `UserSmoke` → `OEMBench`. None implies the next. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**.

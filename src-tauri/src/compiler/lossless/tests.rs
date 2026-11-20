@@ -59,7 +59,7 @@ fn bom_and_non_utf8_are_preserved_without_panic() {
 
 #[test]
 fn unknown_mnemonics_and_genuine_directives_are_not_lost() {
-    let b = b"//$UNKNOWN\nGSTR #70010\nBMOV #20010,#30010\nFOO BAR\n* note \n";
+    let b = b"//$UNKNOWN\nGSTR #70010\nBMOX #20010,#30010\nFOO BAR\n* note \n";
     let doc = parse(b);
     assert_round_trip(b);
     assert!(matches!(doc.lines[0].kind, LineKind::Directive));
@@ -362,18 +362,18 @@ fn malformed_extended_operands_fail_shape_only_not_lossless_preservation() {
     assert_eq!(doc.copy_original(),source);
 }
 #[test]
-fn typed_forms_are_not_confused_with_output_or_inform_movements() {
+fn typed_forms_do_not_confuse_job_movements_or_post_end_data() {
     let b=b"BMOV M010,5,M011\nMOVJ P000\nMOVL P001\nCMP M010,M011\nMOV M010,M011\nEND\n//MESSAGE1\nADD 1,2,M020\n";
     let doc=parse(b);
     assert_round_trip(b);
-    assert!(matches!(doc.lines[0].kind,LineKind::UnsupportedInstruction{..}));
-    assert!(matches!(doc.lines[1].kind,LineKind::UnsupportedInstruction{..}));
-    assert!(matches!(doc.lines[2].kind,LineKind::UnsupportedInstruction{..}));
-    assert!(matches!(doc.lines[3].kind,LineKind::UnsupportedInstruction{..}));
+    assert!(matches!(doc.lines[0].kind,LineKind::TypedCandidate{..})); // BMOV
+    assert!(matches!(doc.lines[1].kind,LineKind::UnsupportedInstruction{..})); // MOVJ
+    assert!(matches!(doc.lines[2].kind,LineKind::UnsupportedInstruction{..})); // MOVL
+    assert!(matches!(doc.lines[3].kind,LineKind::TypedCandidate{..})); // CMP
     assert!(matches!(doc.lines[4].kind,LineKind::TypedCandidate{..}));
     assert!(matches!(doc.lines[7].kind,LineKind::PostEndData));
     let report=doc.inspection_report(100,100);
-    assert_eq!(report.typed_candidate_count,1);
+    assert_eq!(report.typed_candidate_count,3);
     assert_eq!(report.post_end_sections,1);
 }
 #[test]
@@ -383,6 +383,98 @@ fn dx100_typed_form_is_never_labelled_confirmed() {
         LineKind::TypedCandidate{controller_form_verified:false,semantics_verified:false,..}));
 }
 
+
+
+#[test]
+fn r12_expanded_fifteen_forms_keep_exact_raw_bytes_spans_and_manual_only_flags() {
+    const POS:&[&str]=&[
+        "MUL 65535,M999,M598","DIV M999,1,M599","MOD 22,M001,M001",
+        "BIN W#70010,#70020","BCD M999,M599",
+        "WAND 65535,W#70010,#70020","WOR M001,255,W#70020",
+        "WXOR #70010,M001,M599","WNOT #70010,W#70020",
+        "ROL M010,16,M011","ROR W#70010,0,#70020",
+        "BMOV M010,5,M100","CMP W#70010,65535","PLS #70100","PLF #70101",
+    ];
+    let mut bytes=b"// SYNTHETIC\r\n".to_vec();
+    for line in POS {bytes.extend_from_slice(line.as_bytes());bytes.extend_from_slice(b"\r\n");}
+    bytes.extend_from_slice(b"END\n//MESSAGE1\nMUL 1,2,M010\n");
+    let doc=parse_document(bytes.clone(),ControllerFamily::YRC1000);
+    let r=doc.inspection_report(1,1);
+    assert_eq!(r.typed_candidate_count,15);
+    assert_eq!(r.typed_valid_forms,15);
+    assert_eq!(r.typed_invalid_forms,0);
+    assert_eq!(r.syntax_coverage.total_lines,19);
+    assert_eq!(r.syntax_coverage.post_end_data,2);
+    assert!(!r.syntax_coverage.semantics_verified);
+    assert!(!r.edited_export_allowed);
+    for (i,src) in POS.iter().enumerate(){
+        let LineKind::TypedCandidate{instruction,controller_form_verified,
+            semantics_verified}=&doc.lines[i+1].kind else {panic!("expected typed {src}")};
+        assert!(instruction.syntax_valid,"{src}");
+        assert!(*controller_form_verified,"YRC1000 manual form only");
+        assert!(!semantics_verified);
+        assert_eq!(instruction.mnemonic,src.split(' ').next().unwrap());
+        for op in &instruction.operands {
+            assert_eq!(&bytes[op.span.start..op.span.end],op.spelling.as_bytes());
+        }
+    }
+    assert!(matches!(doc.lines[17].kind,LineKind::PostEndSection{..}));
+    assert!(matches!(doc.lines[18].kind,LineKind::PostEndData));
+    assert!(crate::compiler::semantic::analyze(&doc).rungs.is_empty());
+    assert_eq!(doc.copy_original(),bytes);
+}
+
+#[test]
+fn r12_expanded_negative_forms_fail_closed_without_source_mutation(){
+    const NEG:&[&str]=&[
+        "MUL 1,2,M599","DIV M001,1,#70010","MOD 1,2,M600",
+        "BIN 123,M010","BCD 123,M010",
+        "WAND #70011,M001,M010","WOR M010,65536,M011",
+        "WXOR M010,M011,M900","WNOT M010,M900",
+        "ROL M010,17,M011","ROR M010,M010,M011",
+        "BMOV M010,0,M011","BMOV W#70010,5,M011","BMOV M010,1000,M011",
+        "CMP M010","PLS M010","PLF #7001",
+    ];
+    let mut bytes=NEG.join("\r\n").into_bytes();
+    bytes.extend_from_slice(b"\r\nEND\r\n");
+    let doc=parse_document(bytes.clone(),ControllerFamily::YRC1000);
+    let r=doc.inspection_report(1,1);
+    assert_eq!(r.typed_candidate_count,NEG.len());
+    assert_eq!(r.typed_valid_forms,0);
+    assert_eq!(r.typed_invalid_forms,NEG.len());
+    assert_eq!(r.syntax_coverage.malformed,NEG.len());
+    assert!(doc.diagnostics.iter().any(|x|x.code=="TypedOperandForm"));
+    assert!(doc.diagnostics.iter().any(|x|x.code=="TypedOperandCount"));
+    assert_eq!(doc.copy_original(),bytes);
+}
+
+#[test]
+fn new_family_forms_do_not_inherit_dx100_dx200_approval(){
+    let sample=b"MUL M010,2,M598\nCMP M010,M011\nPLS #70100\nBMOV M010,5,M100\nEND\n";
+    for family in [ControllerFamily::DX100,ControllerFamily::DX200] {
+        let doc=parse_document(sample.to_vec(),family);
+        assert_eq!(doc.inspection_report(1,1).typed_candidate_count,4);
+        for line in doc.lines.iter().take(4) {
+            let LineKind::TypedCandidate{instruction,controller_form_verified,
+                semantics_verified}=&line.kind else {panic!("expected raw candidate")};
+            assert!(instruction.syntax_valid);
+            assert!(!controller_form_verified);
+            assert!(!semantics_verified);
+        }
+        assert_eq!(doc.copy_original(),sample);
+    }
+}
+
+#[test]
+fn bom_opaque_and_post_end_new_mnemonics_are_never_executable(){
+    let raw=b"\xef\xbb\xbfPLS #70100\r\nBMOV M010,+5,M100\r\nCMP M000,65535\nEND\r\n//ALARM1\r\nROR M010,0,M011\r\n\xff\x00\n";
+    let doc=parse_document(raw.to_vec(),ControllerFamily::YRC1000);
+    assert_eq!(doc.inspection_report(20,20).typed_candidate_count,3);
+    assert!(matches!(doc.lines[1].kind,LineKind::TypedCandidate{
+        instruction:AstInstruction{syntax_valid:false,..},..}));
+    assert!(matches!(doc.lines[5].kind,LineKind::PostEndData));
+    assert_eq!(doc.copy_original(),raw);
+}
 
 #[test]
 fn synthetic_four_opcode_distribution_is_documented_shape_only() {

@@ -124,3 +124,15 @@ Baseline — слитый PR #42 в `main` `73e675f7df33c5751a35e29752736c3470b1
 **Acceptance:** Rust-тесты round-trip и конфликтов, испорченной версии/метаданных, пустых и некорректных закладок, лимитов, неизвестных полей, защиты нативного файла, hardlink/symlink и сохранения резервной копии; frontend-тесты явного импорта/экспорта и LOCAL-only режима. CI по конечному SHA включает `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. Отдельно и независимо остаются `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; FTP/HSES, native writer и deployment **BLOCKED**.
 
 **Риски:** `revision` не заменяет атомарный файловый CAS; TOCTOU в `check→rename`, Windows ACL, одновременные writers, crash recovery и backup+target остаются OPEN. Решение о слиянии принимает владелец.
+
+## PR #45 — план исполнения OEM-доказательной grammar расширения
+
+**Base:** слитый PR #44, `main` `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. Технический PR #45 — отдельный Draft. Источник: YRC1000 Concurrent I/O R12 178648-1CD (RE-CKI-A467), §§12.2.15–16/19–23/25–28/31–34; [официальный указатель](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), доступное воспроизведение §12.2 [manualzz](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual).
+
+**Scope:** синтаксические `TypedCandidate` для `MUL/DIV/MOD`, `BIN/BCD`, `WAND/WOR/WXOR/WNOT`, `ROL/ROR`, `BMOV`, `CMP`, `PLS/PLF`. Для каждой формы — отдельные роли S/D/n; no immediate в BIN/BCD; BMOV байты, не слова; MUL пара регистров Dn+1; PLS/PLF отдельный relay; CMP два источника без D. Нельзя превращать это в `Instruction` для исполняемого AST или генерацию исходника.
+
+**Evidence / negative tests:** синтетическая проверка 15 корректных и 17 ошибочных примеров, контроллеры DX100/DX200 с `controller_form_verified=false` для новинок, проверка сохранения BOM/EOL, byte spans, непарсируемых строк и post-END. Старые фикстуры обновлять только при изменении доказанной классификации: `BMOV` перестал быть unsupported, для synthetic unknown заменён на `BMOX` с новым SHA-256. `MOVJ/MOVL` — отдельные JOB-мнемоники, не `MOV` и не `BMOV`.
+
+**UI:** справочник для каждого нового opcode должен ссылаться на раздел производителя и не показывать вычисленные Carry/Zero/Error, EN, фактическое write/read или результат реального scan. Для новых форм статус DX100/DX200 — manual evidence отсутствует; не писать ложное ограничение только DX100.
+
+**CI Gate:** `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), реальный Windows NTFS/Tauri `windows-security`, `ci-gate` — SUCCESS на одном окончательном SHA; PR не сливать до согласования. Независимо `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.

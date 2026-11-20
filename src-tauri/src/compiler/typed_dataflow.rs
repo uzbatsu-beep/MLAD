@@ -248,6 +248,24 @@ mod tests {
         assert!(empty.events.is_empty());
     }
 
+
+    #[test]
+    fn newly_typed_r12_forms_are_explicit_lexical_barriers_not_fabricated_writes(){
+        let raw=b"MOV 1,M010\nMUL M010,2,M020\nADD M020,1,M021\nCMP M021,M010\nWAND M021,1,M022\nBMOV M010,5,M100\nEND\n";
+        let (doc,a)=audit(raw);
+        assert_eq!(a.total_candidates,6);
+        assert_eq!(a.valid_shape_candidates,6);
+        assert_eq!(a.possible_source_order_links,0,
+            "MUL/CMP/word logic/BMOV are not executable source-to-destination edges");
+        assert!(a.continuity_barriers>=4);
+        assert!(a.events.iter().all(|event|
+            !event.semantics_verified && !event.execution_condition_verified &&
+            !event.arithmetic_flags_verified));
+        assert!(!a.scan_order_verified);
+        assert!(!a.native_write_allowed);
+        assert_eq!(doc.copy_original(),raw);
+    }
+
     #[test]
     fn dx100_forms_are_not_elevated_to_evidence() {
         let raw=b"MOV 1,M010\nADD M010,2,M011\nEND\n";

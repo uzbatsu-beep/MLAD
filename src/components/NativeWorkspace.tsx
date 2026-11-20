@@ -1199,7 +1199,7 @@ export function NativeWorkspace() {
                   "Форма не соответствует проверяемому подмножеству"}
               </div>
               {!selectedTyped.controller_form_verified&&<div style={{fontSize:11,color:"#f1b38e"}}>
-                Для DX100 эта форма отдельно не подтверждена.
+                Для выбранного семейства форма отдельно не подтверждена документацией; отображается только синтаксис.
               </div>}
               {selectedTyped.instruction.operands.map((operand,index)=>
                 <div key={index} style={{display:"flex",gap:6,fontFamily:"Consolas,monospace",
@@ -1228,8 +1228,8 @@ export function NativeWorkspace() {
                     <span>Операнды: {rule.limits}</span>
                     <span style={{color:"#e6bd81"}}>Не подтверждено: {rule.unresolved}</span>
                     <span style={{color:"#e6bd81"}}>
-                      EN=OFF: команда не записывает D; переходы флагов между командами
-                      не моделируются. Испытания на конкретном контроллере отсутствуют.
+                      EN, выходные данные и переходы флагов между командами не моделируются.
+                      Испытания на конкретном контроллере отсутствуют.
                     </span>
                   </div>;
                 })()}

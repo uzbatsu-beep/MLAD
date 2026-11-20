@@ -43,3 +43,24 @@
 4. Only after independent validation can executable semantic nodes or diagram representations be discussed. Even then, native writing/upload remains a separate restricted milestone.
 
 **Safety:** original CIOPRG.LST and IONAME.DAT immutable, edited native export disabled, HSES/FTP/robot upload disabled, System/User boundaries unverified.
+
+## PR #45 (20 November 2026) — extended YRC1000 Concurrent I/O R12 typed grammar
+
+**Current base:** PR #44 merged into `main` `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`; PR #45 is a separate Draft. The evidence is Yaskawa YRC1000 Concurrent I/O **RE-CKI-A467 / 178648-1CD R12**, its [official manufacturer index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), and an accessible [third-party transcription of §12.2](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual). The transcription permits checking the forms but is not an OEM editor, firmware, or hardware certification. `OEMBench=NOT RUN`.
+
+| Family | New mnemonics | OEM sections | Limited verified operand shape |
+| --- | --- | --- | --- |
+| Arithmetic | `MUL` | §12.2.19 | `MUL S1,S2,Dn`: S1/S2=M000–M999 or 0–65535; two-register result Dn/Dn+1, conservatively require Dn≤M598 |
+| Arithmetic | `DIV`, `MOD` | §§12.2.20–21 | `S1,S2,D`: S1/S2=M000–M999 or 0–65535; D=M000–M599 |
+| Conversion | `BIN`, `BCD` | §§12.2.22–23 | `S,D`: S=M000–M999, relay byte or word, **not immediate**; D=M000–M599, byte or word |
+| Word bitwise | `WAND`, `WOR`, `WXOR` | §§12.2.25–27 | `S1,S2,D`: register, 0–65535, byte or word sources; register M000–M599, byte or word destination |
+| Word bitwise | `WNOT` | §12.2.28 | `S,D` with the same source/destination types |
+| Rotate | `ROL`, `ROR` | §§12.2.31–32 | `S,n,D`: register/0–65535/byte/word S; decimal n=0..16; register/byte/word D |
+| Byte transfer | `BMOV` | §12.2.33 | `S,n,D`: S=M000–M999 or relay byte; n=**1..999 bytes**; D=M000–M599 or relay byte, no word groups |
+| Comparison | `CMP` | §12.2.34 | `S1,S2`: two sources, register/0–65535/relay byte/word, **no D** |
+| Pulse output | `PLS`, `PLF` | §§12.2.15–16 | one bit relay `#XXXXX`, not M or byte/word |
+
+**Implementation boundary:** all 15 additions are display-only `LineKind::TypedCandidate`, `semantics_verified=false`. Matching operand spelling is not proof of EN, Carry/Zero/Error, scan order, writeability, BMOV range overflow or system-section privileges. The existing five `MOV/ADD/SUB/SHL/SHR` retain their previous typing. The new `controller_form_verified=true` is **YRC1000 manual-form evidence only**, never physical controller execution; for DX100 and DX200 the new forms remain `false`, even when lexically valid.
+
+**Regressions:** 15 positive and 17 negative original SYNTHETIC instructions, MUL destination pair, BIN/BCD immediate, BMOV count/word exclusion, CMP arity, PLS/PLF bit-only, byte spans/SHA/EOL/BOM/non-UTF8, post-END and static-analysis barriers. Native `CIOPRG.LST` and `IONAME.DAT` remain read-only. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer, deployment **BLOCKED**.
+Exact source-contract labels retained for cross-language review: `BIN/BCD` conversions exclude immediate S; `PLS/PLF` use one relay token; `MUL Dn+1` denotes the paired high-word output and the conservative M598 boundary. None proves controller execution.
