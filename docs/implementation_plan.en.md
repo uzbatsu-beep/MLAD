@@ -137,3 +137,13 @@ Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #
 
 **CI gate:** exact-final-HEAD `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), actual Windows NTFS/Tauri `windows-security`, and `ci-gate` SUCCESS before review. Owner approval required before merging. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` separately. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.
 The pre-existing typed candidate `MOV` remains distinct from `MOVJ` and `MOVL`; adding `BMOV` does not change that boundary.
+
+## PR #46 — source-linked READ / WRITE / UNKNOWN contract
+
+**Baseline:** PR #45 merged, `main` `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`; PR #46 is an independent Draft. `compiler/static_access.rs`, `inspect` and read-only Tauri `cmd_query_static_access` process only the immutable `CIOPRG.LST` source snapshot.
+
+**Model:** `Read`/`Write` are potential address operand roles, not observed scan events. Contacts, GSTR and documented arithmetic/bitwise S operands indicate candidate reads; OUT, GOUT, D indicate candidate writes. `CMP` has no D; `PLS`/`PLF` indicate pulse output roles, not ordinary register writes. `MUL` creates no fabricated Dn+1 write, `BMOV` expands no block ranges. Immediate constants and shift counts do not read memory; TMR/CNT remain `Unknown` (internal memory semantics unresolved). Invalid, family-unverified and opaque forms also remain `Unknown`. Post-END is not executable source.
+
+**Evidence:** `source_sha256`, one-based `line`, original absolute `ByteSpan`; 160-site `inspect` preview with full-file counts; `query` by kind/exact text token, 100-site offset pages and fresh SHA verification on each request. Rust/IPC/UI tests cover bounds, Unknown, post-END, invalid tokens, 352-site pagination, changed source, byte-exact preservation. No byte/word aliasing, EN/flags, actual hardware memory READ/WRITE or System/User editing permission is inferred.
+
+**Acceptance:** exact final HEAD `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`; separately `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. No merge before owner approval.

@@ -137,3 +137,13 @@ Baseline — слитый PR #42 в `main` `73e675f7df33c5751a35e29752736c3470b1
 **UI:** справочник для каждого нового opcode должен ссылаться на раздел производителя и не показывать вычисленные Carry/Zero/Error, EN, фактическое write/read или результат реального scan. Для новых форм статус DX100/DX200 — manual evidence отсутствует; не писать ложное ограничение только DX100.
 
 **CI Gate:** `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), реальный Windows NTFS/Tauri `windows-security`, `ci-gate` — SUCCESS на одном окончательном SHA; PR не сливать до согласования. Независимо `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.
+
+## PR #46 — контракт статических READ / WRITE / UNKNOWN
+
+**Baseline:** PR #45 слит, `main` `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`; PR #46 — отдельный Draft. Модуль `compiler/static_access.rs`, метод `inspect` и Tauri IPC `cmd_query_static_access` работают только с оригинальным read-only снимком `CIOPRG.LST`.
+
+**Модель:** `Read`/`Write` — потенциальные роли адресных операндов из документированной формы, а не события scan. Контакты, GSTR, S арифметических/логических команд = кандидаты источника; OUT, GOUT, D = кандидаты назначения. `CMP` не имеет D; `PLS`/`PLF` — импульсная выходная роль, не обычная запись регистра. `MUL` не порождает дополнительную выдуманную запись в Dn+1, `BMOV` не разворачивает диапазоны. Иммедиаты и счётчики сдвигов не являются чтениями памяти; TMR/CNT = `Unknown` (не подтверждена внутренняя модель обращения). Невалидные, неподтверждённые для выбранного семейства и непрозрачные конструкции = `Unknown`. Post-END не является кодом.
+
+**Верификация:** `source_sha256`, `line` (с 1), оригинальный `ByteSpan`; 160 первых site в preview при полнофайловых счётчиках; фильтр `query` по виду/точному текстовому адресу с 100 site за запрос, offset и проверкой SHA-256 на каждом обращении. Тесты Rust/IPC/UI: границы, Unknown, post-END, невалидные токены, 352-событийная пагинация, изменение файла между запросами и сохранность байтов. Нет ни aliasing byte/word, ни вычисления EN/флагов, ни фактического Memory READ/WRITE, ни права редактировать System/User.
+
+**Acceptance:** `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` на конечном HEAD; отдельно `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. До разрешения владельца merge не выполнять.
