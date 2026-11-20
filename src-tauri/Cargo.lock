@@ -4639,8 +4639,6 @@ dependencies = [
 name = "yaskawa-ladder-ide"
 version = "0.5.0"
 dependencies = [
- "anyhow",
- "futures-util",
  "hex",
  "nom",
  "serde",

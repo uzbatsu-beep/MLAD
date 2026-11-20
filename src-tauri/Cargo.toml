@@ -21,11 +21,9 @@ hex = "0.4"
 
 # Асинхронность и многопоточность
 tokio = { version = "1.35", features = ["full"] }
-futures-util = "0.3"
 
 # Unverified robot FTP runtime was removed; do not restore network transports.
-# Existing general-purpose crates below are retained pending usage review.
-anyhow = "1.0" # General-purpose error handling (usage audit still open)
+# uuid provides local temporary draft identifiers; no robot networking.
 uuid = { version = "1.8", features = ["v4"] }
 
 # Парсинг текстовых файлов инструкций (.LST)

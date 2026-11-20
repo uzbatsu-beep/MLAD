@@ -148,3 +148,12 @@ test("JSON stages are private on Unix, single-link before rename and identity-sa
   assert.match(draft,/staged_hardlink_is_rejected_before_rename/);
   assert.match(draft,/staged_cleanup_preserves_foreign_file_swapped_into_temp_path/);
 });
+
+test("unused direct anyhow and futures-util crates are absent while nom remains required",()=>{
+  const manifest=readFileSync("src-tauri/Cargo.toml","utf8");
+  const parser=readFileSync("src-tauri/src/compiler/parser.rs","utf8");
+  assert.doesNotMatch(manifest,/^anyhow\s*=/m);
+  assert.doesNotMatch(manifest,/^futures-util\s*=/m);
+  assert.match(manifest,/^nom\s*=/m);
+  assert.match(parser,/use nom::/);
+});
