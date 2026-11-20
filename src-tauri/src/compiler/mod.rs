@@ -4,6 +4,7 @@ pub mod native_sections;
 pub mod ioname;
 pub mod semantic;
 pub mod typed_dataflow;
+pub mod static_access;
 pub mod reference_semantics;
 pub mod graph_draft;
 pub mod advanced;

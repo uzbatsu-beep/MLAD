@@ -56,6 +56,7 @@ struct FullCioprgInspection {
     advanced: compiler::advanced_source::AdvancedSourceReport,
     sections: Vec<compiler::native_sections::SourceSectionMarker>,
     dataflow: compiler::typed_dataflow::StaticAudit,
+    static_access: compiler::static_access::AccessOverview,
 }
 
 /// Bound native input before allocation-intensive parsing. Read-only, no mutation.
@@ -194,6 +195,29 @@ async fn cmd_filter_cioprg_lines(
     )
 }
 
+
+
+/// Query source-linked manual operand READ/WRITE/UNKNOWN with bounded pages.
+/// Full-source totals are scanned from a fresh read-only SHA-pinned snapshot.
+/// Does not expose a controller writer, live I/O, scan or simulation.
+#[tauri::command]
+async fn cmd_query_static_access(
+    file_path:String,
+    controller:compiler::memory::ControllerFamily,
+    expected_sha256:String,
+    access_kind:Option<String>,
+    symbol:Option<String>,
+    offset:usize,
+)->Result<compiler::static_access::AccessPage,String>{
+    let bytes=read_cioprg_bytes(&file_path).await?;
+    let doc=compiler::lossless::parse_document(bytes,controller);
+    if doc.source_sha256!=expected_sha256 {
+        return Err("CIOPRG изменился: данные статического аудита устарели".into());
+    }
+    compiler::static_access::query(
+        &doc,access_kind.as_deref(),symbol.as_deref(),offset
+    )
+}
 
 #[derive(Serialize)]
 struct OfflineSidecarRead {
@@ -374,12 +398,14 @@ async fn cmd_inspect_cioprg(
     let advanced = compiler::advanced_source::inspect(&doc);
     let sections = compiler::native_sections::scan(&doc);
     let dataflow = compiler::typed_dataflow::inspect(&doc, 1000);
+    let static_access = compiler::static_access::inspect(&doc,160);
     Ok(FullCioprgInspection {
         base: doc.inspection_report(600, 500),
         semantic: semantic.preview(200, 200, 500),
         advanced,
         sections,
         dataflow,
+        static_access,
     })
 }
 
@@ -584,6 +610,7 @@ fn main() {
             cmd_read_cioprg_page,
             cmd_search_cioprg,
             cmd_filter_cioprg_lines,
+            cmd_query_static_access,
             cmd_load_offline_sidecar,
             cmd_save_offline_sidecar,
             cmd_inspect_ioname,

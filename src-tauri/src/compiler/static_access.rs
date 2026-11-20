@@ -178,7 +178,7 @@ fn scan(doc:&LosslessDocument,mut push:impl FnMut(AccessSite)) -> (usize,usize,u
                 for (index,operand) in inst.operands.iter().enumerate(){
                     emit_operand(doc,inst,operand,index,
                         if simple{source_role(&inst.mnemonic,index)}else{None},
-                        valid,valid && simple,
+                        valid,valid,
                         if matches!(inst.mnemonic.as_str(),"TMR"|"CNT"){
                             AccessBasis::StatefulOpcodeUnresolved
                         }else {AccessBasis::UnknownOpcodeOrStructure},
@@ -283,10 +283,10 @@ mod tests {
         assert_eq!(a.line_count,12);
         assert_eq!(a.post_end_lines,2);
         assert_eq!(a.read_sites,8);
-        assert_eq!(a.write_sites,7);
+        assert_eq!(a.write_sites,6);
         assert_eq!(a.unknown_sites,0);
         assert_eq!(a.skipped_literal_operands,3);
-        assert_eq!(a.total_sites,15);
+        assert_eq!(a.total_sites,14);
         assert!(!a.execution_verified);
         assert!(!a.scan_order_verified);
         assert!(!a.address_aliases_verified);
