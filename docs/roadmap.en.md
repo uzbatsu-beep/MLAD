@@ -144,3 +144,11 @@ Proposed, not-yet-started next tasks: PR #46 source-linked static READ/WRITE/UNK
 **Safety:** opening verifies every attachment, source SHA-256/size/profile and sidecar binding, then RECOMPUTES analysis from source. Stored analysis counters are a comparison marker only; `analysis_changed` reports engine differences. Missing, renamed or changed files fail opening without partially swapping the session. Metadata saves use staged replacement, `*.bak`, an explicit revision for existing files and refusal when sidecar edits remain unsaved. Originals are read-only.
 
 **Next:** conditional PR #48 Windows preview only after owner approval. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer, live robot control/deployment **BLOCKED**. Do not merge PR #47 without explicit approval.
+
+## PR #48 — Windows Offline Preview and manual UserSmoke (20 November 2026)
+
+**Base:** PR #47 merged into `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 is a separate **Draft**, without a public GitHub Release. This stage provides a Windows x64 `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` Actions artifact: unsigned Tauri EXE, portable SYNTHETIC `*.mladproj.json` linking `CIOPRG.LST`, `IONAME.DAT`, `*.mlad.json`, independent SHA-256, GPL-3.0-only license, exact corresponding source and acceptance guide.
+
+**CI Gate:** full Linux/Windows graph `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`, plus the independent Windows Preview workflow on the **exact HEAD**. Includes negative synthetic file tampering, PE/SHA and no-publication checks. **Human Gate:** seventeen `P48-01`…`P48-17` scenarios in `docs/windows_offline_preview_pr48.md` on Windows 10/11 x64 and WebView2. GitHub Actions does not execute interactive tests; until observed `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
+
+After acceptance: resolve observed UX defects and separately approve PR merging and any public Windows Release. `CIOPRG.LST`/`IONAME.DAT` read-only; `FTP`/`HSES`, native writer and deployment `BLOCKED`. TOCTOU/ACL/multi-file atomicity remain OPEN.

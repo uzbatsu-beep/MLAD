@@ -144,3 +144,11 @@ PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af
 **Безопасность:** при загрузке перепроверить все вложения, source SHA-256/размер/профиль, sidecar binding и затем пересчитать анализ по исходнику. Старую сводку признавать только контрольной отметкой; при изменении алгоритма анализа показывать предупреждение `analysis_changed`. Отсутствующий/переименованный/изменённый файл = ошибка открытия, без частичной замены сессии. При сохранении метаданных — `*.bak`, обязательная ревизия для существующего файла, отказ при несохранённом sidecar. Источники по-прежнему read-only.
 
 **Далее:** PR #48 Windows preview — предложен, но не запущен до решения владельца. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer, live robot control/deployment **BLOCKED**. Merge PR #47 исключительно после согласования.
+
+## PR #48 — Windows Offline Preview и ручной UserSmoke (20.11.2026)
+
+**База:** PR #47 слит в `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 открыт как отдельный **Draft**, без публичного GitHub Release. Этап обеспечивает Windows x64 `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` Actions artifact: неподписанный Tauri EXE, переносимый SYNTHETIC проект `*.mladproj.json` с `CIOPRG.LST`, `IONAME.DAT`, `*.mlad.json`, независимые SHA-256, лицензию GPL-3.0-only, архив соответствующего исходного кода и протокол приёмки.
+
+**CI Gate:** полный Linux/Windows тестовый граф `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` и отдельный Windows Preview workflow на **точном HEAD**. Включены отрицательные проверки изменения синтетических файлов, PE/SHA и запрета публикации. **Human Gate:** 17 сценариев `P48-01`…`P48-17` в `docs/windows_offline_preview_pr48.md` на Windows 10/11 x64 с WebView2. Их не исполняют GitHub Actions; до протокола `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
+
+После приёмки: исправить выявленные UX-дефекты и отдельно принять решение о PR merge и публичном Windows Release. `CIOPRG.LST`/`IONAME.DAT` read-only, `FTP`/`HSES`, native writer, deployment `BLOCKED`. TOCTOU/ACL/атомарность нескольких файлов остаются OPEN.
