@@ -117,6 +117,8 @@ jobs:
         run: npm run test:security
       - name: Native integrated workspace regressions
         run: npm run test:native
+      - name: PR48 unsigned Windows preview and synthetic offline fixture contracts
+        run: node --test scripts/offline-preview-contract.test.mjs
       - name: Diagnostic grouping model tests
         run: npm run test:diagnostics
       - name: OEM manual reference labels (no execution)

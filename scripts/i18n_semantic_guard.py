@@ -154,7 +154,7 @@ def main() -> None:
     drafts = 0
     found = sources()
 
-    if len(found) != 53:
+    if len(found) != 54:
         failures.append(f"source inventory changed: expected 53, found {len(found)}; update review register")
 
     for src in found:
@@ -223,7 +223,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 13, 22, 44):
+    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 13, 22, 46):
         failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:
