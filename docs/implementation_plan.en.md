@@ -124,3 +124,15 @@ Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #
 **Acceptance:** Rust round-trip/conflict tests, invalid version/metadata, empty/invalid bookmarks, size limits, unknown fields, native file protection, hardlink/symlink and backup preservation; frontend tests for explicit import/export and offline-only operation. Exact-HEAD CI includes `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` remain separate; FTP/HSES, native writer and deployment **BLOCKED**.
 
 **Risks:** `revision` is not an atomic filesystem CAS. TOCTOU in `check→rename`, Windows ACL, concurrent writers, crash recovery and backup+target remain OPEN. Owner approval is required before merging.
+
+## PR #45 — OEM-evidenced typed grammar implementation plan
+
+**Base:** merged PR #44, `main` `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 is a separate Draft. Source: YRC1000 Concurrent I/O R12 178648-1CD (RE-CKI-A467) §§12.2.15–16/19–23/25–28/31–34, [official OEM index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), accessible [manualzz §12.2 transcription](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual).
+
+**Scope:** syntactic `TypedCandidate` forms for `MUL/DIV/MOD`, `BIN/BCD`, `WAND/WOR/WXOR/WNOT`, `ROL/ROR`, `BMOV`, `CMP`, `PLS/PLF`. Distinct S/D/n roles: no immediate BIN/BCD source; BMOV byte count, not words; MUL Dn+1 register pair; PLS/PLF one bit relay; CMP two sources without D. None may become an executable AST `Instruction` or authorize native source generation.
+
+**Evidence / negative tests:** 15 valid and 17 invalid synthetic examples, DX100/DX200 `controller_form_verified=false` for expanded forms, byte-exact BOM/EOL/spans, opaque and post-END preservation. Update prior fixture classifications ONLY when supported by evidence: BMOV is no longer unsupported; the synthetic unknown becomes `BMOX` with recomputed SHA-256. `MOVJ/MOVL` are distinct JOB instructions, never MOV/BMOV variants.
+
+**UI:** each new opcode links to its manual section; no computed Carry/Zero/Error, EN, actual read/write or live scan result. New DX100/DX200 forms have no family manual evidence; do not show a DX100-only disclaimer.
+
+**CI gate:** exact-final-HEAD `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), actual Windows NTFS/Tauri `windows-security`, and `ci-gate` SUCCESS before review. Owner approval required before merging. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` separately. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.
