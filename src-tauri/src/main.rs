@@ -833,7 +833,7 @@ mod offline_sidecar_ipc_tests {
             file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone()
         ).await.is_err(),"changed source cannot use stale sidecar");
         assert!(cmd_save_offline_sidecar(
-            file_path,source_path,controller,doc.source_sha256,
+            file_path,source_path,controller,doc.source_sha256.clone(),
             sidecar::OfflineSidecar::new(&doc),Some(second.revision)
         ).await.is_err(),"changed source must block sidecar write");
         std::fs::remove_dir_all(root).unwrap();
