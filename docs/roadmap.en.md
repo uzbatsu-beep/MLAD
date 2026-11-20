@@ -100,3 +100,11 @@ PR #41 Parser Fidelity merged into `main` SHA `0c1b233354564d9fd3c242675a78a4541
 Proposed later work (numbers not reserved): PR #43 security/dependencies, PR #44 portable sidecar, PR #45 typed grammar, PR #46 static analysis, PR #47 Unified Offline Project, PR #48 Windows offline preview. Previous v4 numbering is historical planning, not assigned PRs.
 
 CIOPRG.LST/IONAME.DAT remain read-only; HSES/FTP, native writer and deployment **BLOCKED**. Address matches are textual, not proof of a scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; merging requires explicit owner approval.
+
+## PR #43 — filesystem security and dependency review (Draft, 20 November 2026)
+
+**Current baseline:** PR #42 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`. Separate PR #43 remains Draft, not part of `main`. Concrete changes: remove unused FTP crate `suppaftp` and five exclusively reachable transitive dependencies from `Cargo.lock`; owner-only `0600` for new Unix staged JSON and backups; reject staged files with additional hardlinks; verify File ID before cleanup of a temporary file.
+
+**M2 remains PARTIAL, not CLOSED.** `check→rename` remains non-atomic; Windows ACL/DACL/owner and replacement permission inheritance are unverified; target and `*.bak` are not an atomic transaction; multi-writer races, power-loss durability and file systems outside the local testing contract remain open. The `0600` mode intentionally makes previously shared Unix JSON drafts private.
+
+The next task after PR #43 (subject to separate approval) is the portable offline sidecar `*.mlad.json` with source SHA-256 binding and a separate write policy review. `CIOPRG.LST`/`IONAME.DAT` stay read-only; `HSES/FTP`, native writer and deployment remain **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` absent separate evidence.
