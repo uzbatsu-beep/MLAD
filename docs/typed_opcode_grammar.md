@@ -42,3 +42,23 @@
 4. Only after independent validation can executable semantic nodes or diagram representations be discussed. Even then, native writing/upload remains a separate restricted milestone.
 
 **Safety:** original CIOPRG.LST and IONAME.DAT immutable, edited native export disabled, HSES/FTP/robot upload disabled, System/User boundaries unverified.
+
+## PR #45 (20.11.2026) — расширенная типизация по YRC1000 Concurrent I/O R12
+
+**Актуальная база:** PR #44 слит в `main` `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 открыт Draft. Источником новых форм является документ Yaskawa YRC1000 Concurrent I/O **RE-CKI-A467 / 178648-1CD, R12**, [официальный указатель](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12) и доступное [текстовое воспроизведение раздела 12.2](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual). Воспроизведение третьей стороной — источник проверки таблиц, не сертификат редактора или контроллера; независимый OEMBench **NOT RUN**.
+
+| Семейство | Новые мнемоники | Разделы OEM | Строго подтверждённая форма синтаксиса |
+| --- | --- | --- | --- |
+| Арифметика | `MUL` | §12.2.19 | `MUL S1,S2,Dn`: S1/S2=M000–M999 или 0–65535; результат Dn/Dn+1 — два M; MLAD консервативно требует Dn≤M598 |
+| Арифметика | `DIV`, `MOD` | §§12.2.20–21 | `S1,S2,D`: S1/S2=M000–M999 или 0–65535; D=M000–M599 |
+| Преобразование | `BIN`, `BCD` | §§12.2.22–23 | `S,D`: S=M000–M999 / relay byte / word, **не immediate**; D=M000–M599 / relay byte / word |
+| Битовая логика слова | `WAND`, `WOR`, `WXOR` | §§12.2.25–27 | `S1,S2,D`: S1/S2=регистр, 0–65535, byte/word; D=регистр M000–M599 либо byte/word |
+| Битовая логика слова | `WNOT` | §12.2.28 | `S,D` с теми же типами S/D |
+| Циклический сдвиг | `ROL`, `ROR` | §§12.2.31–32 | `S,n,D`: S=регистр/0–65535/byte/word; n — только 0..16; D=регистр/byte/word |
+| Копирование байтов | `BMOV` | §12.2.33 | `S,n,D`: S=M000–M999 или relay byte; n — **1..999 байт**; D=M000–M599 или relay byte, без word-групп |
+| Сравнение | `CMP` | §12.2.34 | `S1,S2`: два источника, регистр/0–65535/relay byte/word; **нет D** |
+| Импульсы | `PLS`, `PLF` | §§12.2.15–16 | ровно один битовый `#XXXXX`, не M и не byte/word |
+
+**Граница реализации:** все 15 новых форм — только `LineKind::TypedCandidate`, `semantics_verified=false`. Валидное расположение операндов не подтверждает EN, флаги Carry/Zero/Error, допустимость записи, scan-order, границы последовательного диапазона BMOV или системные ограничения. Старые пять `MOV/ADD/SUB/SHL/SHR` сохраняют предыдущую типизацию. Новые формы имеют `controller_form_verified=true` **только для YRC1000 в смысле прочитанного руководства**, не реального исполнения. Для DX100/DX200 новые формы остаются `controller_form_verified=false` даже если лексически подходят. Не переносить R12 на другую прошивку без OEM gate.
+
+**Негативные проверки:** 15 положительных и 17 отрицательных оригинальных SYNTHETIC строк, предел `MUL Dn+1`, `BIN/BCD` immediate, `BMOV` word/count, `CMP` неверное число аргументов, `PLS/PLF` адресные формы, прочность byte spans/SHA/EOL/BOM/non-UTF8 и post-END. Статическая семантика обязана видеть новый кандидат как разрыв исполняемого потока; нативные `CIOPRG.LST` и `IONAME.DAT` остаются read-only. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer и deployment **BLOCKED**.
