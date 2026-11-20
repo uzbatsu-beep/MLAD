@@ -149,13 +149,32 @@ fn timer_is_barrier_but_register_refs_are_recorded() {
 
 #[test]
 fn unknown_instruction_breaks_partial_expression_no_false_graph() {
-    let r = report("STR #70010\nBMOV M000,M010\nOUT #70020\nSTR #70011\nOUT #70021\nEND\n");
+    let r = report("STR #70010\nBMOX M000,M010\nOUT #70020\nSTR #70011\nOUT #70021\nEND\n");
     assert!(codes(&r).contains(&"UnverifiedSource"));
     assert_eq!(r.rungs.len(),1);
     assert_eq!(r.rungs[0].output,70021);
     assert_eq!(r.unsupported_segments > 0,true);
 }
 
+
+#[test]
+fn newly_typed_bmov_is_explicit_non_executable_barrier() {
+    let source=b"STR #70010\nBMOV M010,5,M100\nOUT #70020\nSTR #70011\nOUT #70021\nEND\n";
+    let doc=crate::compiler::lossless::parse_document(
+        source.to_vec(),crate::compiler::memory::ControllerFamily::YRC1000
+    );
+    assert!(matches!(doc.lines[1].kind,
+        crate::compiler::lossless::LineKind::TypedCandidate{
+            instruction:crate::compiler::lossless::AstInstruction{syntax_valid:true,..},
+            semantics_verified:false,..
+        }));
+    let result=crate::compiler::semantic::analyze(&doc);
+    assert!(codes(&result).contains(&"TypedOpcodeSemanticsPending"));
+    assert_eq!(result.rungs.len(),1);
+    assert_eq!(result.rungs[0].output,70021);
+    assert!(!result.subset_analysis_complete);
+    assert_eq!(doc.original_bytes(),source);
+}
 #[test]
 fn grouped_opcode_potential_collision_is_flagged() {
     let r = report("STR #70010\nOUT #70022\nGOUT #70020\nEND\n");

@@ -59,7 +59,7 @@ fn bom_and_non_utf8_are_preserved_without_panic() {
 
 #[test]
 fn unknown_mnemonics_and_genuine_directives_are_not_lost() {
-    let b = b"//$UNKNOWN\nGSTR #70010\nBMOV #20010,#30010\nFOO BAR\n* note \n";
+    let b = b"//$UNKNOWN\nGSTR #70010\nBMOX #20010,#30010\nFOO BAR\n* note \n";
     let doc = parse(b);
     assert_round_trip(b);
     assert!(matches!(doc.lines[0].kind, LineKind::Directive));

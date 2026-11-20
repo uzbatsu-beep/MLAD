@@ -146,10 +146,10 @@
     },
     {
       "id": "F10",
-      "description": "Unsupported mnemonic is semantic barrier",
+      "description": "Invented BMOX remains unsupported, semantic barrier",
       "controller": "YRC1000",
-      "source_hex": "535452202337303031300a424d4f56202337303031302c2337303032300a4f5554202337303032300a454e440a",
-      "sha256": "a4e623a8e0c7ea6ebc54d44bff407e3b47d320b51452b5a80bf1f9425a6233c3",
+      "source_hex": "535452202337303031300a424d4f58202337303031302c2337303032300a4f5554202337303032300a454e440a",
+      "sha256": "472cc03eab07c72d54e901a01276119689b9355e3a450d1faf639817f20c0f79",
       "expected_classes": [
         "Recognized",
         "Unsupported",
