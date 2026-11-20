@@ -262,3 +262,15 @@ test("Native Workspace explicitly imports and exports portable notes and bookmar
   assert.match(native,/\.replace\(\/\\\.lst\$\/i,"\.mlad\.json"\)/);
   assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
 });
+
+test("sidecar UX never loses unsaved notes during source switching or concurrent saves",()=>{
+  assert.match(native,/if\(report&&sidecarDirty\)/);
+  assert.match(native,/if\(sidecarBusy\)\s*\{\s*setIssue\("Сначала дождитесь/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:cached,bookmarks:\[\]\}\)/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:payload\.annotations,bookmarks:payload\.bookmarks\}\)/);
+  assert.match(native,/function discardUnsavedSidecarNotes\(/);
+  assert.match(native,/setAnnotations\(savedSidecarNotes\.annotations\)/);
+  assert.match(native,/Отменить несохранённые изменения sidecar/);
+  assert.match(native,/if\(!report \|\| !editing\|\|sidecarBusy\)return/);
+  assert.match(native,/if\(sidecarBusy\)return;/);
+});
