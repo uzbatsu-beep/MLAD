@@ -138,7 +138,8 @@ test("dataflow evidence is source-order-only and always unverified",()=>{
   assert.match(rust,/MAX_STATIC_EVENTS_PREVIEW: usize = 1000/);
   assert.match(rust,/PostEndOpaque/);
   const main=readFileSync("src-tauri/src/main.rs","utf8");
-  assert.match(main,/typed_dataflow::inspect\(&doc, 1000\)/);
+  assert.match(main,/typed_dataflow::inspect\(doc, 1000\)/);
+  assert.match(main,/build_full_inspection\(&doc\)/);
 });
 
 test("OEM manual source panel never claims runtime verification",()=>{
@@ -295,4 +296,50 @@ test("PR46 source-linked READ/WRITE/UNKNOWN UX has no runtime access claims",()=
   assert.match(native,/post_end_lines/);
   assert.match(native,/next_offset/);
   assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
+});
+
+test("PR47 unified offline project opens source, IONAME, sidecar and recomputed analyses together",()=>{
+  assert.match(native,/type UnifiedProjectManifest/);
+  assert.match(native,/type UnifiedProjectOpened/);
+  assert.match(native,/MLAD_OFFLINE_PROJECT/);
+  assert.match(native,/SOURCE_ROLE_PREVIEW_V1/);
+  assert.match(native,/aria-label="Единый offline-проект MLAD"/);
+  assert.match(native,/aria-label="Путь к единому offline-проекту"/);
+  assert.match(native,/invoke<UnifiedProjectOpened>\("cmd_open_offline_project"/);
+  assert.match(native,/invoke<UnifiedProjectSaved>\("cmd_save_offline_project"/);
+  assert.match(native,/loaded\.project/);
+  assert.match(native,/loaded\.report/);
+  assert.match(native,/setIoname\(loaded\.ioname\)/);
+  assert.match(native,/loaded\.sidecar\?\.annotations/);
+  assert.match(native,/setBookmarks\(markers\)/);
+  assert.match(native,/setProjectAnalysisChanged\(loaded\.analysis_changed\)/);
+  assert.match(native,/setProjectRevision\(loaded\.revision\)/);
+  assert.match(native,/expectedManifestRevision:projectRevision/);
+  assert.match(native,/expectedSidecarRevision:sidecarRevision/);
+  assert.match(native,/expectedIonameSha256:ioname\?\.source_sha256/);
+  assert.match(native,/if\(sidecarDirty\|\|projectDirty\|\|editing\)/);
+  assert.match(native,/if\(hasNotes&&!sidecarRevision\)/);
+  assert.match(native,/setProjectDirty\(true\)/);
+  assert.match(native,/function detachUnifiedProject\(/);
+  assert.match(native,/Анализ изменился · пересчитан из CIOPRG/);
+  assert.match(native,/CIOPRG\/IONAME только чтение/);
+  assert.match(native,/nativeRequestEpoch\.current/);
+  assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
+});
+
+test("unified project without linked sidecar never imports unrelated localStorage annotations",()=>{
+  assert.match(native,/const notes=loaded\.sidecar\?\.annotations\?\?blankAnnotations\(\)/);
+  assert.match(native,/const markers=loaded\.sidecar\?\.bookmarks\?\?\[\]/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:notes,bookmarks:markers\}\)/);
+  assert.match(native,/loadLocalAnnotations\(value\.source_sha256\)/,
+    "standalone native inspection still has its optional local cache");
+});
+
+test("unified manifest-bound source cannot be silently replaced and external file selections mark metadata dirty",()=>{
+  assert.match(native,/if\(projectRevision\)\{setIssue\("Сначала отвяжите проект/);
+  assert.match(native,/if\(kind==="cioprg"&&projectRevision\)/);
+  assert.match(native,/value=\{path\} disabled=\{!!projectRevision\|\|projectBusy\}/);
+  assert.match(native,/disabled=\{!!filePickerBusy\|\|busy\|\|!!projectRevision\|\|projectBusy\}/);
+  assert.match(native,/setIonamePath\(event\.target\.value\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
+  assert.match(native,/setSidecarPath\(event\.target\.value\);setSidecarRevision\(null\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
 });
