@@ -211,6 +211,19 @@ type IonameReport = {
 type Annotations = {
   rungs:Record<string,string>;addresses:Record<string,string>;ioname:Record<string,string>;
 };
+type SidecarBookmark = {line:number;label:string};
+type OfflineSidecar = {
+  format:"MLAD_OFFLINE_SIDECAR";
+  schema_version:1;
+  source:{
+    kind:"CIOPRG.LST";controller:Controller;sha256:string;
+    byte_length:number;line_count:number;
+  };
+  annotations:Annotations;
+  bookmarks:SidecarBookmark[];
+};
+type OfflineSidecarRead = {sidecar:OfflineSidecar;revision:string};
+type OfflineSidecarSaved = {revision:string};
 type EditKey = "rungs"|"addresses"|"ioname";
 type EditTarget = {type:EditKey;key:string;caption:string};
 const blankAnnotations=():Annotations=>({rungs:{},addresses:{},ioname:{}});
@@ -302,6 +315,13 @@ export function NativeWorkspace() {
   const [ionameQuery,setIonameQuery]=useState("");
   const [ionameBusy,setIonameBusy]=useState(false);
   const [annotations,setAnnotations]=useState<Annotations>(blankAnnotations);
+  const [openedSourcePath,setOpenedSourcePath]=useState("");
+  const [sidecarPath,setSidecarPath]=useState("");
+  const [sidecarRevision,setSidecarRevision]=useState<string|null>(null);
+  const [sidecarBusy,setSidecarBusy]=useState(false);
+  const [sidecarDirty,setSidecarDirty]=useState(false);
+  const [bookmarks,setBookmarks]=useState<SidecarBookmark[]>([]);
+  const [bookmarkLabel,setBookmarkLabel]=useState("");
   const [editing,setEditing]=useState<EditTarget|null>(null);
   const [commentText,setCommentText]=useState("");
   const [linkEntry,setLinkEntry]=useState<IonameEntry|null>(null);
@@ -386,6 +406,9 @@ export function NativeWorkspace() {
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     setSourceFilterResult(null);setSourceFilterBusy(false);
     setSearchBusy(false);setPageBusy(false);
+    setSidecarBusy(false);setSidecarRevision(null);
+    setSidecarDirty(false);setBookmarks([]);setBookmarkLabel("");
+    setOpenedSourcePath("");
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
       if(epoch!==nativeRequestEpoch.current)return;
@@ -395,6 +418,8 @@ export function NativeWorkspace() {
         throw Error("Несовместимый отчёт покрытия или неполный снимок");
       }
       setPath(selectedPath);
+      setOpenedSourcePath(selectedPath.trim());
+      setSidecarPath(selectedPath.trim().replace(/\.lst$/i,".mlad.json"));
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
       setPageStart(1);setSelectedLine(null);
@@ -484,11 +509,86 @@ export function NativeWorkspace() {
   function persistAnnotations(next:Annotations) {
     if(!report)return;
     setAnnotations(next);
+    setSidecarDirty(true);
     try {
       window.localStorage.setItem("mlad-annotations:"+report.source_sha256,JSON.stringify(next));
     } catch(error) {
       setIssue("Локальное сохранение комментариев недоступно: "+String(error));
     }
+  }
+  async function loadPortableSidecar(){
+    if(!report||!openedSourcePath||sidecarBusy||!sidecarPath.trim())return;
+    if(sidecarDirty){
+      setIssue("Есть несохранённые изменения sidecar. Сохраните их перед загрузкой другого файла.");
+      return;
+    }
+    const epoch=nativeRequestEpoch.current;
+    setIssue("");setSidecarBusy(true);
+    try{
+      const loaded=await invoke<OfflineSidecarRead>("cmd_load_offline_sidecar",{
+        filePath:sidecarPath.trim(),sourcePath:openedSourcePath,
+        controller:report.controller,expectedSourceSha256:report.source_sha256,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      if(loaded.sidecar.format!=="MLAD_OFFLINE_SIDECAR" ||
+        loaded.sidecar.schema_version!==1 ||
+        loaded.sidecar.source.sha256!==report.source_sha256 ||
+        loaded.sidecar.source.controller!==report.controller ||
+        loaded.sidecar.source.line_count!==report.line_count ||
+        loaded.sidecar.source.byte_length!==report.byte_length) {
+        throw Error("Sidecar не соответствует открытому CIOPRG");
+      }
+      setAnnotations(loaded.sidecar.annotations);
+      setBookmarks(loaded.sidecar.bookmarks);
+      setSidecarRevision(loaded.revision);
+      setSidecarDirty(false);setBookmarkLabel("");
+      try {
+        window.localStorage.setItem("mlad-annotations:"+report.source_sha256,
+          JSON.stringify(loaded.sidecar.annotations));
+      } catch {
+        // Sidecar remains authoritative even when localStorage is unavailable.
+      }
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setSidecarBusy(false);}
+  }
+  async function savePortableSidecar(){
+    if(!report||!openedSourcePath||sidecarBusy||!sidecarPath.trim())return;
+    if(editing){setIssue("Сначала завершите редактирование комментария.");return;}
+    const epoch=nativeRequestEpoch.current;
+    const payload:OfflineSidecar={
+      format:"MLAD_OFFLINE_SIDECAR",schema_version:1,
+      source:{
+        kind:"CIOPRG.LST",controller:report.controller,sha256:report.source_sha256,
+        byte_length:report.byte_length,line_count:report.line_count,
+      },annotations,bookmarks,
+    };
+    setIssue("");setSidecarBusy(true);
+    try{
+      const saved=await invoke<OfflineSidecarSaved>("cmd_save_offline_sidecar",{
+        filePath:sidecarPath.trim(),sourcePath:openedSourcePath,
+        controller:report.controller,expectedSourceSha256:report.source_sha256,
+        sidecar:payload,expectedRevision:sidecarRevision,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      setSidecarRevision(saved.revision);
+      setSidecarDirty(false);
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setSidecarBusy(false);}
+  }
+  function addBookmark(){
+    if(!report||selectedLine===null)return;
+    if(bookmarks.some(bookmark=>bookmark.line===selectedLine)){
+      setIssue("Для этой строки уже есть закладка.");return;
+    }
+    if(bookmarks.length>=500){setIssue("Достигнут предел 500 закладок.");return;}
+    const label=bookmarkLabel.trim()||"Строка L"+selectedLine;
+    if(label.length>80){setIssue("Подпись закладки: не более 80 символов.");return;}
+    setBookmarks([...bookmarks,{line:selectedLine,label}].sort((a,b)=>a.line-b.line));
+    setBookmarkLabel("");setSidecarDirty(true);
+  }
+  function removeBookmark(line:number){
+    setBookmarks(bookmarks.filter(x=>x.line!==line));
+    setSidecarDirty(true);
   }
   const rungKey=(outputLine:number,output:number)=>"L"+outputLine+":OUT"+output;
   const ionameKey=(entry:IonameEntry)=>ioname!.source_sha256+":"+entry.line+":"+entry.slot;
@@ -563,7 +663,7 @@ export function NativeWorkspace() {
         addresses:Object.keys(annotations.addresses).length,
       },
       ioname_source_sha256:ioname?.source_sha256??null,
-      annotation_policy:"Local storage only, originals untouched",
+      annotation_policy:"LocalStorage cache + opt-in standalone *.mlad.json sidecar; originals untouched",
       original_round_trip_only:report.original_round_trip_only,
       edited_export_allowed:report.edited_export_allowed,
       system_user_boundaries_verified:report.system_user_boundaries_verified,
@@ -688,6 +788,19 @@ export function NativeWorkspace() {
       </div>
       <div style={{display:"grid",gridTemplateColumns:"220px minmax(300px,1fr) 290px",flex:1,minHeight:0}}>
         <aside style={sideStyle} aria-label="Дерево программы">
+          <strong>Закладки sidecar ({bookmarks.length})</strong>
+          {bookmarks.slice(0,150).map(bookmark=><div key={bookmark.line}
+            style={{display:"flex",gap:3,alignItems:"center"}}>
+            <button type="button" style={{...itemStyle,flex:1}}
+              title={bookmark.label} onClick={()=>void showLine(bookmark.line)}>
+              L{bookmark.line} · {bookmark.label}
+            </button>
+            <button type="button" style={{...btn,padding:"3px 6px",fontSize:10}}
+              aria-label={"Удалить закладку L"+bookmark.line}
+              onClick={()=>removeBookmark(bookmark.line)}>×</button>
+          </div>)}
+          {bookmarks.length>150&&<small>Показаны первые 150 закладок из {bookmarks.length}.</small>}
+          <hr style={{borderColor:"#3a4d5e"}}/>
           <strong>Структура файла</strong>
           <p style={{fontSize:11,color:"#d2b484"}}>
             PART — только текстовая метка, не право записи в System/User
