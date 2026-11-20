@@ -373,18 +373,36 @@ fn ascii_trim(mut bytes: &[u8]) -> &[u8] {
 /// that a DX100 firmware supports identical rules.
 #[derive(Clone, Copy)]
 enum TypedOperandRole {
-    WordSource,     // immediate, Mxxx, byte/word group
-    WordDest,       // M000..M599 or byte/word group
-    ArithmeticSrc,  // immediate or Mxxx
-    ArithmeticDest, // M000..M599
+    WordSource,     // immediate 0..65535, M000..999, byte/word relay group
+    WordDest,       // M000..599 or byte/word relay group
+    ArithmeticSrc,  // immediate 0..65535 or M000..999
+    ArithmeticDest, // M000..599
+    MulPairDest,    // M000..598; Dn + 1 must still fit M000..599
+    GroupSource,    // M000..999 or relay byte/word; BIN/BCD do NOT allow literal
+    BlockSource,    // M000..999 or relay byte
+    BlockDest,      // M000..599 or relay byte
+    BlockCount,     // decimal 1..999 (bytes, not register/word count)
+    PulseRelay,     // #XXXXX relay; NOT a boolean coil AST
     ShiftCount,     // decimal 0..16 (not an M register)
 }
 fn typed_roles(mnemonic:&str)->Option<&'static [TypedOperandRole]> {
     use TypedOperandRole::*;
+    // Forms transcribed from YRC1000 Concurrent I/O R12, §§12.2.15-34.
+    // An instruction is only a *typed source candidate*; this function
+    // supplies neither controller executable semantics nor write permission.
     match mnemonic {
         "MOV" => Some(&[WordSource,WordDest]),
-        "ADD" | "SUB" => Some(&[ArithmeticSrc,ArithmeticSrc,ArithmeticDest]),
-        "SHL" | "SHR" => Some(&[WordSource,ShiftCount,WordDest]),
+        "ADD" | "SUB" | "DIV" | "MOD" =>
+            Some(&[ArithmeticSrc,ArithmeticSrc,ArithmeticDest]),
+        "MUL" => Some(&[ArithmeticSrc,ArithmeticSrc,MulPairDest]),
+        "SHL" | "SHR" | "ROL" | "ROR" =>
+            Some(&[WordSource,ShiftCount,WordDest]),
+        "BIN" | "BCD" => Some(&[GroupSource,WordDest]),
+        "WAND" | "WOR" | "WXOR" => Some(&[WordSource,WordSource,WordDest]),
+        "WNOT" => Some(&[WordSource,WordDest]),
+        "BMOV" => Some(&[BlockSource,BlockCount,BlockDest]),
+        "CMP" => Some(&[WordSource,WordSource]),
+        "PLS" | "PLF" => Some(&[PulseRelay]),
         _ => None,
     }
 }
@@ -416,13 +434,24 @@ fn typed_slot_valid(
         ArithmeticSrc => matches!(kind,OperandKind::DecimalLiteral|OperandKind::MRegister),
         ArithmeticDest => kind==OperandKind::MRegister &&
             parse_register(token).is_ok_and(|m|m.number<=599),
+        MulPairDest => kind==OperandKind::MRegister &&
+            parse_register(token).is_ok_and(|m|m.number<=598),
+        GroupSource => matches!(kind,OperandKind::MRegister|
+            OperandKind::RelayByte|OperandKind::RelayWord),
+        BlockSource => matches!(kind,OperandKind::MRegister|OperandKind::RelayByte),
+        BlockDest => kind==OperandKind::RelayByte ||
+            (kind==OperandKind::MRegister && parse_register(token).is_ok_and(|m|m.number<=599)),
+        BlockCount => kind==OperandKind::DecimalLiteral &&
+            token.parse::<u16>().is_ok_and(|n|(1..=999).contains(&n)),
+        PulseRelay => kind==OperandKind::RelayBit,
         ShiftCount => kind==OperandKind::DecimalLiteral &&
             token.parse::<u16>().is_ok_and(|n|n<=16),
     }
 }
-/// Returns a typed display-only candidate for the five positively listed
-/// instruction forms. It never joins the executable boolean AST, even when
-/// all operand shapes match the documented examples.
+/// Returns a display-only candidate for manual-described instruction *forms*.
+/// No output is added to the executable boolean AST, even with valid operands.
+/// All new PR45 families are evidence-marked only for YRC1000 Concurrent I/O
+/// R12; DX100/DX200 export syntax and firmware remain unverified.
 fn parse_typed_candidate(
     source:&[u8], line:&SourceLine, source_offset:usize,
     mnemonic:&str, mnemonic_end:usize, controller:ControllerFamily,
@@ -459,7 +488,14 @@ fn parse_typed_candidate(
         // while full source and accurate byte spans stay unchanged.
         let display_end=b.min(a.saturating_add(128));
         let spelling=String::from_utf8_lossy(&source[a..display_end]).into_owned();
-        let kind=if b-a>128 {OperandKind::Unrecognized} else {
+        let kind=if b-a>128 {OperandKind::Unrecognized} else if
+            matches!(roles.get(index),Some(TypedOperandRole::PulseRelay)) {
+            if spelling.starts_with('#') && parse_relay(controller,&spelling).is_ok() {
+                OperandKind::RelayBit
+            } else {
+                OperandKind::Unrecognized
+            }
+        } else {
             typed_token_kind(&spelling,controller)
         };
         let accepted=roles.get(index).is_some_and(|role|
@@ -479,10 +515,15 @@ fn parse_typed_candidate(
         mnemonic:mnemonic.to_string(),operands,line:line.number,
         span:line.body_span,syntax_valid:valid,
     };
+    // These expanded forms have independently inspected *YRC1000* manual
+    // evidence. No DX200/DX100 family equivalence is claimed for them here.
+    // The old five forms retain their prior DX200 manual-level evidence.
+    let prior_five=matches!(mnemonic,"MOV"|"ADD"|"SUB"|"SHL"|"SHR");
     Some(LineKind::TypedCandidate {
         instruction,
         semantics_verified:false,
-        controller_form_verified:!matches!(controller,ControllerFamily::DX100),
+        controller_form_verified:matches!(controller,ControllerFamily::YRC1000) ||
+            (prior_five && matches!(controller,ControllerFamily::DX200)),
     })
 }
 
