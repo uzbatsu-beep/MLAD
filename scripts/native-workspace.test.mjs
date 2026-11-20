@@ -296,3 +296,32 @@ test("PR46 source-linked READ/WRITE/UNKNOWN UX has no runtime access claims",()=
   assert.match(native,/next_offset/);
   assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
 });
+
+test("PR47 unified offline project opens source, IONAME, sidecar and recomputed analyses together",()=>{
+  assert.match(native,/type UnifiedProjectManifest/);
+  assert.match(native,/type UnifiedProjectOpened/);
+  assert.match(native,/MLAD_OFFLINE_PROJECT/);
+  assert.match(native,/SOURCE_ROLE_PREVIEW_V1/);
+  assert.match(native,/aria-label="Единый offline-проект MLAD"/);
+  assert.match(native,/aria-label="Путь к единому offline-проекту"/);
+  assert.match(native,/invoke<UnifiedProjectOpened>\("cmd_open_offline_project"/);
+  assert.match(native,/invoke<UnifiedProjectSaved>\("cmd_save_offline_project"/);
+  assert.match(native,/loaded\.project/);
+  assert.match(native,/loaded\.report/);
+  assert.match(native,/setIoname\(loaded\.ioname\)/);
+  assert.match(native,/loaded\.sidecar\?\.annotations/);
+  assert.match(native,/setBookmarks\(markers\)/);
+  assert.match(native,/setProjectAnalysisChanged\(loaded\.analysis_changed\)/);
+  assert.match(native,/setProjectRevision\(loaded\.revision\)/);
+  assert.match(native,/expectedManifestRevision:projectRevision/);
+  assert.match(native,/expectedSidecarRevision:sidecarRevision/);
+  assert.match(native,/expectedIonameSha256:ioname\?\.source_sha256/);
+  assert.match(native,/if\(sidecarDirty\|\|projectDirty\|\|editing\)/);
+  assert.match(native,/if\(hasNotes&&!sidecarRevision\)/);
+  assert.match(native,/setProjectDirty\(true\)/);
+  assert.match(native,/function detachUnifiedProject\(/);
+  assert.match(native,/Анализ изменился · пересчитан из CIOPRG/);
+  assert.match(native,/CIOPRG\/IONAME только чтение/);
+  assert.match(native,/nativeRequestEpoch\.current/);
+  assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
+});

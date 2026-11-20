@@ -202,3 +202,35 @@ test("PR46 static access is bounded, SHA-pinned, and distinct from a controller 
   assert.match(parser,/fn query_paginates_full_source_and_filters_exact_symbol/);
   assert.doesNotMatch(parser,/TcpStream|UdpSocket|tauri::command|write_atomic|File::create/);
 });
+
+test("PR47 portable unified project links only safe relative files, never OEM outputs",()=>{
+  const main=readFileSync("src-tauri/src/main.rs","utf8");
+  const project=readFileSync("src-tauri/src/offline_project.rs","utf8");
+  assert.match(main,/mod offline_project;/);
+  assert.match(main,/fn cmd_open_offline_project\(/);
+  assert.match(main,/fn cmd_save_offline_project\(/);
+  assert.match(main,/cmd_open_offline_project,/);
+  assert.match(main,/cmd_save_offline_project,/);
+  assert.match(main,/offline_project::check_project_path\(&path\)/);
+  assert.match(main,/offline_project::resolve\(&path,/);
+  assert.match(main,/offline_project::relative_file\(&path,/);
+  assert.match(main,/draft_io::read_bounded_with_revision\(&path\)/);
+  assert.match(main,/draft_io::write_atomic_with_revision\(/);
+  assert.match(main,/cmd_open_offline_project[\s\S]*?project\.validate\(&doc\)/);
+  assert.match(main,/offline_project::matches_attachment\(/);
+  assert.match(main,/let analysis_changed=project\.analysis!=offline_project::snapshot\(&doc\)/);
+  assert.match(main,/name\.ends_with\("\.mladproj\.json"\)/);
+  assert.match(project,/MLAD_OFFLINE_PROJECT/);
+  assert.match(project,/SOURCE_ROLE_PREVIEW_V1/);
+  assert.match(project,/\#\[serde\(deny_unknown_fields\)\]/);
+  assert.match(project,/checked_relative/);
+  assert.match(project,/Component::Normal/);
+  assert.match(project,/pub fn check_project_path/);
+  assert.match(project,/pub fn resolve/);
+  assert.match(project,/pub fn snapshot/);
+  assert.match(project,/pub fn matches_attachment/);
+  assert.match(project,/execution_verified:false/);
+  assert.match(project,/fn corrupted_source_and_unverified_execution_are_rejected/);
+  assert.match(main,/fn complete_project_roundtrip_recomputes_and_verifies_all_sources/);
+  assert.doesNotMatch(project,/TcpStream|UdpSocket|File::create|std::fs::write|cmd_deploy_to_robot|\bHSES\s*\(/);
+});
