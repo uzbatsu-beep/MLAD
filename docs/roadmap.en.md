@@ -126,3 +126,11 @@ PR #44 portable sidecar merged into `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af
 **Acceptance gate:** documented OEM 178648-1CD §§12.2.15–34, 15 positive / 17 negative synthetic forms, exact byte spans/SHA/EOL, faithful unknown lines, final SHA `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. The new forms have no DX100/DX200 family evidence. `MUL Dn+1` and `BMOV n` require special syntactic constraints with explicit provenance.
 
 Proposed, not-yet-started next tasks: PR #46 source-linked static READ/WRITE/UNKNOWN with conservative barriers, PR #47 Unified Offline Project and conditional PR #48 Windows Preview. Older v4 numbers above are historical. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. Owner must explicitly approve PR #45 merging.
+
+## PR #46 — READ / WRITE / UNKNOWN: source-linked audit (20 November 2026)
+
+**Baseline:** PR #45 merged into `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 is a separate, unmerged Draft. Instead of claiming actual data flow, this phase provides read-only source-linked `READ`, `WRITE`, `UNKNOWN` address operand **roles**, with original line, byte span and SHA-256. Numeric literals are not memory reads; family-unverified, TMR/CNT, malformed and unknown forms never become proven access events.
+
+**Goals:** `static_access` leaves `CIOPRG.LST`/`IONAME.DAT` immutable; scans full-source totals, provides bounded 160-site preview and 100-site role/exact-token pages. Native Workspace navigates back to physical lines and states evidence limits. Existing `typed_dataflow` remains a separate historical M-register adjacency heuristic. No match cannot prove absence of actual access.
+
+**Proposed, not started:** PR #47 Unified Offline Project, conditional PR #48 Windows preview. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. HSES/FTP/native writer/deployment **BLOCKED**. Owner approval required before merge.
