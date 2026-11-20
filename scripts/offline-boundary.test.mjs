@@ -127,3 +127,24 @@ test("PR26 native and JSON reads use one handle with filesystem identity checks"
   assert.match(drafts,/external_change_between_backup_and_commit_cannot_be_overwritten/);
   assert.doesNotMatch(rust,/tokio::fs::read\(path\)/);
 });
+
+test("unused FTP dependency and its transitive graph are absent from locked Rust build",()=>{
+  const manifest=readFileSync("src-tauri/Cargo.toml","utf8");
+  const lockfile=readFileSync("src-tauri/Cargo.lock","utf8");
+  assert.doesNotMatch(manifest,/^suppaftp\s*=/m);
+  assert.doesNotMatch(lockfile,/^name = "suppaftp"$/m);
+  for(const name of ["lazy-regex","lazy-regex-proc_macros"]){
+    assert.ok(!lockfile.includes('name = "'+name+'"'),name);
+  }
+  assert.match(rust,/Мониторинг HSES отключён/);
+  assert.match(rust,/Загрузка на робот отключена/);
+});
+test("JSON stages are private on Unix, single-link before rename and identity-safe on cleanup",()=>{
+  const draft=readFileSync("src-tauri/src/draft_io.rs","utf8");
+  assert.match(draft,/options\.mode\(0o600\)/);
+  assert.match(draft,/verify_single_link\(&self\.path\)/);
+  assert.match(draft,/identity_of_handle\(&file\)/);
+  assert.match(draft,/unix_staged_json_and_backup_are_owner_only_even_with_permissive_umask/);
+  assert.match(draft,/staged_hardlink_is_rejected_before_rename/);
+  assert.match(draft,/staged_cleanup_preserves_foreign_file_swapped_into_temp_path/);
+});

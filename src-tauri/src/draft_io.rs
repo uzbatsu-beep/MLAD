@@ -7,7 +7,7 @@
 //! transaction for target+backup or a guarantee against adversarial changes
 //! of parent directories. Symlink/TOCTOU review remains open for future work.
 use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 use sha2::{Digest, Sha256};
 
@@ -128,8 +128,17 @@ impl StagedFile {
         let scratch=destination.with_file_name(format!(
             ".{basename}.mlad-{}.tmp",uuid::Uuid::new_v4()
         ));
-        let mut handle=OpenOptions::new().write(true).create_new(true)
-            .open(&scratch).map_err(|e|format!("Не удалось создать временный JSON: {e}"))?;
+        // Unix JSON drafts and backups are owner-only at creation, regardless
+        // of a permissive umask; do not copy a public mode from the old file.
+        // Windows ACLs follow parent inheritance and remain a separate review.
+        let mut options=OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)] {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut handle=options.open(&scratch)
+            .map_err(|e|format!("Не удалось создать временный JSON: {e}"))?;
         let identity=match crate::guarded_read::identity_of_handle(&handle){
             Ok(identity)=>identity,
             Err(error)=>{
@@ -156,6 +165,9 @@ impl StagedFile {
         if identity!=self.identity || hex::encode(Sha256::digest(&bytes))!=self.digest {
             return Err("Временный JSON был заменён или изменён перед сохранением".into());
         }
+        // A hardlink to a staged file keeps mutable access to the committed
+        // target after the rename; reject this detectable exposure.
+        crate::guarded_read::verify_single_link(&self.path)?;
         verify_parent_directory(destination)?;
         fs::rename(&self.path,destination)
             .map_err(|e|format!("Не удалось заменить JSON файлом из той же папки: {e}"))?;
@@ -167,7 +179,17 @@ impl StagedFile {
 impl Drop for StagedFile {
     fn drop(&mut self) {
         if !self.path.as_os_str().is_empty() {
-            let _=fs::remove_file(&self.path);
+            // A different file may have appeared at the random staged path.
+            // Do not unlink that file during cleanup; this is not a guarantee
+            // against an adversarial swap after the final identity check.
+            let ours=fs::symlink_metadata(&self.path).ok()
+                .filter(|m|m.is_file()&&!crate::guarded_read::is_indirection(m))
+                .and_then(|_|File::open(&self.path).ok())
+                .and_then(|file|crate::guarded_read::identity_of_handle(&file).ok())
+                .is_some_and(|id|id==self.identity);
+            if ours {
+                let _=fs::remove_file(&self.path);
+            }
         }
     }
 }
@@ -514,6 +536,75 @@ mod tests {
         assert!(staged.replace(&path).is_err());
         assert!(!path.exists());
         assert!(!scratch.exists(),"failed stage must be removed by Drop");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+
+    #[cfg(unix)]
+    #[test]
+    fn unix_staged_json_and_backup_are_owner_only_even_with_permissive_umask(){
+        use std::os::unix::fs::PermissionsExt;
+        let root=folder();let path=root.join("sensitive.graph.json");
+        fs::write(&path,b"prior synthetic config").unwrap();
+        // The original file deliberately starts world-readable.
+        fs::set_permissions(&path,fs::Permissions::from_mode(0o644)).unwrap();
+        write_atomic(&path,b"new synthetic config").unwrap();
+        let mode=|p:&Path|fs::metadata(p).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode(&path),0o600,"replacement must not widen access");
+        assert_eq!(mode(&root.join("sensitive.graph.json.bak")),0o600,
+            "backup must not leak pre-existing JSON bytes");
+        assert_eq!(fs::read(&path).unwrap(),b"new synthetic config");
+        assert_eq!(fs::read(root.join("sensitive.graph.json.bak")).unwrap(),
+            b"prior synthetic config");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn staged_hardlink_is_rejected_before_rename(){
+        let root=folder();let path=root.join("client.graph.json");
+        let stage=StagedFile::create_near(&path,b"confidential synthetic JSON").unwrap();
+        let alias=root.join("attacker-alias");
+        fs::hard_link(&stage.path,&alias).unwrap();
+        assert!(stage.replace(&path).is_err(),
+            "staged hardlink would allow edits of committed JSON via alias");
+        assert!(!path.exists(),"new target must not be created");
+        assert_eq!(fs::read(&alias).unwrap(),b"confidential synthetic JSON");
+        fs::remove_file(alias).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn staged_cleanup_preserves_foreign_file_swapped_into_temp_path(){
+        let root=folder();let destination=root.join("safe.graph.json");
+        let stage=StagedFile::create_near(&destination,b"expected data").unwrap();
+        let original_stage=root.join("moved-stage");
+        let stage_path=stage.path.clone();
+        fs::rename(&stage_path,&original_stage).unwrap();
+        fs::write(&stage_path,b"foreign data").unwrap();
+        drop(stage);
+        assert_eq!(fs::read(&stage_path).unwrap(),b"foreign data",
+            "stale stage cleanup must not delete a different file ID");
+        assert_eq!(fs::read(&original_stage).unwrap(),b"expected data");
+        assert!(!destination.exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn staged_cleanup_never_follows_link_to_native_source(){
+        let root=folder();let native=root.join("CIOPRG.LST");
+        let destination=root.join("safe.graph.json");
+        fs::write(&native,b"unaltered synthetic native source").unwrap();
+        let stage=StagedFile::create_near(&destination,b"expected data").unwrap();
+        let previous=root.join("old-stage");
+        let temporary=stage.path.clone();
+        fs::rename(&temporary,&previous).unwrap();
+        // A hard link at the temporary name must not cause removal of
+        // an unrelated native file via cleanup.
+        fs::hard_link(&native,&temporary).unwrap();
+        drop(stage);
+        assert_eq!(fs::read(&native).unwrap(),b"unaltered synthetic native source");
+        assert!(temporary.exists(),"foreign alias is not our staged file");
+        assert!(!destination.exists());
         fs::remove_dir_all(root).unwrap();
     }
 
