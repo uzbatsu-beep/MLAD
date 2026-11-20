@@ -334,3 +334,12 @@ test("unified project without linked sidecar never imports unrelated localStorag
   assert.match(native,/loadLocalAnnotations\(value\.source_sha256\)/,
     "standalone native inspection still has its optional local cache");
 });
+
+test("unified manifest-bound source cannot be silently replaced and external file selections mark metadata dirty",()=>{
+  assert.match(native,/if\(projectRevision\)\{setIssue\("Сначала отвяжите проект/);
+  assert.match(native,/if\(kind==="cioprg"&&projectRevision\)/);
+  assert.match(native,/value=\{path\} disabled=\{!!projectRevision\|\|projectBusy\}/);
+  assert.match(native,/disabled=\{!!filePickerBusy\|\|busy\|\|!!projectRevision\|\|projectBusy\}/);
+  assert.match(native,/setIonamePath\(event\.target\.value\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
+  assert.match(native,/setSidecarPath\(event\.target\.value\);setSidecarRevision\(null\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
+});

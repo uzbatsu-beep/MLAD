@@ -459,6 +459,7 @@ export function NativeWorkspace() {
   },[report,selectedLine]);
 
   async function openSource(selectedPath:string=path){
+    if(projectRevision){setIssue("Сначала отвяжите проект, чтобы открыть другой CIOPRG.");return;}
     if(projectBusy){setIssue("Завершите операцию с offline-проектом.");return;}
     if(projectDirty){setIssue("Проект изменён: сначала сохраните манифест или отвяжите его.");return;}
     if(sidecarBusy) {
@@ -517,6 +518,9 @@ export function NativeWorkspace() {
   /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
   async function chooseFile(kind:"cioprg"|"ioname"){
     if(filePickerBusy||busy||ionameBusy||sidecarBusy||projectBusy)return;
+    if(kind==="cioprg"&&projectRevision){
+      setIssue("Сначала отвяжите offline-проект от CIOPRG.");return;
+    }
     if(kind==="cioprg"&&sidecarDirty){
       setIssue("Сохраните или отмените изменения sidecar перед выбором другого CIOPRG.");
       return;
@@ -968,14 +972,17 @@ export function NativeWorkspace() {
         </div>
         <div className="native-file-inputs">
           <input aria-label="Путь к файлу CIOPRG.LST" title={path}
-            value={path} onChange={event=>setPath(event.target.value)}
+            value={path} disabled={!!projectRevision||projectBusy}
+            onChange={event=>setPath(event.target.value)}
             placeholder="Выберите файл программы…" style={field}/>
           <button type="button" className="native-pick-file" title="Стандартный диалог открытия .LST"
-            aria-label="Выбрать файл CIOPRG.LST" disabled={!!filePickerBusy||busy}
+            aria-label="Выбрать файл CIOPRG.LST"
+            disabled={!!filePickerBusy||busy||!!projectRevision||projectBusy}
             onClick={()=>void chooseFile("cioprg")}>
             {filePickerBusy==="cioprg"?"Выбор…":"Обзор…"}
           </button>
-          <button type="submit" className="native-open-file" disabled={!path.trim()||busy||!!filePickerBusy}>
+          <button type="submit" className="native-open-file"
+            disabled={!path.trim()||busy||!!filePickerBusy||!!projectRevision||projectBusy}>
             {busy?"Чтение…":"Открыть"}
           </button>
         </div>
@@ -996,7 +1003,10 @@ export function NativeWorkspace() {
         </div>
         <div className="native-file-inputs">
           <input aria-label="Путь к IONAME.DAT" title={ionamePath}
-            value={ionamePath} onChange={event=>setIonamePath(event.target.value)}
+            value={ionamePath} onChange={event=>{
+              setIonamePath(event.target.value);
+              if(projectRevision)setProjectDirty(true);
+            }}
             placeholder="Выберите файл имён I/O…" style={field}/>
           <button type="button" className="native-pick-file" title="Стандартный диалог открытия IONAME.DAT"
             aria-label="Выбрать файл IONAME.DAT" disabled={!!filePickerBusy||ionameBusy}
@@ -1668,6 +1678,7 @@ export function NativeWorkspace() {
                 disabled={sidecarBusy} style={{...field,width:"100%",boxSizing:"border-box"}}
                 onChange={event=>{
                   setSidecarPath(event.target.value);setSidecarRevision(null);
+                  if(projectRevision)setProjectDirty(true);
                 }} placeholder="CIOPRG.mlad.json"/>
             </label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
