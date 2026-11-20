@@ -58,3 +58,11 @@
 - **UNVERIFIED:** HSES framing/command map, полная грамматика CIOPRG, System/User boundaries, аппаратные семантические нюансы и native deployment. Нельзя превращать догадки в контроллерный writer.
 
 См. [architecture.md](architecture.ru.md), [controller_fixture_intake.md](controller_fixture_intake.ru.md), [development_workflow.md](development_workflow.ru.md).
+
+## Источники для PR #45 — расширение только документально описанных форм
+
+PR #45 сравнен с **Yaskawa Motoman YRC1000 OPTIONS INSTRUCTIONS FOR CONCURRENT I/O R12 (178648-1CD / RE-CKI-A467)**: [официальный указатель OEM](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), [доступный текст раздела 12.2 (третья сторона)](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual). Сверка основана на таблицах форматов (§§12.2.15–16, 19–23, 25–28, 31–34), а не на выдуманном синтаксисе PLC. Подробная ролевая матрица — [typed_opcode_grammar.md](typed_opcode_grammar.md).
+
+**Документально подтверждённые формы:** `MUL`, `DIV`, `MOD`, `BIN`, `BCD`, `WAND`, `WOR`, `WXOR`, `WNOT`, `ROL`, `ROR`, `BMOV`, `CMP`, `PLS`, `PLF`. Текстовая копия руководства не означает авторизации OEM. Ошибки/опечатки воспроизведения (например, ROR example: строка `ROL`) не превращать в дополнительные варианты парсера. Сам формат операции определяется строкой **Format** каждого подраздела, а не ошибкой примера. Семейная проверка DX100/DX200 для этих новых инструкций — **UNVERIFIED**, требуется отдельное сопоставление с их ревизиями; YRC1000 конкретный firmware **UNVERIFIED**.
+
+**Уровни:** `MANUAL: documented operand shape` → `SYNTHETIC: positive/negative parser tests` → `WindowsCI` → `UserSmoke` → `OEMBench`; переходы не автоматические. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Нативные `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**.
