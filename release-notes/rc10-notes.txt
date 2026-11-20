@@ -1,0 +1,34 @@
+MLAD 0.5.0-rc.10 — Unified Offline Project for Windows x64
+=========================================================
+PRE-RELEASE / ПРЕДВАРИТЕЛЬНЫЙ ВЫПУСК · GPL-3.0-only · OFFLINE
+
+Что нового
+- Единый переносимый offline-проект *.mladproj.json, с SHA-256 проверкой CIOPRG.LST, необязательного IONAME.DAT и отдельного sidecar *.mlad.json.
+- Native Workspace: исходные строки, диагностика/цепи, I/O имена, комментарии и закладки.
+- READ / WRITE / UNKNOWN с привязкой к строкам: только предполагаемые роли адресных операндов, не реальные обращения к памяти робота.
+- Расширенная грамматика CIO на основе OEM руководства — НЕ подтверждённая работа на настоящем контроллере.
+- Синтетический тестовый проект и протокол проверки Windows/WebView2 P48-01…P48-17 в portable архиве.
+- Сохранены исходные байты и границы доверия: OEM-native CIOPRG.LST и IONAME.DAT строго read-only.
+
+Файлы релиза
+- MLAD-Unified-Offline-rc10-win-x64-portable.zip — portable EXE, лицензия, синтетический пример, UserSmoke protocol.
+- MLAD-Unified-Offline-rc10-win-x64-setup.exe — неподписанный Windows NSIS installer с offline WebView2 prerequisite.
+- MLAD-Unified-Offline-rc10-source.zip — соответствующий Git source archive по GPL-3.0-only.
+- SHA256SUMS.txt — SHA-256 всех трёх файлов релиза.
+
+Начало работы
+1. Сверьте SHA-256 скачанного файла с SHA256SUMS.txt (Get-FileHash).
+2. Portable: распакуйте ZIP на NTFS, запустите yaskawa-ladder-ide.exe. Setup: используйте NSIS installer согласно ИТ-политикам.
+3. Откройте Native Workspace, выберите копию sample/cell.mladproj.json.
+4. Любые действия изменения выполнять только в копии синтетического тестового проекта. Протокол: WINDOWS-USER-SMOKE.md.
+
+Важные ограничения
+- UserSmoke=NOT RUN: ручная проверка WebView2 на Windows не подтверждена.
+- OEMBench=NOT RUN: тесты на контроллере Yaskawa, scan/EN/flags не проводились.
+- HSES, FTP, online I/O, native writer, upload/deployment на робот — BLOCKED.
+- Пример CIOPRG/IONAME полностью SYNTHETIC; не выгружать на контроллер.
+- EXE и установщик не имеют Authenticode-подписи. Не обходите политики SmartScreen и корпоративной безопасности.
+- Windows ACL, TOCTOU и транзакционность многофайлового сохранения остаются открытыми рисками.
+
+Based on latest merged PR #48 main (9fcd11d61856c8a559d9acf3c77bd662ad814dfe).
+https://github.com/uzbatsu-beep/MLAD
