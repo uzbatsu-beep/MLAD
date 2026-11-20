@@ -105,7 +105,7 @@ CIOPRG.LST and IONAME.DAT are read-only; HSES/FTP, native writer, live I/O and d
 Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #43 is limited to independent JSON draft hardening, Rust dependency review, tests and documented failure modes. No controller writer.
 
 **Implementation in PR #43:**
-1. Remove `suppaftp` from `Cargo.toml` and `Cargo.lock`, pruning only unreachable transitive crates. Do not alter `package-lock.json`; keep `npm ci` and immutable dependency locks. Remaining `anyhow`, `futures-util`, `nom` are retained for a separate code-usage review.
+1. Remove `suppaftp` from `Cargo.toml` and `Cargo.lock`, pruning only unreachable transitive crates. Do not alter `package-lock.json`; keep `npm ci` and immutable dependency locks. Also remove the unused direct `anyhow` and `futures-util` requirements from the manifest/root lockfile; retain `nom`, which is referenced by `compiler/parser.rs`.
 2. On Unix, create staged JSON and `*.bak` with owner-only `0600` regardless of umask; test privacy after repeated saves.
 3. Call `verify_single_link` before staged rename and reject replacement/additional hardlinks. During `Drop`, unlink the temporary pathname only if File ID still matches the identity captured at creation.
 4. Test positive and negative cases: first save, backup, staged hardlink, temporary pathname substitution, `CIOPRG.LST`/`IONAME.DAT` protection, Windows NTFS/local permissions, and existing conflict guards.

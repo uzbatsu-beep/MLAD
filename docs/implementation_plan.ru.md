@@ -106,7 +106,7 @@ CIOPRG.LST и IONAME.DAT read-only; HSES/FTP, native writer, live I/O и deploym
 Baseline — слитый PR #42 в `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #43: защита самостоятельных JSON-черновиков, аудит зависимостей Rust, тесты и документирование отказов. Не добавлять controller writer.
 
 **Разработка в PR #43:**
-1. Исключить `suppaftp` из `Cargo.toml` и `Cargo.lock` с удалением только недостижимых транзитивных пакетов. Не менять `package-lock.json`; запускать `npm ci` без автоматической перезаписи lockfile. Оставшиеся `anyhow`, `futures-util`, `nom` требуют отдельного обзора использования.
+1. Исключить `suppaftp` из `Cargo.toml` и `Cargo.lock` с удалением только недостижимых транзитивных пакетов. Не менять `package-lock.json`; запускать `npm ci` без автоматической перезаписи lockfile. Также исключить неиспользуемые прямые `anyhow` и `futures-util` из манифеста/root lockfile; `nom` сохранить, потому что он используется в `compiler/parser.rs`.
 2. На Unix staged JSON и `*.bak` создавать с правами `0600`, независимо от исходного umask; проверить строгость доступа после повторного сохранения.
 3. Перед rename выполнять `verify_single_link` для staged-файла, при его подмене или появлении hardlink отказать. В `Drop` удалять временный путь только если File ID совпал с записанным при создании.
 4. Проверить позитивные и негативные сценарии: первая запись, backup, hardlink staged JSON, подмена temporary pathname, защита `CIOPRG.LST`/`IONAME.DAT`, Windows NTFS/локальные права и сохранение существующего контроля конфликтов.
