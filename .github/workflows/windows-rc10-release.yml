@@ -1,0 +1,190 @@
+name: MLAD RC10 Unified Offline Windows Release
+
+on:
+  push:
+    branches: [release/v0.5.0-rc.10-unified-offline]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mlad-unified-offline-rc10-release
+  cancel-in-progress: false
+
+jobs:
+  windows-preview:
+    runs-on: windows-2022
+    timeout-minutes: 110
+    env:
+      CARGO_INCREMENTAL: "0"
+      VITE_MLAD_PREVIEW_LABEL: "Unified Offline Project rc.10"
+    steps:
+      - name: Checkout exact release candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR48 main ancestry, release-only scope and unique tag
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ((git rev-parse HEAD).Trim() -cne $env:GITHUB_SHA) { throw "Checkout SHA mismatch" }
+          git merge-base --is-ancestor 9fcd11d61856c8a559d9acf3c77bd662ad814dfe HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Merged PR48 main absent from build" }
+          $changed=@(git diff --name-only 9fcd11d61856c8a559d9acf3c77bd662ad814dfe HEAD)
+          foreach($f in $changed) {
+            if ($f -notin @("src-tauri/tauri.conf.json","release-notes/rc10-notes.txt",".github/workflows/windows-rc10-release.yml")){
+              throw "Unexpected source delta: $f"
+            }
+          }
+          $refs=@(git ls-remote --tags origin "refs/tags/v0.5.0-rc.10-unified-offline")
+          if ($LASTEXITCODE -ne 0 -or $refs.Count -gt 0) { throw "Release tag exists or remote unavailable" }
+
+      - name: Node.js 22 with npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Stable Rust MSVC
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust build cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Safety invariants and pinned dependency check
+        shell: pwsh
+        run: |
+          $source = Get-Content -Raw "src-tauri/src/main.rs"
+          if ($source.Contains("pub mod network;")) { throw "Unverified HSES/FTP backend compiled!" }
+          if (-not $source.Contains('Мониторинг HSES отключён')) { throw "HSES deny stub missing" }
+          if (-not $source.Contains('Загрузка на робот отключена')) { throw "FTP deny stub missing" }
+          if (-not $source.Contains('cmd_read_cioprg_page')) { throw "Read-only paging command missing" }
+          if (-not $source.Contains('cmd_search_cioprg')) { throw "Source search command missing" }
+          if (-not $source.Contains('cmd_inspect_ioname')) { throw "Read-only IONAME command missing" }
+          if (-not $source.Contains('cmd_pick_native_file')) { throw "Native file chooser IPC missing" }
+          if (-not (Test-Path "src/components/native-workspace.css")) { throw "Compact header CSS missing" }
+          if (-not (Test-Path "src/components/NativeWorkspace.tsx")) { throw "Native workspace missing" }
+          if (-not $source.Contains('cmd_inspect_cioprg')) { throw "CIO read-only inspection command missing" }
+          if (-not (Test-Path "docs/typed_opcode_grammar.md")) { throw "Typed grammar evidence notes missing" }
+          if (-not (Test-Path "docs/semantic_verification_matrix.md")) { throw "Static analysis evidence matrix missing" }
+          if (-not (Test-Path "src-tauri/src/compiler/typed_dataflow.rs")) { throw "Static dataflow audit missing" }
+          if (-not (Test-Path "src-tauri/src/compiler/reference_semantics.rs")) { throw "Manual-derived reference model missing" }
+          if (-not (Test-Path "docs/oem_5_opcode_analysis.md")) { throw "OEM five-opcode evidence report missing" }
+          if (-not (Test-Path "package-lock.json")) { throw "npm lockfile missing" }
+          if (-not $source.Contains("cmd_open_offline_project") -or
+              -not $source.Contains("cmd_save_offline_project") -or
+              -not $source.Contains("cmd_query_static_access")) { throw "Unified offline IPC missing" }
+
+      - name: Install npm dependencies (locked)
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify lockfile not altered
+        run: git diff --exit-code -- package.json package-lock.json
+
+      - name: Verify docs and all frontend tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          npm run docs:check
+          if ($LASTEXITCODE -ne 0) { throw "Docs check failed" }
+          python scripts/i18n_verify.py
+          if ($LASTEXITCODE -ne 0) { throw "Bilingual validation failed" }
+          python scripts/i18n_semantic_guard.py
+          if ($LASTEXITCODE -ne 0) { throw "Semantic i18n gate failed" }
+          node --test scripts/offline-preview-contract.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Preview contracts failed" }
+          npm run test:security
+          if ($LASTEXITCODE -ne 0) { throw "Offline safety check failed" }
+          npm run test:native
+          if ($LASTEXITCODE -ne 0) { throw "Native workspace check failed" }
+          npm run test:diagnostics
+          if ($LASTEXITCODE -ne 0) { throw "Diagnostic grouping tests failed" }
+          npm run test:oem-reference
+          if ($LASTEXITCODE -ne 0) { throw "OEM reference model UI tests failed" }
+          npm run test:graph
+          if ($LASTEXITCODE -ne 0) { throw "Graph tests failed" }
+          npm run test:advanced
+          if ($LASTEXITCODE -ne 0) { throw "Advanced tests failed" }
+          npm run test:visual
+          if ($LASTEXITCODE -ne 0) { throw "Visual tests failed" }
+          npm run test:inline
+          if ($LASTEXITCODE -ne 0) { throw "Inline tests failed" }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
+
+      - name: Rust unit tests Windows MSVC
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Build Windows NSIS and portable binary
+        run: npm run tauri -- build --bundles nsis
+
+      - name: Package portable, installer, GPL sources, SHA-256
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tag = "v0.5.0-rc.10-unified-offline"
+          New-Item -ItemType Directory -Path "release-dist","release-stage" -Force | Out-Null
+          $exe = "src-tauri/target/release/yaskawa-ladder-ide.exe"
+          if (-not (Test-Path $exe)) { throw "Main executable missing" }
+          Copy-Item $exe "release-stage/yaskawa-ladder-ide.exe"
+          python scripts/offline-preview-fixture.py --mode self-test
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic tamper regression failed" }
+          python scripts/offline-preview-fixture.py --mode prepare --root "release-stage/sample"
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic fixture preparation failed" }
+          python scripts/offline-preview-fixture.py --mode verify --root "release-stage/sample"
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic source hash failed" }
+          Copy-Item "docs/windows_offline_preview_pr48.md" "release-stage/WINDOWS-USER-SMOKE.md"
+          [IO.File]::WriteAllText("release-stage/BUILD-COMMIT.txt",
+            $env:GITHUB_SHA + [Environment]::NewLine,[Text.UTF8Encoding]::new($false))
+          Copy-Item "LICENSE" "release-stage/LICENSE"
+          Copy-Item "release-notes/rc10-notes.txt" "release-stage/README.txt"
+          Compress-Archive -Path "release-stage/*" -DestinationPath "release-dist/MLAD-Unified-Offline-rc10-win-x64-portable.zip" -CompressionLevel Optimal -Force
+          $nsis = @(Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
+          if ($nsis.Count -ne 1) { throw "Expected one NSIS installer, got $($nsis.Count)" }
+          Copy-Item $nsis[0].FullName "release-dist/MLAD-Unified-Offline-rc10-win-x64-setup.exe"
+          git archive --format=zip -o "release-dist/MLAD-Unified-Offline-rc10-source.zip" HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Source archive failed" }
+          $assets = @(Get-ChildItem "release-dist" -Filter "*.zip" -File) + @(Get-ChildItem "release-dist" -Filter "*.exe" -File)
+          if ($assets.Count -ne 3) { throw "Missing an expected release asset" }
+          $lines = $assets | Sort-Object Name | ForEach-Object {
+            if ($_.Length -lt 100000) { throw "Suspiciously small asset $($_.Name)" }
+            $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          }
+          $lines | Out-File -FilePath "release-dist/SHA256SUMS.txt" -Encoding utf8
+          Get-ChildItem "release-dist" | Format-Table Name,Length -AutoSize
+          Get-Content "release-dist/SHA256SUMS.txt"
+
+      - name: Upload downloadable Actions backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: MLAD-Unified-Offline-rc10-Windows-x64
+          path: release-dist/*
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Publish GitHub pre-release (never overwrite existing tag)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tag = "v0.5.0-rc.10-unified-offline"
+          $refs=@(git ls-remote --tags origin "refs/tags/$tag")
+          if ($LASTEXITCODE -ne 0 -or $refs.Count -gt 0) { throw "Refusing to overwrite release tag" }
+          gh release view $tag --repo "$env:GITHUB_REPOSITORY" *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Release already exists: $tag; refusing overwrite" }
+          gh release create $tag "release-dist/MLAD-Unified-Offline-rc10-win-x64-portable.zip" "release-dist/MLAD-Unified-Offline-rc10-win-x64-setup.exe" "release-dist/MLAD-Unified-Offline-rc10-source.zip" "release-dist/SHA256SUMS.txt" --repo "$env:GITHUB_REPOSITORY" --target "$env:GITHUB_SHA" --title "MLAD 0.5.0-rc.10 Unified Offline Project (Windows x64)" --notes-file "release-notes/rc10-notes.txt" --prerelease
+          if ($LASTEXITCODE -ne 0) { throw "Failed to publish prerelease" }
+          $output=gh release view $tag --repo "$env:GITHUB_REPOSITORY" --json tagName,isPrerelease,assets,url
+          if ($LASTEXITCODE -ne 0) { throw "Release verification failed" }
+          $published=$output | ConvertFrom-Json
+          if (-not $published.isPrerelease -or $published.tagName -cne $tag -or @($published.assets).Count -ne 4) {
+            throw "Published tag/assets/status invalid"
+          }
+          Write-Output $output
