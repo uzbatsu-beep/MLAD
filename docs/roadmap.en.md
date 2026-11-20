@@ -134,3 +134,13 @@ Proposed, not-yet-started next tasks: PR #46 source-linked static READ/WRITE/UNK
 **Goals:** `static_access` leaves `CIOPRG.LST`/`IONAME.DAT` immutable; scans full-source totals, provides bounded 160-site preview and 100-site role/exact-token pages. Native Workspace navigates back to physical lines and states evidence limits. Existing `typed_dataflow` remains a separate historical M-register adjacency heuristic. No match cannot prove absence of actual access.
 
 **Proposed, not started:** PR #47 Unified Offline Project, conditional PR #48 Windows preview. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. HSES/FTP/native writer/deployment **BLOCKED**. Owner approval required before merge.
+
+## PR #47 — unified portable MLAD offline project (20 November 2026)
+
+**Base:** PR #46 READ/WRITE/UNKNOWN static analysis merged into `main` SHA `39197458dac01045b30f9ac5a810720c729e2a65`. PR #47 is a separate **Draft**, not yet in `main`. Goal: load Native Workspace, `CIOPRG.LST`, optional `IONAME.DAT`, existing `*.mlad.json` and derived syntax/static-analysis results as a single coherent session.
+
+**Contract:** a new version-1 portable `*.mladproj.json` metadata manifest stores only project-root-relative file paths, SHA-256 digests, sizes, controller family, line count and bounded analysis summary. It contains no native Ladder bytes, absolute paths, robot IP or credentials. The separate `*.mlad.json` sidecar remains on schema version 1 and is saved independently. Projects never copy/move OEM source files; users organize checked source copies inside the project directory.
+
+**Safety:** opening verifies every attachment, source SHA-256/size/profile and sidecar binding, then RECOMPUTES analysis from source. Stored analysis counters are a comparison marker only; `analysis_changed` reports engine differences. Missing, renamed or changed files fail opening without partially swapping the session. Metadata saves use staged replacement, `*.bak`, an explicit revision for existing files and refusal when sidecar edits remain unsaved. Originals are read-only.
+
+**Next:** conditional PR #48 Windows preview only after owner approval. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer, live robot control/deployment **BLOCKED**. Do not merge PR #47 without explicit approval.
