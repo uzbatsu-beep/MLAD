@@ -111,6 +111,46 @@ fn read_bounded_snapshot(path:&Path)
     crate::guarded_read::read_regular_with_identity(path,MAX_JSON_BYTES)
 }
 
+/// Opaque revision binds the observed content AND actual file identity.
+/// This is an optimistic-concurrency guard, not a race-free OS-level CAS.
+fn revision_of(bytes:&[u8],id:&crate::guarded_read::FileIdentity)->String {
+    let mut h=Sha256::new();
+    h.update(b"MLAD-SIDECAR-REVISION-V1\0");
+    h.update(format!("{id:?}").as_bytes());
+    h.update(bytes);
+    hex::encode(h.finalize())
+}
+
+/// Read one checked snapshot and its revision for a later explicit save.
+pub(crate) fn read_bounded_with_revision(path:&Path)->Result<(Vec<u8>,String),String>{
+    let (bytes,id)=read_bounded_snapshot(path)?;
+    let revision=revision_of(&bytes,&id);
+    Ok((bytes,revision))
+}
+
+/// Fail closed for first-save versus update: an absent token means the target
+/// MUST be absent, while an observed token must match current bytes + File ID.
+/// Existing write_atomic still checks concurrent changes during staging.
+pub(crate) fn write_atomic_with_revision(
+    path:&Path,content:&[u8],expected:Option<&str>
+)->Result<String,String>{
+    if content.len()>MAX_JSON_BYTES {
+        return Err("Sidecar превышает лимит 2 МиБ".into());
+    }
+    // Compare the expected revision INSIDE the same staged-write operation,
+    // against its captured original file identity, before backup creation.
+    // This closes the separate precheck→writer-snapshot gap, but cannot
+    // eliminate the final OS verify→rename TOCTOU window.
+    write_atomic_inner_with_policy(
+        path,content,||{},RevisionPolicy::Expected(expected)
+    )?;
+    let (saved,revision)=read_bounded_with_revision(path)?;
+    if saved!=content {
+        return Err("Sidecar после записи не совпадает с ожидаемыми байтами".into());
+    }
+    Ok(revision)
+}
+
 /// A private staged file is identified by its opened OS handle and SHA-256.
 /// This detects replacement/modification *before* rename, not an adversarial
 /// swap in the narrow final verify->rename interval.
@@ -205,8 +245,19 @@ pub fn write_atomic(path:&Path, content:&[u8])->Result<(),String> {
     write_atomic_inner(path,content,||{})
 }
 
+/// Existing JSON writers retain their original unversioned contract.
+/// Versioned sidecars additionally compare a revision within this writer.
+enum RevisionPolicy<'a> {
+    Unversioned,
+    Expected(Option<&'a str>),
+}
 /// Internal seam for deterministic tests of external changes just before commit.
 fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->Result<(),String> {
+    write_atomic_inner_with_policy(path,content,before_commit,RevisionPolicy::Unversioned)
+}
+fn write_atomic_inner_with_policy(
+    path:&Path,content:&[u8],before_commit:impl FnOnce(),policy:RevisionPolicy<'_>
+)->Result<(),String> {
     if content.len()>MAX_JSON_BYTES {
         return Err("JSON превышает предел 2 МиБ".into());
     }
@@ -217,6 +268,23 @@ fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->R
     let existed=validate_file(path,true)?;
     let staged=StagedFile::create_near(path,content)?;
     let original=if existed {Some(read_bounded_snapshot(path)?)} else {None};
+    if let RevisionPolicy::Expected(expected)=policy {
+        match (original.as_ref(),expected) {
+            (None,None)=>{},
+            (None,Some(_))=>
+                return Err("Конфликт sidecar: ранее существовавший файл исчез".into()),
+            (Some(_),None)=>
+                return Err("Sidecar уже существует; сначала загрузите его ревизию".into()),
+            (Some((bytes,id)),Some(rev))=>{
+                if rev.len()!=64 || !rev.bytes().all(|b|b.is_ascii_hexdigit()){
+                    return Err("Недействительный токен ревизии sidecar".into());
+                }
+                if revision_of(bytes,id)!=rev {
+                    return Err("Конфликт sidecar: файл изменился после загрузки".into());
+                }
+            }
+        }
+    }
     if let Some(ref original)=original {
         let basename=path.file_name().and_then(|s|s.to_str())
             .ok_or("Не удалось определить имя JSON")?;
@@ -605,6 +673,86 @@ mod tests {
         assert_eq!(fs::read(&native).unwrap(),b"unaltered synthetic native source");
         assert!(temporary.exists(),"foreign alias is not our staged file");
         assert!(!destination.exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+
+    #[test]
+    fn first_sidecar_save_requires_absent_target_then_revision_updates() {
+        let root=folder();let path=root.join("robot.mlad.json");
+        let old=b"{\"version\":1,\"notes\":\"old\"}";
+        let new=b"{\"version\":1,\"notes\":\"new\"}";
+        let rev=write_atomic_with_revision(&path,old,None).unwrap();
+        assert_eq!(rev.len(),64);
+        assert!(write_atomic_with_revision(&path,new,None).is_err());
+        assert_eq!(fs::read(&path).unwrap(),old);
+        let later=write_atomic_with_revision(&path,new,Some(&rev)).unwrap();
+        assert_ne!(rev,later);
+        assert_eq!(fs::read(&path).unwrap(),new);
+        assert_eq!(fs::read(root.join("robot.mlad.json.bak")).unwrap(),old);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn changed_sidecar_does_not_get_silently_overwritten_or_backed_up() {
+        let root=folder();let path=root.join("client.mlad.json");
+        let old=b"synthetic-sidecar";
+        let stale=write_atomic_with_revision(&path,old,None).unwrap();
+        fs::write(&path,b"external-update").unwrap();
+        assert!(write_atomic_with_revision(&path,b"my-stale-update",Some(&stale)).is_err());
+        assert_eq!(fs::read(&path).unwrap(),b"external-update");
+        assert!(!root.join("client.mlad.json.bak").exists());
+        assert!(write_atomic_with_revision(&path,b"unversioned",None).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn revision_detects_identical_byte_file_identity_swap() {
+        let root=folder();let path=root.join("same.mlad.json");
+        let previous=b"synthetic identical contents";
+        let stale=write_atomic_with_revision(&path,previous,None).unwrap();
+        let different=root.join("replacement.json");
+        fs::write(&different,previous).unwrap();
+        // The same bytes from a different file identity are not the same session.
+        #[cfg(unix)]
+        fs::rename(&different,&path).unwrap();
+        #[cfg(windows)] {
+            fs::remove_file(&path).unwrap();
+            fs::rename(&different,&path).unwrap();
+        }
+        assert!(write_atomic_with_revision(&path,b"new",Some(&stale)).is_err());
+        assert_eq!(fs::read(&path).unwrap(),previous);
+        assert!(!root.join("same.mlad.json.bak").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+
+    #[test]
+    fn sidecar_revision_is_checked_before_existing_backup_is_modified() {
+        let root=folder();let path=root.join("policy.mlad.json");
+        let old=b"version one";
+        let initial=write_atomic_with_revision(&path,old,None).unwrap();
+        // A different writer changes the JSON before this write starts.
+        fs::write(&path,b"unseen new version").unwrap();
+        let attempted=write_atomic_inner_with_policy(
+            &path,b"bad stale replacement",||{},RevisionPolicy::Expected(Some(&initial))
+        );
+        assert!(attempted.is_err());
+        assert_eq!(fs::read(&path).unwrap(),b"unseen new version");
+        assert!(!root.join("policy.mlad.json.bak").exists(),
+            "revision rejection must occur before backup mutation");
+        assert_eq!(fs::read_dir(&root).unwrap().count(),1,
+            "no staged files may survive the conflict");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn stale_revision_cannot_recreate_deleted_target() {
+        let root=folder();let path=root.join("gone.mlad.json");
+        let rev=write_atomic_with_revision(&path,b"old",None).unwrap();
+        fs::remove_file(&path).unwrap();
+        assert!(write_atomic_with_revision(&path,b"new",Some(&rev)).is_err());
+        assert!(!path.exists());
         fs::remove_dir_all(root).unwrap();
     }
 

@@ -108,3 +108,13 @@ CIOPRG.LST/IONAME.DAT remain read-only; HSES/FTP, native writer and deployment *
 **M2 remains PARTIAL, not CLOSED.** `check→rename` remains non-atomic; Windows ACL/DACL/owner and replacement permission inheritance are unverified; target and `*.bak` are not an atomic transaction; multi-writer races, power-loss durability and file systems outside the local testing contract remain open. The `0600` mode intentionally makes previously shared Unix JSON drafts private.
 
 The next task after PR #43 (subject to separate approval) is the portable offline sidecar `*.mlad.json` with source SHA-256 binding and a separate write policy review. `CIOPRG.LST`/`IONAME.DAT` stay read-only; `HSES/FTP`, native writer and deployment remain **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` absent separate evidence.
+
+## PR #44 — portable offline sidecar v1 (20 November 2026)
+
+**Current baseline:** PR #43 merged into `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 is a separate Draft. Stage M7 moves from OPEN to **IN PROGRESS**, not DONE until merged and accepted.
+
+**Artifact:** standalone `*.mlad.json` with `format=MLAD_OFFLINE_SIDECAR`, `schema_version=1`, `source.kind=CIOPRG.LST`, `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`, `annotations`, `bookmarks`. Native `CIOPRG.LST` bytes or path, controller algorithms and HSES/FTP contents are never copied into the sidecar. IONAME note keys reference the IONAME SHA-256, not an inferred automatic relay map.
+
+**Workflow:** open read-only CIOPRG, choose separate `*.mlad.json`, load/save notes and physical-line bookmarks. Backend rereads the original source and validates `SHA-256`, controller profile and sizes. First save requires an absent target; updates need a `revision` based on exact bytes and file ID. Existing staged JSON persistence produces `*.bak`. Source/format mismatches are rejected rather than falling back to a native writer.
+
+**Residual risks:** file ID plus revision is optimistic, not an OS-atomic CAS. `check→rename` TOCTOU, Windows ACL preservation, multi-process writes, atomic target+backup and crash recovery remain OPEN. `CIOPRG.LST`/`IONAME.DAT` remain read-only; FTP/HSES, native writer and robot deployment are **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Next proposed phase: PR #45 typed grammar.

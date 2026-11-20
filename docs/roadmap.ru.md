@@ -109,3 +109,13 @@ CIOPRG.LST/IONAME.DAT остаются read-only; HSES/FTP, native writer, deplo
 **Статус M2 — PARTIAL, не CLOSED.** Проверка `check→rename` остаётся неатомарной; Windows ACL/DACL/owner и наследование прав при замене не подтверждены; между сохранением target и `*.bak` нет атомарной транзакции; multi-writer, сбои питания и файловые системы вне локального тестового стенда остаются открытыми. Режим `0600` может намеренно сделать ранее доступный другим пользователям Unix JSON частным.
 
 Следующая задача после PR #43 (только по отдельному решению): portable offline sidecar `*.mlad.json` с привязкой к исходному SHA-256 и пересмотром политики сохранения. `CIOPRG.LST`/`IONAME.DAT` по-прежнему read-only, `HSES/FTP`, native writer и deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` пока нет самостоятельных протоколов.
+
+## PR #44 — переносимый offline sidecar v1 (20.11.2026)
+
+**Актуальная база:** PR #43 слит в `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 создан как отдельный Draft. Этап M7 из OPEN переводится в **IN PROGRESS**, но не объявляется завершённым до слияния и приёмки.
+
+**Артефакт:** независимый `*.mlad.json` с `format=MLAD_OFFLINE_SIDECAR`, `schema_version=1`, `source.kind=CIOPRG.LST`, `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`, `annotations`, `bookmarks`. Сырые байты `CIOPRG.LST`, путь к нему, алгоритмы контроллера и данные HSES/FTP не копируются в sidecar. Ссылки на IONAME в комментариях основаны на SHA-256 исходного IONAME, а не на неподтверждённой автоматической карте адресов.
+
+**Инженерный сценарий:** открыть read-only CIOPRG, выбрать отдельный `*.mlad.json`, загрузить/сохранить комментарии и физические закладки. Backend повторно читает native-источник и проверяет `SHA-256`, профиль и длины. Новый файл требует отсутствующей цели; обновление требует `revision`, вычисленной по фактическим байтам и File ID. `*.bak` создаётся существующим механизмом staged JSON. Несовпадения и неизвестные версии отвергаются без fallback в нативный writer.
+
+**Остаточные риски:** File ID + revision — оптимистическая проверка, не ОС-атомарный CAS; `check→rename` TOCTOU, права Windows ACL, многопроцессная запись, атомарность target+backup и crash recovery остаются OPEN. Исходные `CIOPRG.LST`/`IONAME.DAT` только read-only; FTP/HSES, native writer и robot deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Следующий предлагаемый этап — PR #45 typed grammar.

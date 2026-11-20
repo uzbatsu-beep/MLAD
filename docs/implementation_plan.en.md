@@ -112,3 +112,15 @@ Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #
 5. CI: `cargo test --locked` on Linux/Windows, `npm run test:security`, applicable final-HEAD `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`.
 
 **Not implemented:** OS-relative directory-handle traversal, Windows DACL/owner preservation, full multiprocess CAS, crash-safe journal for target+`*.bak`. These remain OPEN, not remediated. `HSES/FTP`, native writer and deployment **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Merge requires separate owner approval.
+
+## PR #44 — portable sidecar v1 contract and acceptance criteria
+
+**Baseline:** merged PR #43, `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. Draft PR #44 is not part of `main`. Earlier v4 proposed PR numbers are historical.
+
+**`*.mlad.json` schema:** `format=MLAD_OFFLINE_SIDECAR` and `schema_version=1` required. `source.kind=CIOPRG.LST` provides `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`; `annotations.rungs`, `annotations.addresses`, `annotations.ioname`, and `bookmarks` are allowed. No native bytes, original path, executable script, robot IP, FTP/HSES or OEM source overwrite. Unknown fields, unsupported versions, bad keys and size limits are rejected.
+
+**I/O contract:** `cmd_load_offline_sidecar` and `cmd_save_offline_sidecar` accept only `*.mlad.json` paths. Every operation read-only revalidates `CIOPRG.LST` and checks `SHA-256`, controller family, bytes and physical lines. First save requires a missing target. Existing files require a `revision` derived from actual bytes and file identity. Stale/missing revisions and external modifications fail closed before replacement. `*.bak` uses existing staged JSON guarantees but is not atomically committed together with the target.
+
+**Acceptance:** Rust round-trip/conflict tests, invalid version/metadata, empty/invalid bookmarks, size limits, unknown fields, native file protection, hardlink/symlink and backup preservation; frontend tests for explicit import/export and offline-only operation. Exact-HEAD CI includes `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` remain separate; FTP/HSES, native writer and deployment **BLOCKED**.
+
+**Risks:** `revision` is not an atomic filesystem CAS. TOCTOU in `check→rename`, Windows ACL, concurrent writers, crash recovery and backup+target remain OPEN. Owner approval is required before merging.

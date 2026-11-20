@@ -226,3 +226,51 @@ test("Full-source opcode/address/class filter uses SHA-pinned bounded read-only 
   assert.match(filter,/pub fn filter_source/);
   assert.doesNotMatch(filter,/TcpStream|UdpSocket|tauri::command|write\(|rename\(/);
 });
+
+test("portable MLAD sidecar v1 is explicit, source-bound and never a native export",()=>{
+  const main=readFileSync("src-tauri/src/main.rs","utf8");
+  const schema=readFileSync("src-tauri/src/sidecar.rs","utf8");
+  assert.match(main,/cmd_load_offline_sidecar,/);
+  assert.match(main,/cmd_save_offline_sidecar,/);
+  assert.match(main,/sidecar::check_sidecar_path\(&file_path\)/);
+  assert.match(main,/sidecar\.validate\(&doc\)\?/);
+  assert.match(main,/read_cioprg_bytes\(&source_path\)\.await\?/);
+  assert.match(main,/expected_source_sha256/);
+  assert.match(main,/name\.ends_with\("\.mlad\.json"\)/);
+  assert.match(schema,/MLAD_OFFLINE_SIDECAR/);
+  assert.match(schema,/pub schema_version: u32/);
+  assert.match(schema,/pub sha256: String/);
+  assert.match(schema,/pub line_count: usize/);
+  assert.match(schema,/pub bookmarks: Vec<Bookmark>/);
+  assert.match(schema,/deny_unknown_fields/);
+  assert.match(schema,/fn invalid_notes_bookmarks_and_unknown_fields_fail_closed/);
+  assert.doesNotMatch(schema,/write\(|rename\(|TcpStream|UdpSocket|tauri::command/);
+});
+test("Native Workspace explicitly imports and exports portable notes and bookmarks",()=>{
+  assert.match(native,/invoke<OfflineSidecarRead>\("cmd_load_offline_sidecar"/);
+  assert.match(native,/invoke<OfflineSidecarSaved>\("cmd_save_offline_sidecar"/);
+  assert.match(native,/expectedSourceSha256:report\.source_sha256/);
+  assert.match(native,/expectedRevision:sidecarRevision/);
+  assert.match(native,/setSidecarDirty\(true\)/);
+  assert.match(native,/setSidecarRevision\(null\)/);
+  assert.match(native,/nativeRequestEpoch\.current/);
+  assert.match(native,/Загрузить и заменить несохранённые заметки/);
+  assert.match(native,/Переносимый проект/);
+  assert.match(native,/Путь к MLAD sidecar/);
+  assert.match(native,/Добавить закладку/);
+  assert.match(native,/Удалить закладку L/);
+  assert.match(native,/\.replace\(\/\\\.lst\$\/i,"\.mlad\.json"\)/);
+  assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
+});
+
+test("sidecar UX never loses unsaved notes during source switching or concurrent saves",()=>{
+  assert.match(native,/if\(report&&sidecarDirty\)/);
+  assert.match(native,/if\(sidecarBusy\)\s*\{\s*setIssue\("Сначала дождитесь/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:cached,bookmarks:\[\]\}\)/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:payload\.annotations,bookmarks:payload\.bookmarks\}\)/);
+  assert.match(native,/function discardUnsavedSidecarNotes\(/);
+  assert.match(native,/setAnnotations\(savedSidecarNotes\.annotations\)/);
+  assert.match(native,/Отменить несохранённые изменения sidecar/);
+  assert.match(native,/if\(!report \|\| !editing\|\|sidecarBusy\)return/);
+  assert.match(native,/if\(sidecarBusy\)return;/);
+});
