@@ -1,10 +1,10 @@
 # MLAD — translation coverage / Покрытие переводом
 
-> **Status:** all 53 original Markdown documents have RU/EN companions (106 localized files). PR #32–#34 brought **55** companions to source-aligned/editorial status. This PR #35 batch reviews **three RU/EN interface pairs** (Graph Editor, multi-rung display, inline address editing) and the **English JSON persistence safety** document. Total **62 source-aligned or editorially reviewed**; **44 machine drafts** still require substantive editing. A translation review **is not** proof of OEM instruction behavior, actual Windows UserSmoke, transaction atomicity or controller write authorization. The original source remains authoritative.
+> **Status:** all 54 original Markdown documents have RU/EN companions (108 localized files). PR #32–#34 brought **55** companions to source-aligned/editorial status. This PR #35 batch reviews **three RU/EN interface pairs** (Graph Editor, multi-rung display, inline address editing) and the **English JSON persistence safety** document. Total **62 source-aligned or editorially reviewed**; **46 machine drafts** still require substantive editing. A translation review **is not** proof of OEM instruction behavior, actual Windows UserSmoke, transaction atomicity or controller write authorization. The original source remains authoritative.
 
-> **Статус:** для всех 53 исходных Markdown-документов есть RU/EN-версии (106 языковых файлов). PR #32–#34 обеспечили **55** сверенных версий. В PR #35 проверены **три пары интерфейсных документов RU/EN** (Graph Editor, многоцепное отображение, inline-адреса) и **английская версия JSON persistence safety**. Итого **62 сверенных перевода** и **44 машинных черновика**. Смысловая редактура **не** подтверждает реальное поведение OEM-инструкций, Windows UserSmoke, атомарность backup+target или право записи в робот. Исходный файл имеет приоритет.
+> **Статус:** для всех 54 исходных Markdown-документов есть RU/EN-версии (108 языковых файлов). PR #32–#34 обеспечили **55** сверенных версий. В PR #35 проверены **три пары интерфейсных документов RU/EN** (Graph Editor, многоцепное отображение, inline-адреса) и **английская версия JSON persistence safety**. Итого **62 сверенных перевода** и **46 машинных черновиков**. Смысловая редактура **не** подтверждает реальное поведение OEM-инструкций, Windows UserSmoke, атомарность backup+target или право записи в робот. Исходный файл имеет приоритет.
 
-**Markdown sources:** 53. **RU/EN companions:** 106. **Total Markdown including this register:** 160.
+**Markdown sources:** 54. **RU/EN companions:** 108. **Total Markdown including this register:** 163.
 
 | Original / Оригинал | Русский | English | RU quality | EN quality |
 | --- | --- | --- | --- | --- |
@@ -61,6 +61,7 @@
 | [docs/ui_multi_rung_state.md](ui_multi_rung_state.md) | [Русский](ui_multi_rung_state.ru.md) | [English](ui_multi_rung_state.en.md) | EditorialPass | EditorialPass |
 | [docs/verification_gates.md](verification_gates.md) | [Русский](verification_gates.ru.md) | [English](verification_gates.en.md) | SourceAligned | EditorialPass |
 | [docs/windows_acceptance_pr28.md](windows_acceptance_pr28.md) | [Русский](windows_acceptance_pr28.ru.md) | [English](windows_acceptance_pr28.en.md) | SourceAligned | MachineDraft |
+| [docs/windows_offline_preview_pr48.md](windows_offline_preview_pr48.md) | [Русский](windows_offline_preview_pr48.ru.md) | [English](windows_offline_preview_pr48.en.md) | MachineDraft | MachineDraft |
 
 ## Editorial review register / Реестр редакторской проверки
 
@@ -71,9 +72,9 @@
 | PR #33 — CIOPRG, memory, TMR/CNT/GSTR/GOUT, native parsing, opcode syntax | **EditorialPass (6)** | **EditorialPass (8)** | Byte fidelity, numeric ranges, source examples, test/evidence states |
 | PR #34 — source registry, post-END, semantic AST, IONAME | **EditorialPass (4)** | **EditorialPass (4)** | Manufacturer evidence, source spans, no fabricated rung, no automatic IONAME mapping |
 | PR #35 — [Graph Editor](graph_editor.md), [Multi-rung UI](ui_multi_rung_state.md), [Inline editing](inline_address_editing.md), [JSON safety](json_persistence_safety.md) | **EditorialPass (3)**; JSON safety already SourceAligned | **EditorialPass (4)** | Only JSON is editable; tri-state is OFFLINE; WebView2 UserSmoke separate; staged JSON is not a backup+target atomic transaction |
-| Remaining / Остальные | **MachineDraft (13)** | **MachineDraft (31)** | Full bilingual semantic editing still required |
+| Remaining / Остальные | **MachineDraft (14)** | **MachineDraft (32)** | Full bilingual semantic editing still required |
 
-**Totals / Итого:** **53 originals / 106 companions**; **27 RU SourceAligned + 13 RU EditorialPass + 22 EN EditorialPass = 62 reviewed**, **44 MachineDraft** (13 RU + 31 EN). Table groups overlap on the **same source documents**, but **each localized language file is counted only once**.
+**Totals / Итого:** **54 originals / 108 companions**; **27 RU SourceAligned + 13 RU EditorialPass + 22 EN EditorialPass = 62 reviewed**, **46 MachineDraft** (14 RU + 32 EN). Table groups overlap on the **same source documents**, but **each localized language file is counted only once**.
 
 **Review levels / Уровни проверки:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified`. An `EditorialPass` checks translation/source fidelity; **it does not certify a controller, confirm WebView2 execution, eliminate TOCTOU or authorize a native writer**. / Смысловая сверка перевода **не** является аппаратным допуском.
 

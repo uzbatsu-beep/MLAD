@@ -57,6 +57,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Windows security contract tests failed" }
           npm run test:native
           if ($LASTEXITCODE -ne 0) { throw "Native workspace tests failed" }
+          node --test scripts/offline-preview-contract.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Offline Preview supply-chain/fixture tests failed" }
           npm run docs:check
           if ($LASTEXITCODE -ne 0) { throw "Markdown checks failed" }
           # Do not run npm run build here: Tauri beforeBuildCommand runs it
