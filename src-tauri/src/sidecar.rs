@@ -55,7 +55,7 @@ fn valid_relay(value:&str)->bool {
     (bytes.len()==4 && bytes[0]==b'M' && bytes[1..].iter().all(u8::is_ascii_digit))
 }
 fn validate_annotation_text(value:&str)->bool {
-    value.len()<=200 && !value.chars().any(|ch|ch.is_control() && ch!='\n' && ch!='\t')
+    value.chars().count()<=200 && !value.chars().any(|ch|ch.is_control() && ch!='\n' && ch!='\t')
 }
 fn validate_rung_key(key:&str, max_line:usize)->bool {
     let Some(rest)=key.strip_prefix('L') else {return false;};
@@ -126,7 +126,7 @@ impl OfflineSidecar {
         let mut lines=BTreeSet::new();
         for bookmark in &self.bookmarks {
             if bookmark.line==0 || bookmark.line>doc.lines.len() ||
-               bookmark.label.trim().is_empty() || bookmark.label.len()>80 ||
+               bookmark.label.trim().is_empty() || bookmark.label.chars().count()>80 ||
                bookmark.label.chars().any(|ch|ch.is_control()) ||
                !lines.insert(bookmark.line) {
                 return Err("Sidecar: повреждённая, дублированная или лишняя закладка".into());
@@ -175,6 +175,26 @@ mod tests {
         assert_eq!(d.copy_original(),b"STR #70010\r\nOUT #70020\nEND\r");
         assert_eq!(back.source.sha256,d.source_sha256);
     }
+
+    #[test]
+    fn cyrillic_and_multibyte_notes_use_character_limits_not_utf8_bytes(){
+        let d=doc(b"STR #70010\nOUT #70020\nEND\n");
+        let mut s=annotated(&d);
+        s.annotations.addresses.insert("#70010".into(),"Ю".repeat(200));
+        s.bookmarks[0].label="Закладка".repeat(10); // 80 Unicode scalars
+        s.validate(&d).unwrap();
+        let copy:OfflineSidecar=serde_json::from_slice(
+            &serde_json::to_vec(&s).unwrap()
+        ).unwrap();
+        assert_eq!(copy.annotations.addresses["#70010"].chars().count(),200);
+        assert_eq!(copy.bookmarks[0].label.chars().count(),80);
+        s.bookmarks[0].label.push('ж');
+        assert!(s.validate(&d).is_err());
+        s.bookmarks[0].label="OK".into();
+        s.annotations.addresses.insert("#70010".into(),"Я".repeat(201));
+        assert!(s.validate(&d).is_err());
+    }
+
     #[test]
     fn stale_source_controller_and_size_are_rejected() {
         let d=doc(b"STR #70010\nOUT #70020\nEND\n");
