@@ -136,3 +136,4 @@ Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #
 **UI:** each new opcode links to its manual section; no computed Carry/Zero/Error, EN, actual read/write or live scan result. New DX100/DX200 forms have no family manual evidence; do not show a DX100-only disclaimer.
 
 **CI gate:** exact-final-HEAD `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), actual Windows NTFS/Tauri `windows-security`, and `ci-gate` SUCCESS before review. Owner approval required before merging. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` separately. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.
+The pre-existing typed candidate `MOV` remains distinct from `MOVJ` and `MOVL`; adding `BMOV` does not change that boundary.
