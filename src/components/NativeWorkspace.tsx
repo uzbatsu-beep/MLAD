@@ -248,6 +248,23 @@ type OfflineSidecar = {
 };
 type OfflineSidecarRead = {sidecar:OfflineSidecar;revision:string};
 type OfflineSidecarSaved = {revision:string};
+type UnifiedProjectManifest = {
+  format:"MLAD_OFFLINE_PROJECT";schema_version:1;
+  source:{relative_path:string;sha256:string;byte_length:number;
+    line_count:number;controller:Controller};
+  ioname:{relative_path:string;sha256:string;byte_length:number}|null;
+  sidecar:{relative_path:string;sha256:string;byte_length:number}|null;
+  analysis:{model:"SOURCE_ROLE_PREVIEW_V1";source_sha256:string;
+    typed_candidates:number;semantic_rungs:number;read_roles:number;
+    write_roles:number;unknown_roles:number;execution_verified:false};
+};
+type UnifiedProjectOpened = {
+  project:UnifiedProjectManifest;revision:string;source_path:string;
+  report:Report;ioname_path:string|null;ioname:IonameReport|null;
+  sidecar_path:string|null;sidecar:OfflineSidecar|null;
+  sidecar_revision:string|null;analysis_changed:boolean;
+};
+type UnifiedProjectSaved = {project:UnifiedProjectManifest;revision:string};
 type EditKey = "rungs"|"addresses"|"ioname";
 type EditTarget = {type:EditKey;key:string;caption:string};
 const blankAnnotations=():Annotations=>({rungs:{},addresses:{},ioname:{}});
@@ -340,6 +357,12 @@ export function NativeWorkspace() {
   const [ionameBusy,setIonameBusy]=useState(false);
   const [annotations,setAnnotations]=useState<Annotations>(blankAnnotations);
   const [openedSourcePath,setOpenedSourcePath]=useState("");
+  const [projectPath,setProjectPath]=useState("");
+  const [projectRevision,setProjectRevision]=useState<string|null>(null);
+  const [projectBusy,setProjectBusy]=useState(false);
+  const [projectDirty,setProjectDirty]=useState(false);
+  const [projectAnalysisChanged,setProjectAnalysisChanged]=useState(false);
+  const [projectManifest,setProjectManifest]=useState<UnifiedProjectManifest|null>(null);
   const [sidecarPath,setSidecarPath]=useState("");
   const [sidecarRevision,setSidecarRevision]=useState<string|null>(null);
   const [sidecarBusy,setSidecarBusy]=useState(false);
@@ -436,6 +459,8 @@ export function NativeWorkspace() {
   },[report,selectedLine]);
 
   async function openSource(selectedPath:string=path){
+    if(projectBusy){setIssue("Завершите операцию с offline-проектом.");return;}
+    if(projectDirty){setIssue("Проект изменён: сначала сохраните манифест или отвяжите его.");return;}
     if(sidecarBusy) {
       setIssue("Сначала дождитесь завершения чтения/записи sidecar.");
       return;
@@ -473,6 +498,8 @@ export function NativeWorkspace() {
       }
       setPath(selectedPath);
       setOpenedSourcePath(selectedPath.trim());
+      setProjectPath("");setProjectRevision(null);
+      setProjectManifest(null);setProjectDirty(false);setProjectAnalysisChanged(false);
       setSidecarPath(selectedPath.trim().replace(/\.lst$/i,".mlad.json"));
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
@@ -489,7 +516,7 @@ export function NativeWorkspace() {
 
   /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
   async function chooseFile(kind:"cioprg"|"ioname"){
-    if(filePickerBusy||busy||ionameBusy||sidecarBusy)return;
+    if(filePickerBusy||busy||ionameBusy||sidecarBusy||projectBusy)return;
     if(kind==="cioprg"&&sidecarDirty){
       setIssue("Сохраните или отмените изменения sidecar перед выбором другого CIOPRG.");
       return;
@@ -602,8 +629,120 @@ export function NativeWorkspace() {
     }
   }
 
+
+  /** Unified open is atomic from UI perspective. Backend verifies all
+   *  referenced source/sidecar SHA values before returning the new session. */
+  async function openUnifiedProject(){
+    if(projectBusy||busy||sidecarBusy||ionameBusy||!projectPath.trim())return;
+    if(sidecarDirty||projectDirty||editing){
+      setIssue("Есть несохранённые изменения проекта или sidecar. Сохраните их либо отмените до открытия другого проекта.");
+      return;
+    }
+    const selected=projectPath.trim();
+    const epoch=++nativeRequestEpoch.current;
+    accessRequestSeq.current++;
+    setProjectBusy(true);setBusy(true);setIssue("");
+    try{
+      const loaded=await invoke<UnifiedProjectOpened>("cmd_open_offline_project",{
+        manifestPath:selected,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      const source=loaded.report,meta=loaded.project;
+      if(meta.format!=="MLAD_OFFLINE_PROJECT"||meta.schema_version!==1 ||
+         meta.source.sha256!==source.source_sha256 ||
+         meta.source.line_count!==source.line_count ||
+         meta.source.byte_length!==source.byte_length ||
+         meta.source.controller!==source.controller ||
+         meta.analysis.source_sha256!==source.source_sha256 ||
+         meta.analysis.execution_verified ||
+         source.static_access.source_sha256!==source.source_sha256 ||
+         source.static_access.execution_verified ||
+         source.edited_export_allowed ||
+         loaded.ioname?.source_sha256!==meta.ioname?.sha256 && !!meta.ioname ||
+         loaded.sidecar?.source.sha256!==source.source_sha256 && !!meta.sidecar){
+        throw Error("Компоненты offline-проекта не соответствуют проверенному снимку");
+      }
+      // Commit all verified parts in a single synchronous state update.
+      setPath(loaded.source_path);setOpenedSourcePath(loaded.source_path);
+      setController(source.controller);setReport(source);
+      setPageLines(source.lines.slice(0,PAGE_SIZE));setPageStart(1);setSelectedLine(null);
+      setRung(source.semantic.rungs[0]?.number??1);
+      setSelectedBlockLine(source.advanced.blocks[0]?.line??null);
+      setTab("source");setJson("");setHits([]);setEditing(null);
+      setSourceFilterResult(null);setSourceFilterBusy(false);setSearchBusy(false);
+      setAccessResult(null);setAccessBusy(false);setAccessKind("");setAccessSymbol("");
+      setIonamePath(loaded.ioname_path??"");setIoname(loaded.ioname);
+      setLinkEntry(null);setLinkAddress("");
+      setSidecarPath(loaded.sidecar_path??loaded.source_path.replace(/\.lst$/i,".mlad.json"));
+      setSidecarRevision(loaded.sidecar_revision);
+      const notes=loaded.sidecar?.annotations??loadLocalAnnotations(source.source_sha256);
+      const markers=loaded.sidecar?.bookmarks??[];
+      setAnnotations(notes);setBookmarks(markers);
+      setSavedSidecarNotes({annotations:notes,bookmarks:markers});
+      setSidecarDirty(false);setBookmarkLabel("");
+      setProjectManifest(meta);setProjectRevision(loaded.revision);
+      setProjectDirty(false);setProjectAnalysisChanged(loaded.analysis_changed);
+      try{
+        window.localStorage.setItem("mlad-annotations:"+source.source_sha256,
+          JSON.stringify(notes));
+      }catch{/* Local cache is optional; manifest and sidecar are authoritative. */}
+    }catch(error){
+      if(epoch===nativeRequestEpoch.current)setIssue("Проект не открыт: "+String(error));
+    }finally{
+      if(epoch===nativeRequestEpoch.current){setBusy(false);setProjectBusy(false);}
+    }
+  }
+  async function saveUnifiedProject(){
+    if(!report||!openedSourcePath||projectBusy||busy||sidecarBusy||ionameBusy||!projectPath.trim())return;
+    if(sidecarDirty||editing){
+      setIssue("Сначала сохраните комментарии и закладки в *.mlad.json (sidecar).");
+      return;
+    }
+    const hasNotes=Object.values(annotations).some(part=>
+      Object.values(part).some(value=>Boolean(value)))||bookmarks.length>0;
+    if(hasNotes&&!sidecarRevision){
+      setIssue("Перед фиксацией единого проекта сохраните заметки в отдельном sidecar.");
+      return;
+    }
+    const epoch=nativeRequestEpoch.current;
+    const selected=projectPath.trim();
+    setProjectBusy(true);setIssue("");
+    try{
+      const saved=await invoke<UnifiedProjectSaved>("cmd_save_offline_project",{
+        manifestPath:selected,sourcePath:openedSourcePath,
+        controller:report.controller,expectedSourceSha256:report.source_sha256,
+        ionamePath:ioname?ionamePath:null,
+        expectedIonameSha256:ioname?.source_sha256??null,
+        sidecarPath:sidecarRevision?sidecarPath.trim():null,
+        expectedSidecarRevision:sidecarRevision,
+        expectedManifestRevision:projectRevision,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      if(saved.project.format!=="MLAD_OFFLINE_PROJECT"||
+         saved.project.source.sha256!==report.source_sha256||
+         saved.project.source.controller!==report.controller ||
+         saved.project.analysis.execution_verified){
+        throw Error("Сохранённый манифест не соответствует источнику");
+      }
+      setProjectRevision(saved.revision);
+      setProjectManifest(saved.project);
+      setProjectDirty(false);setProjectAnalysisChanged(false);
+    }catch(error){
+      if(epoch===nativeRequestEpoch.current)setIssue("Проект не сохранён: "+String(error));
+    }finally{if(epoch===nativeRequestEpoch.current)setProjectBusy(false);}
+  }
+  function detachUnifiedProject(){
+    if(projectBusy||sidecarBusy||busy||sidecarDirty){
+      setIssue("Сначала завершите операцию или сохраните/отмените правки sidecar.");
+      return;
+    }
+    setProjectRevision(null);setProjectManifest(null);setProjectDirty(false);
+    setProjectAnalysisChanged(false);setProjectPath("");setIssue("");
+  }
+
   function persistAnnotations(next:Annotations) {
-    if(!report||sidecarBusy)return;
+    if(!report||sidecarBusy||projectBusy)return;
+    if(projectRevision)setProjectDirty(true);
     setAnnotations(next);
     setSidecarDirty(true);
     try {
@@ -613,7 +752,7 @@ export function NativeWorkspace() {
     }
   }
   async function loadPortableSidecar(replaceUnsaved:boolean=false){
-    if(!report||!openedSourcePath||sidecarBusy||!sidecarPath.trim())return;
+    if(!report||!openedSourcePath||sidecarBusy||projectBusy||!sidecarPath.trim())return;
     if(sidecarDirty&&!replaceUnsaved){
       setIssue("Есть несохранённые изменения sidecar. Сохраните их перед загрузкой другого файла.");
       return;
@@ -641,6 +780,7 @@ export function NativeWorkspace() {
         bookmarks:loaded.sidecar.bookmarks,
       });
       setSidecarRevision(loaded.revision);
+      if(projectRevision)setProjectDirty(true);
       setSidecarDirty(false);setBookmarkLabel("");
       try {
         window.localStorage.setItem("mlad-annotations:"+report.source_sha256,
@@ -652,7 +792,7 @@ export function NativeWorkspace() {
     finally{if(epoch===nativeRequestEpoch.current)setSidecarBusy(false);}
   }
   async function savePortableSidecar(){
-    if(!report||!openedSourcePath||sidecarBusy||!sidecarPath.trim())return;
+    if(!report||!openedSourcePath||sidecarBusy||projectBusy||!sidecarPath.trim())return;
     if(editing){setIssue("Сначала завершите редактирование комментария.");return;}
     const epoch=nativeRequestEpoch.current;
     const payload:OfflineSidecar={
@@ -671,13 +811,14 @@ export function NativeWorkspace() {
       });
       if(epoch!==nativeRequestEpoch.current)return;
       setSidecarRevision(saved.revision);
+      if(projectRevision)setProjectDirty(true);
       setSavedSidecarNotes({annotations:payload.annotations,bookmarks:payload.bookmarks});
       setSidecarDirty(false);
     }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
     finally{if(epoch===nativeRequestEpoch.current)setSidecarBusy(false);}
   }
   function addBookmark(){
-    if(!report||selectedLine===null||sidecarBusy)return;
+    if(!report||selectedLine===null||sidecarBusy||projectBusy)return;
     if(bookmarks.some(bookmark=>bookmark.line===selectedLine)){
       setIssue("Для этой строки уже есть закладка.");return;
     }
@@ -686,14 +827,16 @@ export function NativeWorkspace() {
     if(label.length>80){setIssue("Подпись закладки: не более 80 символов.");return;}
     setBookmarks([...bookmarks,{line:selectedLine,label}].sort((a,b)=>a.line-b.line));
     setBookmarkLabel("");setSidecarDirty(true);
+    if(projectRevision)setProjectDirty(true);
   }
   function removeBookmark(line:number){
-    if(sidecarBusy)return;
+    if(sidecarBusy||projectBusy)return;
     setBookmarks(bookmarks.filter(x=>x.line!==line));
     setSidecarDirty(true);
+    if(projectRevision)setProjectDirty(true);
   }
   function discardUnsavedSidecarNotes(){
-    if(sidecarBusy||!report||!savedSidecarNotes)return;
+    if(sidecarBusy||projectBusy||!report||!savedSidecarNotes)return;
     setAnnotations(savedSidecarNotes.annotations);
     setBookmarks(savedSidecarNotes.bookmarks);
     setSidecarDirty(false);setBookmarkLabel("");setIssue("");cancelEdit();
@@ -723,12 +866,13 @@ export function NativeWorkspace() {
     cancelEdit();
   }
   async function importIoname(selectedPath:string=ionamePath){
-    if(!selectedPath.trim()||ionameBusy||sidecarBusy)return;
+    if(!selectedPath.trim()||ionameBusy||sidecarBusy||projectBusy)return;
     setIonameBusy(true);setIssue("");setIoname(null);setLinkEntry(null);
     try{
       const value=await invoke<IonameReport>("cmd_inspect_ioname",{filePath:selectedPath.trim()});
       setIonamePath(selectedPath);
       setIoname(value);setTab("ioname");
+      if(projectRevision)setProjectDirty(true);
       if(!value.header_valid)setIssue("IONAME.DAT: заголовок/секции не подтверждены; показаны только безопасно распознанные позиции.");
     }catch(error){setIssue(String(error));}finally{setIonameBusy(false);}
   }
@@ -778,6 +922,15 @@ export function NativeWorkspace() {
         addresses:Object.keys(annotations.addresses).length,
       },
       ioname_source_sha256:ioname?.source_sha256??null,
+      unified_offline_project:{
+        format:projectManifest?.format??null,
+        schema_version:projectManifest?.schema_version??null,
+        source_sha256:projectManifest?.source.sha256??null,
+        analysis_snapshot_changed:projectAnalysisChanged,
+        manifest_dirty:projectDirty,
+        source_recomputed:true,
+        native_write_allowed:false,
+      },
       annotation_policy:"LocalStorage cache + opt-in standalone *.mlad.json sidecar; originals untouched",
       original_round_trip_only:report.original_round_trip_only,
       edited_export_allowed:report.edited_export_allowed,
@@ -861,6 +1014,42 @@ export function NativeWorkspace() {
       </form>
       <div className="native-header-offline">● OFFLINE</div>
     </header>
+
+    <section aria-label="Единый offline-проект MLAD" style={{
+      background:"#1a2c3c",padding:"8px 14px",borderBottom:"1px solid #456076",
+      display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",fontSize:12,
+    }}>
+      <strong style={{whiteSpace:"nowrap"}}>Офлайн-проект · *.mladproj.json</strong>
+      <input aria-label="Путь к единому offline-проекту" value={projectPath}
+        disabled={projectBusy||busy} onChange={e=>{
+          setProjectPath(e.target.value);
+          setProjectRevision(null);setProjectManifest(null);setProjectDirty(false);
+        }}
+        style={{...field,flex:"1 1 300px",minWidth:170}} placeholder="Папка проекта/cell.mladproj.json"/>
+      <button type="button" style={btn}
+        disabled={projectBusy||busy||sidecarBusy||!projectPath.trim()}
+        onClick={()=>void openUnifiedProject()}>
+        {projectBusy?"Проверка…":"Открыть проект"}
+      </button>
+      <button type="button" style={btn}
+        disabled={!report||projectBusy||busy||sidecarBusy||!projectPath.trim()}
+        onClick={()=>void saveUnifiedProject()}>
+        Сохранить проект
+      </button>
+      {projectRevision&&<button type="button" style={{...btn,padding:"6px 9px"}}
+        disabled={projectBusy||sidecarBusy||sidecarDirty}
+        onClick={detachUnifiedProject}>Отвязать</button>}
+      <small style={{color:projectAnalysisChanged?"#edc18d":"#b8d4c3"}}>
+        {projectRevision?
+          (projectDirty?"Изменены связи проекта · сохраните манифест":
+           projectAnalysisChanged?"Анализ изменился · пересчитан из CIOPRG":
+           "Манифест привязан к проверенным файлам · SHA-256"):
+          "Переносимый манифест: только относительные пути внутри папки проекта"}
+      </small>
+      <small style={{color:"#d7bd8c"}}>
+        CIOPRG/IONAME только чтение · sidecar сохраняется отдельно · анализ пересчитывается
+      </small>
+    </section>
     {issue&&<div role="alert" style={{background:"#56363c",color:"#ffd5d6",padding:"8px 14px"}}>
       {issue}
     </div>}
@@ -1629,7 +1818,7 @@ export function NativeWorkspace() {
       </div>
       <footer style={{padding:"5px 12px",fontSize:11,color:"#b0c3d0",
         borderTop:"1px solid #364d5f",background:"#1b2b39"}}>
-        SHA-256 исходника неизменен · Запись только отдельного *.mlad.json · Native CIOPRG/IONAME, FTP, HSES — только чтение/запрет
+        SHA-256 исходника неизменен · Запись только отдельного *.mlad.json и *.mladproj.json · Native CIOPRG/IONAME, FTP, HSES — только чтение/запрет
       </footer>
     </>}
   </main>;
