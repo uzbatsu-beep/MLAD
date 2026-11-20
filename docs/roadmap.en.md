@@ -118,3 +118,11 @@ The next task after PR #43 (subject to separate approval) is the portable offlin
 **Workflow:** open read-only CIOPRG, choose separate `*.mlad.json`, load/save notes and physical-line bookmarks. Backend rereads the original source and validates `SHA-256`, controller profile and sizes. First save requires an absent target; updates need a `revision` based on exact bytes and file ID. Existing staged JSON persistence produces `*.bak`. Source/format mismatches are rejected rather than falling back to a native writer.
 
 **Residual risks:** file ID plus revision is optimistic, not an OS-atomic CAS. `check→rename` TOCTOU, Windows ACL preservation, multi-process writes, atomic target+backup and crash recovery remain OPEN. `CIOPRG.LST`/`IONAME.DAT` remain read-only; FTP/HSES, native writer and robot deployment are **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Next proposed phase: PR #45 typed grammar.
+
+## Current sequence: PR #45 — OEM-evidenced extended typed grammar (20 November 2026)
+
+PR #44 portable sidecar merged into `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 is a separate, unmerged **Draft**. Stage M6 expands **syntax-only** classification by 15 YRC1000 R12-documented opcodes in addition to five previous forms. Operand roles and values are checked as `TypedCandidate`; new opcodes remain barriers in the boolean/execution analysis and do not generate native Ladder. The source/role matrices live in `docs/typed_opcode_grammar.md` and `docs/source_registry.md`.
+
+**Acceptance gate:** documented OEM 178648-1CD §§12.2.15–34, 15 positive / 17 negative synthetic forms, exact byte spans/SHA/EOL, faithful unknown lines, final SHA `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. The new forms have no DX100/DX200 family evidence. `MUL Dn+1` and `BMOV n` require special syntactic constraints with explicit provenance.
+
+Proposed, not-yet-started next tasks: PR #46 source-linked static READ/WRITE/UNKNOWN with conservative barriers, PR #47 Unified Offline Project and conditional PR #48 Windows Preview. Older v4 numbers above are historical. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. Owner must explicitly approve PR #45 merging.
