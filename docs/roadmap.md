@@ -92,3 +92,11 @@ MLAD — независимая OFFLINE/BENCH среда для анализа �
 PR #40 слит как документационная актуализация в main (2f28d5c0941c7495c2577fa4839eabc28d52298e). Техническая реализация Parser Fidelity выполняется отдельным PR #41: синтетические фикстуры, классификация полного исходника по физическим строкам, исходные байтовые позиции и диагностика неизвестного синтаксиса. Ранее предложенная задача Native Workspace UX PR #41 откладывается на PR #42 или позднее. Номера задач Security, Sidecar, Typed Grammar, Static Analysis, Unified IDE и Windows Preview — предварительные, не закреплены за открытыми PR.
 
 Обязательны проверки на окончательном HEAD и отдельное согласование слияния. CIOPRG.LST/IONAME.DAT строго read-only. HSES/FTP, native writer и deployment — **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Синтетические тесты не подтверждают OEM scan или права System/User.
+
+## Актуальная очередь после слияния PR #41 — UX в PR #42
+
+PR #41 Parser Fidelity слит в `main` SHA `0c1b233354564d9fd3c242675a78a45417feacc1`. PR #42 — Native CIOPRG Offline Workspace UX v2 — создан отдельно как Draft. Его содержание: source↔rung↔advanced block↔diagnostic, схема только выбранной цепи/блока, навигация с клавиатуры и фильтрация всего файла по `SyntaxClass`, opcode, точному текстовому адресу со страничной выдачей.
+
+Предлагаемая дальнейшая очередь (номера не зарезервированы): PR #43 security/dependencies, PR #44 portable sidecar, PR #45 typed grammar, PR #46 static analysis, PR #47 Unified Offline Project, PR #48 Windows offline preview. Прежняя нумерация v4 — исторический план, а не закреплённые PR.
+
+CIOPRG.LST/IONAME.DAT остаются read-only; HSES/FTP, native writer, deployment **BLOCKED**. Совпадения адреса — лишь текстовые, не результат scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; merge только после отдельного согласования владельца.

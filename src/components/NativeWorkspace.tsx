@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LadderCircuit } from "./LadderCircuit.tsx";
 import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
 import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
@@ -148,6 +148,13 @@ function toReadOnlyAdvanced(b:AdvancedSourceBlock):AdvancedBlock|null{
 type NativeSection = {line:number;category:string;label:string};
 type SearchHit = {line:number;preview:string};
 type SearchResponse = {source_sha256:string;hits:SearchHit[];truncated:boolean};
+type NativeFilterHit = {
+  line:number;byte_offset:number;syntax_class:SyntaxClass;preview:string;
+};
+type NativeFilterPage = {
+  source_sha256:string;line_count:number;offset:number;total_matches:number;
+  next_offset:number|null;hits:NativeFilterHit[];
+};
 type StaticCandidateSite={
   spelling:string;kind:string;span:{start:number;end:number};
   role:"Source"|"ShiftAmount"|"Destination";
@@ -287,6 +294,7 @@ export function NativeWorkspace() {
   const [selectedLine,setSelectedLine]=useState<number|null>(null);
   const [goto,setGoto]=useState("");
   const [rung,setRung]=useState(1);
+  const [selectedBlockLine,setSelectedBlockLine]=useState<number|null>(null);
   const [zoom,setZoom]=useState(1);
   const [blockZoom,setBlockZoom]=useState(1);
   const [ionamePath,setIonamePath]=useState("");
@@ -302,17 +310,41 @@ export function NativeWorkspace() {
   const [hits,setHits]=useState<SearchHit[]>([]);
   const [searchTruncated,setSearchTruncated]=useState(false);
   const [searchBusy,setSearchBusy]=useState(false);
+  const [sourceClass,setSourceClass]=useState<""|SyntaxClass>("");
+  const [sourceOpcode,setSourceOpcode]=useState("");
+  const [sourceAddress,setSourceAddress]=useState("");
+  const [sourceFilterResult,setSourceFilterResult]=useState<NativeFilterPage|null>(null);
+  const [sourceFilterBusy,setSourceFilterBusy]=useState(false);
+  const nativeRequestEpoch=useRef(0);
+  const activeSourceLineRef=useRef<HTMLButtonElement|null>(null);
+  const selectedDiagnosticsRef=useRef<HTMLDivElement|null>(null);
   const [filter,setFilter]=useState<"all"|"Error"|"Warning">("all");
   const [groupedDiagnostics,setGroupedDiagnostics]=useState(true);
   const [json,setJson]=useState("");
 
   const visibleRungs=useMemo(()=>{
     if(!report)return [];
-    return report.semantic.rungs.map(sourceRung=>{
+    return report.semantic.rungs.filter(sourceRung=>sourceRung.number===rung).map(sourceRung=>{
       try{return {rung:sourceRung,expr:semanticToExpression(report.semantic.nodes,sourceRung.expression_root),error:""};}
       catch(error){return {rung:sourceRung,expr:null,error:String(error)};}
     });
-  },[report]);
+  },[report,rung]);
+  const activeBlock=useMemo(()=>
+    report?.advanced.blocks.find(block=>block.line===selectedBlockLine)??null,
+  [report,selectedBlockLine]);
+  const selectedRung=useMemo(()=>{
+    if(!report||selectedLine===null)return null;
+    return report.semantic.rungs.find(candidate=>
+      selectedLine>=candidate.first_line&&selectedLine<=candidate.output_line)??null;
+  },[report,selectedLine]);
+  const selectedRelatedBlock=useMemo(()=>{
+    if(!report||selectedLine===null)return null;
+    return report.advanced.blocks.find(candidate=>
+      selectedLine>=candidate.line&&selectedLine<=candidate.end_line)??null;
+  },[report,selectedLine]);
+  useEffect(()=>{
+    if(tab==="source"&&selectedLine!==null)activeSourceLineRef.current?.focus();
+  },[tab,selectedLine,pageStart,pageLines]);
   const selectedTyped=useMemo(()=>{
     if(selectedLine===null)return null;
     return getTypedCandidate(pageLines.find(l=>l.line===selectedLine)?.kind);
@@ -341,11 +373,22 @@ export function NativeWorkspace() {
     ].filter(x=>filter==="all"||x.severity===filter).sort((a,b)=>a.line-b.line);
   },[report,filter]);
   const diagnosticGroups=useMemo(()=>groupDiagnostics(diags),[diags]);
+  const selectedLineDiagnostics=useMemo(()=>{
+    if(!report||selectedLine===null)return [];
+    return [
+      ...report.diagnostics.map(d=>({severity:d.severity,line:d.line,code:d.code,message:d.message})),
+      ...report.semantic.diagnostics.map(d=>({severity:d.level,line:d.line,code:d.code,message:d.message})),
+    ].filter(d=>d.line===selectedLine).slice(0,20);
+  },[report,selectedLine]);
 
   async function openSource(selectedPath:string=path){
+    const epoch=++nativeRequestEpoch.current;
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
+    setSourceFilterResult(null);setSourceFilterBusy(false);
+    setSearchBusy(false);setPageBusy(false);
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.syntax_coverage.total_lines!==value.line_count ||
           !value.syntax_coverage.all_source_lines_counted ||
           value.syntax_coverage.semantics_verified){
@@ -355,10 +398,12 @@ export function NativeWorkspace() {
       setReport(value);
       setPageLines(value.lines.slice(0,PAGE_SIZE));
       setPageStart(1);setSelectedLine(null);
-      setRung(value.semantic.rungs[0]?.number??1);setTab("source");
+      setRung(value.semantic.rungs[0]?.number??1);
+      setSelectedBlockLine(value.advanced.blocks[0]?.line??null);setTab("source");
       setAnnotations(loadLocalAnnotations(value.source_sha256));
       setIoname(null);setLinkEntry(null);
-    }catch(error){setIssue(String(error));}finally{setBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setBusy(false);}
   }
 
   /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
@@ -378,6 +423,7 @@ export function NativeWorkspace() {
   async function showLine(line:number){
     if(!report||pageBusy||!Number.isInteger(line)||line<1||line>report.line_count)return;
     const start=Math.floor((line-1)/PAGE_SIZE)*PAGE_SIZE+1;
+    const epoch=nativeRequestEpoch.current;
     setIssue("");setTab("source");
     if(start+PAGE_SIZE-1<=report.lines.length){
       setPageLines(report.lines.slice(start-1,start-1+PAGE_SIZE));
@@ -386,25 +432,54 @@ export function NativeWorkspace() {
     setPageBusy(true);
     try{
       const value=await invoke<ReadPage>("cmd_read_cioprg_page",{
-        filePath:path.trim(),controller,expectedSha256:report.source_sha256,startLine:start,
+        filePath:path.trim(),controller:report.controller,expectedSha256:report.source_sha256,startLine:start,
       });
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.source_sha256!==report.source_sha256||value.line_count!==report.line_count||value.start_line!==start){
         throw Error("Контрольная сумма исходного файла изменилась");
       }
       setPageLines(value.lines);setPageStart(start);setSelectedLine(line);
-    }catch(error){setIssue(String(error));}finally{setPageBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
+    finally{if(epoch===nativeRequestEpoch.current)setPageBusy(false);}
   }
   async function searchAll(){
     if(!report||searchBusy||search.trim().length<2)return;
+    const epoch=nativeRequestEpoch.current;
     setSearchBusy(true);setIssue("");
     try{
       const value=await invoke<SearchResponse>("cmd_search_cioprg",{
-        filePath:path.trim(),controller,expectedSha256:report.source_sha256,query:search,
+        filePath:path.trim(),controller:report.controller,expectedSha256:report.source_sha256,query:search,
       });
+      if(epoch!==nativeRequestEpoch.current)return;
       if(value.source_sha256!==report.source_sha256)throw Error("Снимок файла изменился");
       setHits(value.hits);setSearchTruncated(value.truncated);
-    }catch(error){setIssue(String(error));setHits([]);}
-    finally{setSearchBusy(false);}
+    }catch(error){if(epoch===nativeRequestEpoch.current){setIssue(String(error));setHits([]);}}
+    finally{if(epoch===nativeRequestEpoch.current)setSearchBusy(false);}
+  }
+  async function filterFullSource(offset:number=0){
+    if(!report||sourceFilterBusy)return;
+    if(!sourceClass&&!sourceOpcode.trim()&&!sourceAddress.trim()){
+      setIssue("Укажите класс синтаксиса, opcode или адрес");return;
+    }
+    const epoch=nativeRequestEpoch.current;
+    setIssue("");setSourceFilterBusy(true);
+    try{
+      const value=await invoke<NativeFilterPage>("cmd_filter_cioprg_lines",{
+        filePath:path.trim(),controller:report.controller,
+        expectedSha256:report.source_sha256,
+        syntaxClass:sourceClass||null,opcode:sourceOpcode.trim()||null,
+        address:sourceAddress.trim()||null,offset,
+      });
+      if(epoch!==nativeRequestEpoch.current)return;
+      if(value.source_sha256!==report.source_sha256||
+        value.line_count!==report.line_count||value.offset!==offset ||
+        value.hits.some(hit=>hit.line<1||hit.line>report.line_count)){
+        throw Error("Фильтр не соответствует открытому снимку CIOPRG");
+      }
+      setSourceFilterResult(value);
+    }catch(error){
+      if(epoch===nativeRequestEpoch.current){setIssue(String(error));setSourceFilterResult(null);}
+    }finally{if(epoch===nativeRequestEpoch.current)setSourceFilterBusy(false);}
   }
   function persistAnnotations(next:Annotations) {
     if(!report)return;
@@ -617,23 +692,33 @@ export function NativeWorkspace() {
           <p style={{fontSize:11,color:"#d2b484"}}>
             PART — только текстовая метка, не право записи в System/User
           </p>
-          {report.sections.map((s,i)=><button key={i} type="button" style={itemStyle}
+          {report.sections.slice(0,160).map((s,i)=><button key={i} type="button" style={itemStyle}
             title={s.label+" · строка "+s.line} onClick={()=>void showLine(s.line)}>
             {s.category==="Part"?"▸ ":"· "}{s.label} <small>L{s.line}</small>
           </button>)}
+          {report.sections.length>160&&<small style={{color:"#e4bd80"}}>
+            Показано 160 меток из {report.sections.length}; полный исходник доступен по номеру строки.
+          </small>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <strong>Логические цепи ({report.semantic.rung_count})</strong>
-          {report.semantic.rungs.map(r=><button type="button" key={r.number} style={itemStyle}
-            onClick={()=>{setRung(r.number);setTab("diagram");}}>
+          {report.semantic.rungs.map(r=><button type="button" key={r.number}
+            style={{...itemStyle,background:rung===r.number?"#294c4c":"transparent"}}
+            aria-current={rung===r.number?"true":undefined}
+            onClick={()=>{setRung(r.number);setSelectedLine(r.first_line);setTab("diagram");}}>
             R{r.number} · OUT {relayText(r.output)}
           </button>)}
           {report.semantic.rungs_truncated&&<small>Список цепей ограничен</small>}
           <hr style={{borderColor:"#3a4d5e"}}/>
           <strong>Функциональные блоки</strong>
-          {report.advanced.blocks.map(b=><button type="button" style={itemStyle} key={b.line}
-            onClick={()=>{setTab("blocks");setSelectedLine(b.line);}}>
+          {report.advanced.blocks.map(b=><button type="button"
+            style={{...itemStyle,background:selectedBlockLine===b.line?"#294c4c":"transparent"}}
+            aria-current={selectedBlockLine===b.line?"true":undefined} key={b.line}
+            onClick={()=>{setSelectedBlockLine(b.line);setTab("blocks");setSelectedLine(b.line);}}>
             {b.kind} · L{b.line}
           </button>)}
+          {report.advanced.blocks_truncated&&<small style={{color:"#e4bd80"}}>
+            Список блоков ограничен предпросмотром; остальные доступны в исходном тексте.
+          </small>}
         </aside>
         <section aria-label="Рабочее поле CIOPRG" style={{
           display:"flex",flexDirection:"column",minWidth:0,minHeight:0,background:"#0f1923",
@@ -646,7 +731,7 @@ export function NativeWorkspace() {
               {tabButton("ioname","Имена I/O"+(ioname?" ("+ioname.entries.length+")":""))}
             </div>
             {tab==="diagram"&&<div role="group" aria-label="Масштаб Ladder" className="native-context-actions">
-              <strong>Все цепи ({visibleRungs.length})</strong>
+              <strong>Все цепи ({report.semantic.rung_count}) · выбрана R{rung}</strong>
               <button type="button" style={btn} aria-label="Уменьшить масштаб Ladder"
                 onClick={()=>setZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
               <span aria-live="polite">{Math.round(zoom*100)}%</span>
@@ -655,7 +740,7 @@ export function NativeWorkspace() {
               <button type="button" style={btn} onClick={()=>setZoom(1)}>100%</button>
             </div>}
             {tab==="blocks"&&<div role="group" aria-label="Масштаб TMR CNT GSTR" className="native-context-actions">
-              <strong>Все блоки ({report.advanced.blocks.length})</strong>
+              <strong>Все блоки ({report.advanced.blocks.length}) · выбран L{selectedBlockLine??"—"}</strong>
               <button type="button" style={btn} aria-label="Уменьшить масштаб блоков"
                 onClick={()=>setBlockZoom(z=>Math.max(.5,+(z-.15).toFixed(2)))}>−</button>
               <span aria-live="polite">{Math.round(blockZoom*100)}%</span>
@@ -678,11 +763,37 @@ export function NativeWorkspace() {
                 style={{...field,width:80}} placeholder="Строка"/>
               <button type="button" style={btn} onClick={()=>void showLine(Number(goto))}
                 disabled={pageBusy}>Перейти</button>
+              {selectedRung&&<button type="button" style={btn}
+                onClick={()=>{setRung(selectedRung.number);setTab("diagram");}}>
+                К цепи R{selectedRung.number} ↗
+              </button>}
+              {selectedRelatedBlock&&<button type="button" style={btn}
+                onClick={()=>{setSelectedBlockLine(selectedRelatedBlock.line);setTab("blocks");}}>
+                К блоку L{selectedRelatedBlock.line} ↗
+              </button>}
+              {selectedLine!==null&&<button type="button" style={btn}
+                onClick={()=>selectedDiagnosticsRef.current?.scrollIntoView({block:"nearest",behavior:"smooth"})}>
+                Диагностика L{selectedLine} ({selectedLineDiagnostics.length}) ↗
+              </button>}
               {pageBusy&&<span>Чтение страницы…</span>}
             </div>
             <div style={{flex:1,minHeight:0,overflow:"auto",fontFamily:"Consolas,monospace",
               fontSize:12,lineHeight:1.7,padding:"8px 12px"}}>
-              {pageLines.map(l=><button type="button" key={l.line} onClick={()=>setSelectedLine(l.line)}
+              {pageLines.map(l=><button type="button" key={l.line}
+                ref={element=>{if(selectedLine===l.line)activeSourceLineRef.current=element;}}
+                aria-current={selectedLine===l.line?"true":undefined}
+                onClick={()=>setSelectedLine(l.line)}
+                onKeyDown={event=>{
+                  const next=event.key==="ArrowDown"?l.line+1:
+                    event.key==="ArrowUp"?l.line-1:
+                    event.key==="PageDown"?l.line+PAGE_SIZE:
+                    event.key==="PageUp"?l.line-PAGE_SIZE:
+                    event.key==="Home"?1:event.key==="End"?report.line_count:null;
+                  if(next!==null){
+                    event.preventDefault();
+                    void showLine(Math.max(1,Math.min(report.line_count,next)));
+                  }
+                }}
                 title={"Byte offset: "+l.body_span.start+"–"+l.body_span.end}
                 style={{display:"flex",gap:10,whiteSpace:"pre",width:"max-content",minWidth:"100%",
                   textAlign:"left",font:"inherit",padding:"0 4px",border:0,cursor:"pointer",
@@ -697,12 +808,13 @@ export function NativeWorkspace() {
               </button>)}
             </div>
             <div style={{fontSize:11,color:"#a9c0cb",padding:"5px 12px",borderTop:"1px solid #35485b"}}>
-              Полный исходник по страницам · нет операций редактирования или сохранения
+              Стрелки ↑/↓ · PageUp/PageDown · Home/End · полный исходник по страницам · только чтение
             </div>
           </>}
           {tab==="diagram"&&<div style={{overflow:"auto",flex:1,padding:15}}>
             <p style={{color:"#e4bd80",fontSize:12}}>
-              Все цепи, доступные в ограниченном Semantic AST. Неизвестные команды не преобразуются в предполагаемую схему.
+              Только выбранная цепь из ограниченного Semantic AST — крупные документы не рендерятся целиком.
+              Неизвестные команды не преобразуются в предполагаемую схему.
               Двойной щелчок по заголовку цепи или адресам изменяет только локальный комментарий.
             </p>
             {visibleRungs.map(({rung:current,expr,error})=>{
@@ -747,7 +859,7 @@ export function NativeWorkspace() {
             <p style={{color:"#e4bd80",fontSize:12}}>
               Визуализируются только подтверждённые простые топологии. Остальные доступны в исходнике.
             </p>
-            {report.advanced.blocks.map(b=>{
+            {(activeBlock?[activeBlock]:[]).map(b=>{
               const overlay=toReadOnlyAdvanced(b);
               return <div style={{...panel,marginBottom:12}} key={b.line}>
                 <div style={{display:"flex",gap:10,alignItems:"center",
@@ -763,6 +875,7 @@ export function NativeWorkspace() {
               </div>;
             })}
             {!report.advanced.blocks.length&&<p>Поддерживаемые блоки не найдены.</p>}
+            {report.advanced.blocks.length>0&&!activeBlock&&<p>Выберите блок в дереве слева.</p>}
             {report.advanced.blocks_truncated&&<p>Предпросмотр блоков ограничен.</p>}
           </div>}
           {tab==="ioname"&&<div style={{flex:1,overflow:"auto",padding:15}}>
@@ -826,6 +939,93 @@ export function NativeWorkspace() {
         </section>
         <aside style={{...sideStyle,borderRight:0,borderLeft:"1px solid #405263"}}
           aria-label="Диагностика и поиск">
+          {selectedLine!==null&&<div ref={selectedDiagnosticsRef}
+            aria-label="Диагностика выбранной строки"
+            style={{marginBottom:12,padding:9,border:"1px solid #577276",borderRadius:5,background:"#19323a"}}>
+            <strong>Диагностика L{selectedLine} ({selectedLineDiagnostics.length})</strong>
+            {selectedLineDiagnostics.map((d,i)=><div key={i} style={{fontSize:11,marginTop:5}}>
+              <b style={{color:d.severity==="Error"?"#f4a8ad":"#e4bd80"}}>{d.code}</b>
+              <div>{d.message}</div>
+            </div>)}
+            {!selectedLineDiagnostics.length&&<small>
+              В доступном preview диагностики для строки нет; полная фильтрация неизвестных конструкций доступна ниже.
+            </small>}
+            {(report.diagnostics.length>=500||report.semantic.diagnostics_truncated)&&<small>
+              Список диагностики ограничен, отсутствие сообщения не означает подтверждение синтаксиса.
+            </small>}
+          </div>}
+          <section aria-label="Фильтр исходного CIOPRG" style={{
+            marginBottom:12,padding:9,border:"1px solid #456078",borderRadius:5,
+            background:"#1c2d3b",fontSize:12,
+          }}>
+            <strong>Фильтрация всего CIOPRG · до 200 000 строк</strong>
+            <p style={{fontSize:11,color:"#dabc88",lineHeight:1.5}}>
+              По физическому исходнику, не по выполняемой логике. Результаты по 100 строк,
+              снимок привязан к SHA-256; неизвестное содержимое не скрывается.
+            </p>
+            <form onSubmit={event=>{event.preventDefault();void filterFullSource(0);}}
+              style={{display:"grid",gap:6}}>
+              <label style={{display:"grid",gap:3}}>
+                Класс синтаксиса
+                <select aria-label="Фильтр класса синтаксиса" value={sourceClass} disabled={sourceFilterBusy}
+                  onChange={event=>{
+                    setSourceClass(event.target.value as ""|SyntaxClass);
+                    setSourceFilterResult(null);
+                  }} style={{...field,width:"100%",boxSizing:"border-box"}}>
+                  <option value="">Все классы</option>
+                  <option value="Recognized">Recognized</option>
+                  <option value="TypedCandidate">TypedCandidate</option>
+                  <option value="Unsupported">Unsupported</option>
+                  <option value="Malformed">Malformed</option>
+                  <option value="Opaque">Opaque</option>
+                  <option value="PostEndData">PostEndData</option>
+                  <option value="Structural">Structural</option>
+                </select>
+              </label>
+              <label style={{display:"grid",gap:3}}>
+                Opcode (точное ASCII-имя)
+                <input aria-label="Фильтр opcode" value={sourceOpcode} maxLength={20} disabled={sourceFilterBusy}
+                  onChange={event=>{setSourceOpcode(event.target.value);setSourceFilterResult(null);}}
+                  placeholder="STR / OUT / MOV / TMR" style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <label style={{display:"grid",gap:3}}>
+                Адрес (текстовый токен)
+                <input aria-label="Фильтр адреса" value={sourceAddress} maxLength={6} disabled={sourceFilterBusy}
+                  onChange={event=>{setSourceAddress(event.target.value);setSourceFilterResult(null);}}
+                  placeholder="#70010 / M010" style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <button type="submit" style={btn} disabled={sourceFilterBusy||pageBusy}>
+                {sourceFilterBusy?"Фильтрация…":"Применить фильтр"}
+              </button>
+            </form>
+            {sourceFilterResult&&<div style={{marginTop:8}} aria-live="polite">
+              <div style={{fontSize:11,color:"#acc9d6"}}>
+                Совпадений {sourceFilterResult.total_matches}; показано
+                {" "}{sourceFilterResult.hits.length===0?0:sourceFilterResult.offset+1}–
+                {sourceFilterResult.offset+sourceFilterResult.hits.length}
+              </div>
+              <div style={{display:"flex",gap:7,marginTop:5,marginBottom:5}}>
+                <button type="button" style={btn}
+                  disabled={sourceFilterBusy||sourceFilterResult.offset===0}
+                  onClick={()=>void filterFullSource(Math.max(0,sourceFilterResult.offset-100))}>
+                  ← 100
+                </button>
+                <button type="button" style={btn}
+                  disabled={sourceFilterBusy||sourceFilterResult.next_offset===null}
+                  onClick={()=>void filterFullSource(sourceFilterResult.next_offset!)}>
+                  100 →
+                </button>
+              </div>
+              <div style={{maxHeight:190,overflowY:"auto"}}>
+                {sourceFilterResult.hits.map(hit=><button type="button" key={hit.line}
+                  style={itemStyle} title={"Byte offset: "+hit.byte_offset}
+                  onClick={()=>void showLine(hit.line)}>
+                  L{hit.line} · {hit.syntax_class} · {hit.preview}
+                </button>)}
+              </div>
+              {!sourceFilterResult.hits.length&&<small>Совпадения отсутствуют на этой странице.</small>}
+            </div>}
+          </section>
           <section aria-label="Типизированные инструкции" style={{
             marginBottom:12,padding:9,border:"1px solid #46617d",borderRadius:5,
             background:"#1b2a3a",fontSize:12,

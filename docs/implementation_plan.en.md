@@ -89,3 +89,13 @@ No controller-native writer, deployment, network runtime, automatic IONAME→rel
 Documentation PR #40 is already merged; parser fidelity and corpus implementation are now in PR #41. Deliverables include fully synthetic bytes, SHA-256, expected physical-line classes, complete non-lossy classification, unknown/opaque retention, malformed diagnostics and original byte spans in Native Workspace. Successful CI does not replace UserSmoke or OEMBench and cannot authorize HSES/FTP, native writer or deployment. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, controller actions **BLOCKED**.
 
 The former PR #41 UX task moves to PR #42 or later; further numbers are tentative. The current PR remains Draft until explicit owner approval.
+
+## PR #42 — Native CIOPRG Offline Workspace UX v2: acceptance criteria
+
+Baseline is merged PR #41, `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. PR #42 is a separate Draft; the earlier proposed PR #42 security task moves to PR #43 or later.
+
+Contract: render no more than one selected Ladder rung and one selected functional block; list other preview items in the navigation tree with explicit truncation notices. Go from physical source line to recognized rung/block, back to source, and from diagnostics to physical line. ArrowUp/ArrowDown, PageUp/PageDown, Home/End keys, source pages of 250 lines. Full-source filter by `SyntaxClass`, exact ASCII opcode, textual address token `#XXXXX` or `Mxxx`; 100 results per page with a complete match count within bounded input.
+
+Acceptance: preserve raw bytes, SHA-256 and selected controller family; reject changed source; test at least 1400 lines and pagination beyond the first 100 matches; negative cases for malformed opcode/address, opaque/malformed and post-END. Unknown text is retained; no execution simulation. Linux frontend/Rust/Windows CI evidence remains separate from UserSmoke/OEMBench.
+
+CIOPRG.LST and IONAME.DAT are read-only; HSES/FTP, native writer, live I/O and deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independently tested; separate owner approval required before merge.

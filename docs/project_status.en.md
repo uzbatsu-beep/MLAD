@@ -56,3 +56,9 @@ MLAD — local OFFLINE/BENCH environment `DX100`/`DX200`/`YRC1000` for analysis 
 PR #40 is already merged as documentation only, without parser implementation. Draft PR #41 adds a synthetic CIOPRG corpus, full-source physical-line classification and original source byte spans in Native Workspace. This represents a development branch, not functionality merged into main and not a real-controller validation. Acceptance requires completed Linux/Windows CI on the final HEAD and explicit owner approval before merging.
 
 Independent states: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP/native writer/deployment **BLOCKED**. The previously published rc.9 does not include PR #40/#41. Required-check Ruleset settings are unchanged.
+
+## Current development branch: PR #42 — Native Workspace UX v2
+
+PR #41 Parser Fidelity merged into `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. New PR #42 is a Draft, not in main. The branch implements source↔rung/block/diagnostic navigation, one diagram at a time, keyboard navigation, and server-paged `SyntaxClass`/opcode/address source filtering pinned to SHA-256.
+
+CI evidence must match the final PR #42 HEAD. Passing CI does not imply a manual Windows WebView2 UserSmoke or OEM bench. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP, native writer, and deployment **BLOCKED**. There is no public Windows Release for this change.
