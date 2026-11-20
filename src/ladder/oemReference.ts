@@ -5,7 +5,7 @@
  * editing permissions are explicitly unknown until isolated bench tests.
  */
 export type OemManualEntry={
-  mnemonic:"MOV"|"ADD"|"SUB"|"SHL"|"SHR";
+  mnemonic:string;
   format:string;
   whenOn:string;
   carry:string;
@@ -15,7 +15,7 @@ export type OemManualEntry={
   unresolved:string;
   section:string;
 };
-const entries:Record<OemManualEntry["mnemonic"],OemManualEntry>={
+const entries:Record<string,OemManualEntry>={
   MOV:{
     mnemonic:"MOV",format:"MOV S,D",
     whenOn:"При истинном входном условии передаёт S в D.",
@@ -67,6 +67,82 @@ const entries:Record<OemManualEntry["mnemonic"],OemManualEntry>={
     section:"§12.2.30",
   },
 };
+
+// Expanded YRC1000 Concurrent I/O R12 §12.2 evidence. All forms are
+// non-executable source annotations; these flag fields explicitly do NOT
+// expose firmware-calculated values, runtime state or a robot write interface.
+function manualOnly(mnemonic:string,format:string,whenOn:string,
+  limits:string,section:string,unresolved:string):OemManualEntry {
+  const notSimulated="Руководство описывает флаг; MLAD не вычисляет его значение в реальном скане.";
+  return {
+    mnemonic,format,whenOn,limits,section,
+    carry:notSimulated,zero:notSimulated,error:notSimulated,
+    unresolved:unresolved+"; условия EN/сканирования и конкретная прошивка не проверены.",
+  };
+}
+Object.assign(entries,{
+  MUL:manualOnly("MUL","MUL S1,S2,Dn",
+    "Умножение двух 16-битных беззнаковых источников; результат в паре Dn (low), Dn+1 (high).",
+    "S1/S2: M000–M999 или 0–65535; Dn/Dn+1: соседние M, консервативно Dn=M000–M598.",
+    "§12.2.19","Статический анализ диапазонов пар и системные флаги не моделируются"),
+  DIV:manualOnly("DIV","DIV S1,S2,D",
+    "Частное при истинном входном условии; деление на ноль связано с Error Flag.",
+    "S1/S2: M000–M999 или 0–65535; D: M000–M599.",
+    "§12.2.20","Деление на ноль, состояние Error Flag и значение D при ошибке не вычисляются"),
+  MOD:manualOnly("MOD","MOD S1,S2,D",
+    "Остаток деления при истинном входном условии; деление на ноль связано с Error Flag.",
+    "S1/S2: M000–M999 или 0–65535; D: M000–M599.",
+    "§12.2.21","Деление на ноль, Error Flag и значение D при ошибке не моделируются"),
+  BIN:manualOnly("BIN","BIN S,D",
+    "Преобразование BCD в двоичное представление по руководству.",
+    "S: M000–M999, byte либо word relay (не immediate); D: M000–M599, byte либо word.",
+    "§12.2.22","Значение при невалидном BCD и граничные byte/Carry не вычисляются"),
+  BCD:manualOnly("BCD","BCD S,D",
+    "Преобразование двоичного S в BCD при истинном входном условии.",
+    "S: M000–M999, byte либо word relay (не immediate); D: M000–M599, byte либо word.",
+    "§12.2.23","Ошибка для S≥10000, byte-переполнение и значения флагов не вычисляются"),
+  WAND:manualOnly("WAND","WAND S1,S2,D",
+    "Побитовый AND источников S1 и S2.",
+    "S1/S2: M000–M999, 0–65535, byte/word; D: M000–M599, byte/word.",
+    "§12.2.25","Совмещение byte/word и перекрывающиеся назначения не моделируются"),
+  WOR:manualOnly("WOR","WOR S1,S2,D",
+    "Побитовый OR источников S1 и S2.",
+    "S1/S2: M000–M999, 0–65535, byte/word; D: M000–M599, byte/word.",
+    "§12.2.26","Совмещение byte/word и перекрывающиеся назначения не моделируются"),
+  WXOR:manualOnly("WXOR","WXOR S1,S2,D",
+    "Побитовый XOR источников S1 и S2.",
+    "S1/S2: M000–M999, 0–65535, byte/word; D: M000–M599, byte/word.",
+    "§12.2.27","Совмещение byte/word и перекрывающиеся назначения не моделируются"),
+  WNOT:manualOnly("WNOT","WNOT S,D",
+    "Побитовое отрицание значения S.",
+    "S: M000–M999, 0–65535, byte/word; D: M000–M599, byte/word.",
+    "§12.2.28","Ширина инверсии для byte/word в живом скане не моделируется"),
+  ROL:manualOnly("ROL","ROL S,n,D",
+    "Циклический сдвиг 16 бит влево на n позиций.",
+    "S: M000–M999, 0–65535, byte/word; n: 0–16; D: M000–M599, byte/word.",
+    "§12.2.31","Carry при n=0/16 и влияние 8-битных групп не вычисляются"),
+  ROR:manualOnly("ROR","ROR S,n,D",
+    "Циклический сдвиг 16 бит вправо на n позиций.",
+    "S: M000–M999, 0–65535, byte/word; n: 0–16; D: M000–M599, byte/word.",
+    "§12.2.32","Carry при n=0/16 и влияние 8-битных групп не вычисляются"),
+  BMOV:manualOnly("BMOV","BMOV S,n,D",
+    "Передача n байт из исходной области S в D (не n слов).",
+    "S: M000–M999 либо byte relay; n: 1–999 байт; D: M000–M599 либо byte relay.",
+    "§12.2.33","Пересечение диапазонов, выход за границы и младший байт регистра не проверяются"),
+  CMP:manualOnly("CMP","CMP S1,S2",
+    "Сравнение S1 с S2; отдельного операнда D нет.",
+    "S1/S2: M000–M999, 0–65535, byte/word.",
+    "§12.2.34","Carry/Zero и условия EN в реальном скане не моделируются"),
+  PLS:manualOnly("PLS","PLS #XXXXX",
+    "Импульсный выход по положительному фронту входного условия.",
+    "Один relay #XXXXX, не M-регистр и не групповая операция.",
+    "§12.2.15","Ширина импульса и дублирование катушек в прошивке не подтверждены"),
+  PLF:manualOnly("PLF","PLF #XXXXX",
+    "Импульсный выход по отрицательному фронту входного условия.",
+    "Один relay #XXXXX, не M-регистр и не групповая операция.",
+    "§12.2.16","Ширина импульса и дублирование катушек в прошивке не подтверждены"),
+} satisfies Record<string,OemManualEntry>);
+
 export function oemManualEntry(mnemonic:string):OemManualEntry|null{
-  return Object.hasOwn(entries,mnemonic)?entries[mnemonic as OemManualEntry["mnemonic"]]:null;
+  return Object.hasOwn(entries,mnemonic)?entries[mnemonic]??null:null;
 }
