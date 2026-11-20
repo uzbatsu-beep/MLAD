@@ -1,0 +1,130 @@
+name: MLAD PR48 Windows Offline Preview (Unsigned NonRelease)
+
+# PR48-only sidecar workflow; never releases, tags, pushes or changes permissions.
+# Checkout the exact PR HEAD, not GitHub's auto-generated PR merge ref.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-offline-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-offline-preview:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'feature/pr48-windows-offline-preview'
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      CARGO_INCREMENTAL: "0"
+      PREVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Confirm exact source revision
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $revision = (git rev-parse HEAD).Trim()
+          if ($revision -cne $env:PREVIEW_HEAD_SHA) {
+            throw "Wrong checkout: expected PR head $env:PREVIEW_HEAD_SHA, got $revision"
+          }
+
+      - name: Node.js 22 and pinned npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Stable Windows Rust MSVC
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust build cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install reproducible frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify lockfiles unchanged
+        run: git diff --exit-code -- package.json package-lock.json
+
+      - name: Offline-only source, UX and preview contract tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          npm run test:security
+          if ($LASTEXITCODE -ne 0) { throw "Offline boundary violation" }
+          npm run test:native
+          if ($LASTEXITCODE -ne 0) { throw "Native workspace contracts failed" }
+          node --test scripts/offline-preview-contract.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Preview artifact contracts failed" }
+          npm run docs:check
+          if ($LASTEXITCODE -ne 0) { throw "Broken acceptance documentation" }
+          python scripts/i18n_verify.py
+          if ($LASTEXITCODE -ne 0) { throw "Bilingual documentation check failed" }
+          python scripts/i18n_semantic_guard.py
+          if ($LASTEXITCODE -ne 0) { throw "Unreviewed/i18n semantics check failed" }
+
+      - name: Windows NTFS Rust regression suite
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Prepare deterministic synthetic unified offline project
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python scripts/offline-preview-fixture.py --mode self-test
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic fixture tamper-negative self-test failed" }
+          $project = Join-Path $env:RUNNER_TEMP "mlad-pr48-synthetic-project"
+          python scripts/offline-preview-fixture.py --mode prepare --root $project
+          if ($LASTEXITCODE -ne 0) { throw "Cannot prepare synthetic project" }
+          python scripts/offline-preview-fixture.py --mode verify --root $project
+          if ($LASTEXITCODE -ne 0) { throw "Synthetic project verification failed" }
+
+      - name: Build unsigned Tauri production EXE, no installer
+        run: npm run tauri -- build --no-bundle
+
+      - name: Package unsigned preview, GPL sources and evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $out = Join-Path $env:RUNNER_TEMP "mlad-pr48-preview-stage"
+          $fixture = Join-Path $env:RUNNER_TEMP "mlad-pr48-synthetic-project"
+          $binary = Join-Path (Get-Location) "src-tauri/target/release/yaskawa-ladder-ide.exe"
+          pwsh -NoProfile -File scripts/windows-offline-preview.ps1 -Mode Package -StageRoot $out -FixtureRoot $fixture -Executable $binary -RepositoryRoot . -ExpectedGitSha $env:PREVIEW_HEAD_SHA
+          if ($LASTEXITCODE -ne 0) { throw "Cannot package exact-HEAD offline preview" }
+          pwsh -NoProfile -File scripts/windows-offline-preview.ps1 -Mode Verify -StageRoot $out
+          if ($LASTEXITCODE -ne 0) { throw "Packaged hashes or metadata invalid" }
+          $destination = "preview-artifacts"
+          New-Item -ItemType Directory -Path $destination -Force | Out-Null
+          $zip = Join-Path $destination "MLAD-PR48-Windows-x64-OfflinePreview-Unsigned.zip"
+          Compress-Archive -Path (Join-Path $out "*") -DestinationPath $zip -CompressionLevel Optimal
+          if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) { throw "Preview ZIP missing" }
+          if ((Get-Item -LiteralPath $zip).Length -lt 100000) { throw "Preview ZIP suspiciously small" }
+          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText(
+            (Join-Path $destination "MLAD-PR48-Windows-x64-OfflinePreview-Unsigned.zip.sha256"),
+            $hash + "  MLAD-PR48-Windows-x64-OfflinePreview-Unsigned.zip" + [Environment]::NewLine,
+            [Text.UTF8Encoding]::new($false))
+          Write-Output "EXACT COMMIT: $env:PREVIEW_HEAD_SHA"
+          Write-Output "PREVIEW ZIP SHA256: $hash"
+          Write-Output "GUI UserSmoke=NOT RUN. OEMBench=NOT RUN. NOT a published GitHub release."
+
+      - name: Upload PR48 unsigned offline preview (NOT a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease
+          path: preview-artifacts/*
+          retention-days: 21
+          if-no-files-found: error
