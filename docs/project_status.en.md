@@ -78,3 +78,11 @@ PR #43 merged into `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 is 
 Saves use an optimistic `revision` and the established staged JSON/`*.bak` mechanism; the original is reread only to verify SHA-256 and controller profile. Tests cover schema correctness, changed native/sidecar refusal, unchanged original bytes and notes/bookmark round-trip. CI results must match the final commit SHA; Draft code is not a release.
 
 Residual filesystem hazards from PR #43 remain OPEN. `CIOPRG.LST`/`IONAME.DAT` stay read-only; native writer, FTP/HSES, live I/O and robot deployment remain **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; no Windows release for PR #44 was published.
+
+## Under development in PR #45 — expanded YRC1000 R12 typed grammar (20 November 2026)
+
+PR #44 portable sidecar merged into `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`; PR #45 is an **unmerged Draft**. It implements 15 new syntax-only candidates `MUL/DIV/MOD/BIN/BCD/WAND/WOR/WXOR/WNOT/ROL/ROR/BMOV/CMP/PLS/PLF` from YRC1000 Concurrent I/O R12 §§12.2.15–34. All remain `TypedCandidate`; `syntax_valid=true` never sets `semantics_verified` or adds an executable AST. Limits: `docs/typed_opcode_grammar.md`; evidence: `docs/source_registry.md`.
+
+Synthetic Rust positive/negative tests and raw byte spans are tracked. F10 changes BMOV→invented BMOX with recomputed SHA-256 because BMOV is now documented. Native Workspace OEM reference shows exact manual sections but no computed actual flags or live I/O. New DX100/DX200 forms have **no family-level manual verification**; YRC1000 claims refer to documentation only, not OEMBench.
+
+Exact-final-HEAD `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` required. CI does not substitute for manual Windows UserSmoke or actual OEM controller bench: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. No public Windows Release for PR #45.

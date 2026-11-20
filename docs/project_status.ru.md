@@ -79,3 +79,11 @@ PR #43 слит в `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 —
 Сохранение использует `revision` и существующий staged JSON/`*.bak`; открытый источник перечитывается только для проверки SHA-256/профиля. Тесты фиксируют валидную схему, отказы при изменении исходника и sidecar, защиту источника и корректное сохранение комментариев/закладок. Результаты CI публиковать строго по окончательному HEAD; разработка в Draft сама по себе не означает release.
 
 Остаточные риски файловой системы из PR #43 остаются OPEN. `CIOPRG.LST`/`IONAME.DAT` read-only, native writer, FTP/HSES, live I/O, robot deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; Windows-релиз для PR #44 не выпускался.
+
+## Разработка в PR #45 — расширенная грамматика YRC1000 R12 (20.11.2026)
+
+PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 открыт как **Draft и не слит**. Реализованы 15 новых синтаксических кандидатов `MUL/DIV/MOD/BIN/BCD/WAND/WOR/WXOR/WNOT/ROL/ROR/BMOV/CMP/PLS/PLF` на основании YRC1000 Concurrent I/O R12 §§12.2.15–34. Все они `TypedCandidate`, даже при `syntax_valid=true` выставляется `semantics_verified=false` и не создаётся исполняемый AST. Подробные границы — `docs/typed_opcode_grammar.md`, источники — `docs/source_registry.md`.
+
+В ветке — Rust positive/negative synthetic tests и исходные byte spans; изменение F10 `BMOV`→`BMOX` сделано с точным SHA-256, так как `BMOV` теперь документирован. В Native Workspace справка OEM для всех новых форм содержит разделы руководства и не показывает расчёт реальных флагов или живых значений. Расширенные формы в DX100/DX200 не объявлены доказанными; для YRC1000 речь только о документации, не об OEMBench.
+
+Результаты `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` должны относиться к окончательному SHA. CI не заменяет ручной Windows UserSmoke и OEM аппаратный тест: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. Публичный Windows Release для PR #45 не выпускался.
