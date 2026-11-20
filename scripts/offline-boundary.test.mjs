@@ -179,3 +179,25 @@ test("offline sidecar only writes independent JSON with source pinned and confli
   assert.match(draft,/fn revision_detects_identical_byte_file_identity_swap/);
   assert.doesNotMatch(sidecar,/cmd_deploy_to_robot|TcpStream|UdpSocket/);
 });
+
+test("PR46 static access is bounded, SHA-pinned, and distinct from a controller I/O writer",()=>{
+  const parser=readFileSync("src-tauri/src/compiler/static_access.rs","utf8");
+  const compiler=readFileSync("src-tauri/src/compiler/mod.rs","utf8");
+  assert.match(compiler,/pub mod static_access;/);
+  assert.match(rust,/static_access: compiler::static_access::AccessOverview/);
+  assert.match(rust,/compiler::static_access::inspect\(&doc,160\)/);
+  assert.match(rust,/async fn cmd_query_static_access\(/);
+  assert.match(rust,/if doc\.source_sha256!=expected_sha256/);
+  assert.match(rust,/compiler::static_access::query\(/);
+  assert.match(parser,/pub enum AccessKind \{ Read, Write, Unknown \}/);
+  assert.match(parser,/pub enum AccessBasis/);
+  assert.match(parser,/MAX_PREVIEW:usize=160/);
+  assert.match(parser,/PAGE_SIZE:usize=100/);
+  assert.match(parser,/matches!\(kind,OperandKind::RelayBit/);
+  assert.match(parser,/LineKind::PostEndData\|LineKind::PostEndOpaque/);
+  assert.match(parser,/execution_verified:false/);
+  assert.match(parser,/write_permission_verified:false/);
+  assert.match(parser,/native_write_allowed:false/);
+  assert.match(parser,/fn query_paginates_full_source_and_filters_exact_symbol/);
+  assert.doesNotMatch(parser,/TcpStream|UdpSocket|tauri::command|write_atomic|File::create/);
+});

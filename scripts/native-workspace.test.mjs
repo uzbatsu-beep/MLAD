@@ -275,3 +275,24 @@ test("sidecar UX never loses unsaved notes during source switching or concurrent
   assert.match(native,/if\(!report \|\| !editing\|\|sidecarBusy\)return/);
   assert.match(native,/if\(sidecarBusy\)return;/);
 });
+
+test("PR46 source-linked READ/WRITE/UNKNOWN UX has no runtime access claims",()=>{
+  assert.match(native,/static_access: StaticAccessOverview/);
+  assert.match(native,/type StaticAccessSite =/);
+  assert.match(native,/aria-label="READ WRITE UNKNOWN — статический аудит"/);
+  assert.match(native,/cmd_query_static_access/);
+  assert.match(native,/expectedSha256:report\.source_sha256/);
+  assert.match(native,/page\.source_sha256!==report\.source_sha256/);
+  assert.match(native,/page\.hits\.some\(hit=>hit\.line<1/);
+  assert.match(native,/accessRequestSeq\.current\+\+/);
+  assert.match(native,/READ и WRITE — предполагаемые роли адресов по руководству OEM/);
+  assert.match(native,/execution_verified/);
+  assert.match(native,/write_permission_verified/);
+  assert.match(native,/span\.start/);
+  assert.match(native,/showLine\(site\.line\)/);
+  assert.match(native,/UnknownOpcodeOrStructure/);
+  assert.match(native,/skipped_literal_operands/);
+  assert.match(native,/post_end_lines/);
+  assert.match(native,/next_offset/);
+  assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
+});

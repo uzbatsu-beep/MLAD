@@ -631,6 +631,50 @@ fn main() {
         .expect("Критическая ошибка при запуске runtime-окружения Tauri");
 }
 
+
+#[cfg(test)]
+mod source_linked_access_ipc_tests {
+    use super::*;
+    #[tokio::test]
+    async fn source_linked_access_rejects_changed_original_and_untrusted_filter(){
+        let folder=std::env::temp_dir().join(format!(
+            "mlad-static-access-{}",uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&folder).unwrap();
+        let path=folder.join("CIOPRG.LST");
+        let raw=b"STR #70010\r\nMOV M010,M011\nEND\n//ALARM1\nOUT #70020\n";
+        std::fs::write(&path,raw).unwrap();
+        let file_path=path.to_string_lossy().into_owned();
+        let controller=compiler::memory::ControllerFamily::YRC1000;
+        let doc=compiler::lossless::parse_document(raw.to_vec(),controller);
+        let expected_sha256=doc.source_sha256.clone();
+        let first=cmd_query_static_access(
+            file_path.clone(),controller,expected_sha256.clone(),
+            Some("Read".into()),None,0
+        ).await.unwrap();
+        assert_eq!(first.total_matches,2);
+        assert_eq!(first.hits[0].line,1);
+        assert_eq!(first.hits[1].line,2);
+        assert_eq!(&raw[first.hits[0].span.start..first.hits[0].span.end],b"#70010");
+        assert!(!first.execution_verified);
+        assert!(!first.write_permission_verified);
+        assert!(cmd_query_static_access(
+            file_path.clone(),controller,expected_sha256.clone(),
+            Some("Read".into()),Some("M01".into()),0
+        ).await.is_err());
+        assert!(cmd_query_static_access(
+            file_path.clone(),controller,"0".repeat(64),
+            Some("Write".into()),None,0
+        ).await.is_err());
+        std::fs::write(&path,b"END\n").unwrap();
+        assert!(cmd_query_static_access(
+            file_path.clone(),controller,expected_sha256,
+            Some("Read".into()),None,0
+        ).await.is_err());
+        assert_eq!(std::fs::read(&path).unwrap(),b"END\n");
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+}
+
 #[cfg(test)]
 mod graph_write_safety_tests {
     use super::*;
