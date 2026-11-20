@@ -157,3 +157,24 @@ test("unused direct anyhow and futures-util crates are absent while nom remains 
   assert.match(manifest,/^nom\s*=/m);
   assert.match(parser,/use nom::/);
 });
+
+test("offline sidecar only writes independent JSON with source pinned and conflict checks",()=>{
+  const main=readFileSync("src-tauri/src/main.rs","utf8");
+  const draft=readFileSync("src-tauri/src/draft_io.rs","utf8");
+  const sidecar=readFileSync("src-tauri/src/sidecar.rs","utf8");
+  assert.match(main,/fn cmd_load_offline_sidecar\(/);
+  assert.match(main,/fn cmd_save_offline_sidecar\(/);
+  assert.match(main,/expected_source_sha256/);
+  assert.match(main,/cmd_save_offline_sidecar[\s\S]*?draft_io::write_atomic_with_revision/);
+  assert.match(main,/name\.ends_with\("\.mlad\.json"\)/);
+  assert.match(sidecar,/filename\.ends_with\("\.mlad\.json"\)/);
+  assert.match(draft,/read_bounded_with_revision/);
+  assert.match(draft,/write_atomic_with_revision/);
+  assert.match(draft,/revision_of\(bytes:&\[u8\],id:/);
+  assert.match(draft,/if current!=expected/);
+  assert.match(draft,/let \(_,current\)=read_bounded_with_revision\(path\)/);
+  assert.match(draft,/write_atomic\(path,content\)\?/);
+  assert.match(draft,/fn changed_sidecar_does_not_get_silently_overwritten_or_backed_up/);
+  assert.match(draft,/fn revision_detects_identical_byte_file_identity_swap/);
+  assert.doesNotMatch(sidecar,/cmd_deploy_to_robot|TcpStream|UdpSocket/);
+});
