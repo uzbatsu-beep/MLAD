@@ -326,3 +326,11 @@ test("PR47 unified offline project opens source, IONAME, sidecar and recomputed 
   assert.match(native,/nativeRequestEpoch\.current/);
   assert.doesNotMatch(native,/invoke.*cmd_deploy_to_robot/);
 });
+
+test("unified project without linked sidecar never imports unrelated localStorage annotations",()=>{
+  assert.match(native,/const notes=loaded\.sidecar\?\.annotations\?\?blankAnnotations\(\)/);
+  assert.match(native,/const markers=loaded\.sidecar\?\.bookmarks\?\?\[\]/);
+  assert.match(native,/setSavedSidecarNotes\(\{annotations:notes,bookmarks:markers\}\)/);
+  assert.match(native,/loadLocalAnnotations\(value\.source_sha256\)/,
+    "standalone native inspection still has its optional local cache");
+});

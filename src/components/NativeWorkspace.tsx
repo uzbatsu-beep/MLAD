@@ -675,7 +675,7 @@ export function NativeWorkspace() {
       setLinkEntry(null);setLinkAddress("");
       setSidecarPath(loaded.sidecar_path??loaded.source_path.replace(/\.lst$/i,".mlad.json"));
       setSidecarRevision(loaded.sidecar_revision);
-      const notes=loaded.sidecar?.annotations??loadLocalAnnotations(source.source_sha256);
+      const notes=loaded.sidecar?.annotations??blankAnnotations();
       const markers=loaded.sidecar?.bookmarks??[];
       setAnnotations(notes);setBookmarks(markers);
       setSavedSidecarNotes({annotations:notes,bookmarks:markers});
