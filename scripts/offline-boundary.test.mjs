@@ -171,9 +171,10 @@ test("offline sidecar only writes independent JSON with source pinned and confli
   assert.match(draft,/read_bounded_with_revision/);
   assert.match(draft,/write_atomic_with_revision/);
   assert.match(draft,/revision_of\(bytes:&\[u8\],id:/);
-  assert.match(draft,/if current!=expected/);
-  assert.match(draft,/let \(_,current\)=read_bounded_with_revision\(path\)/);
-  assert.match(draft,/write_atomic\(path,content\)\?/);
+  assert.match(draft,/RevisionPolicy::Expected\(expected\)/);
+  assert.match(draft,/if revision_of\(bytes,id\)!=rev/);
+  assert.match(draft,/write_atomic_inner_with_policy\(/);
+  assert.match(draft,/fn sidecar_revision_is_checked_before_existing_backup_is_modified/);
   assert.match(draft,/fn changed_sidecar_does_not_get_silently_overwritten_or_backed_up/);
   assert.match(draft,/fn revision_detects_identical_byte_file_identity_swap/);
   assert.doesNotMatch(sidecar,/cmd_deploy_to_robot|TcpStream|UdpSocket/);
