@@ -62,3 +62,11 @@ Independent states: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.D
 PR #41 Parser Fidelity merged into `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. New PR #42 is a Draft, not in main. The branch implements source↔rung/block/diagnostic navigation, one diagram at a time, keyboard navigation, and server-paged `SyntaxClass`/opcode/address source filtering pinned to SHA-256.
 
 CI evidence must match the final PR #42 HEAD. Passing CI does not imply a manual Windows WebView2 UserSmoke or OEM bench. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP, native writer, and deployment **BLOCKED**. There is no public Windows Release for this change.
+
+## Current development: PR #43 (20 November 2026)
+
+PR #42 Native Workspace UX v2 merged into `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 is a separate Draft and is not yet in `main`. Implemented: owner-only `0600` on new Unix staged JSON/backup, `verify_single_link` before staged rename, File ID check before staged cleanup, and removal of unused `suppaftp` with five exclusive transitive packages from `Cargo.lock`, and removal of unused direct `anyhow` / `futures-util` from the manifest and root lock dependency list. Added synthetic positive/negative regression tests and offline security contract checks.
+
+**Evidence:** final Linux Rust/frontend, Windows NTFS/Tauri and `ci-gate` results must match the final HEAD SHA; PR remains Draft until approved. This change does not replace a full npm/Rust CVE and third-party license audit. Parent `check→rename` TOCTOU, Windows ACL/owner, coordinated target+`*.bak` writes, concurrent writers and power-loss recovery remain OPEN.
+
+`CIOPRG.LST`/`IONAME.DAT` stay read-only; `HSES/FTP`, native writer and deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; no Windows Release was published.

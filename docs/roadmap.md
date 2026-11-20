@@ -100,3 +100,11 @@ PR #41 Parser Fidelity слит в `main` SHA `0c1b233354564d9fd3c242675a78a4541
 Предлагаемая дальнейшая очередь (номера не зарезервированы): PR #43 security/dependencies, PR #44 portable sidecar, PR #45 typed grammar, PR #46 static analysis, PR #47 Unified Offline Project, PR #48 Windows offline preview. Прежняя нумерация v4 — исторический план, а не закреплённые PR.
 
 CIOPRG.LST/IONAME.DAT остаются read-only; HSES/FTP, native writer, deployment **BLOCKED**. Совпадения адреса — лишь текстовые, не результат scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; merge только после отдельного согласования владельца.
+
+## PR #43 — файловая безопасность и ревизия зависимостей (Draft, 20.11.2026)
+
+**Актуальный baseline:** PR #42 слит в `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`. Отдельный PR #43 открыт как Draft и не включён в `main`. Зафиксированы конкретные изменения: удаление неиспользуемого FTP-крейта `suppaftp` и 5 изолированных транзитивных зависимостей из `Cargo.lock`, а также неиспользуемых прямых `anyhow` и `futures-util` (их транзитивные пакеты остаются); права `0600` на новые Unix staged JSON и backup, отказ от commit staged-файла с дополнительным hardlink и проверка File ID при удалении временного файла.
+
+**Статус M2 — PARTIAL, не CLOSED.** Проверка `check→rename` остаётся неатомарной; Windows ACL/DACL/owner и наследование прав при замене не подтверждены; между сохранением target и `*.bak` нет атомарной транзакции; multi-writer, сбои питания и файловые системы вне локального тестового стенда остаются открытыми. Режим `0600` может намеренно сделать ранее доступный другим пользователям Unix JSON частным.
+
+Следующая задача после PR #43 (только по отдельному решению): portable offline sidecar `*.mlad.json` с привязкой к исходному SHA-256 и пересмотром политики сохранения. `CIOPRG.LST`/`IONAME.DAT` по-прежнему read-only, `HSES/FTP`, native writer и deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` пока нет самостоятельных протоколов.

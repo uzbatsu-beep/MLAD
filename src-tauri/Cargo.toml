@@ -21,11 +21,9 @@ hex = "0.4"
 
 # Асинхронность и многопоточность
 tokio = { version = "1.35", features = ["full"] }
-futures-util = "0.3"
 
-# Сетевой стек для работы с контроллерами роботов
-suppaftp = { version = "12.2", features = ["tokio"] } # FTP для деплоя файлов .LST
-anyhow = "1.0" # Удобная обработка ошибок в сетевых потоках
+# Unverified robot FTP runtime was removed; do not restore network transports.
+# uuid provides local temporary draft identifiers; no robot networking.
 uuid = { version = "1.8", features = ["v4"] }
 
 # Парсинг текстовых файлов инструкций (.LST)

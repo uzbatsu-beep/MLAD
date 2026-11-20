@@ -48,17 +48,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
-name = "async-trait"
-version = "0.1.92"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82f6aeea286b8eb4dd3431a1be1b59d290ace00f5bfd8e2a159bc2a05e2c1667"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.10",
-]
-
-[[package]]
 name = "atk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1739,29 +1728,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lazy-regex"
-version = "3.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0a2cce8a22920a29fdcc8c9170aa5d29edd9fbcf8bea856e24c2cb1c2419f67"
-dependencies = [
- "lazy-regex-proc_macros",
- "once_cell",
- "regex",
-]
-
-[[package]]
-name = "lazy-regex-proc_macros"
-version = "3.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f1e4b1f1d8c71edb4ff2b2150ec4606445fd2ddf67ddc097655daf59286baa6"
-dependencies = [
- "proc-macro2",
- "quote",
- "regex",
- "syn 3.0.10",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2412,26 +2378,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6fd9027e2d9319be6349febd1db4e8d02aa544921200c9b777720ac34a3aa89"
 dependencies = [
  "siphasher",
-]
-
-[[package]]
-name = "pin-project"
-version = "1.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2466b2336ed02bcdca6b294417127b90ec92038d1d5c4fbeac971a922e0e0924"
-dependencies = [
- "pin-project-internal",
-]
-
-[[package]]
-name = "pin-project-internal"
-version = "1.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c96395f0a926bc13b1c17622aaddda1ecb55d49c8f1bf9777e4d877800a43f8b"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -3229,21 +3175,6 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
-
-[[package]]
-name = "suppaftp"
-version = "12.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b58fcf921745cca6f0127c9f822069947da8c6dbeff52e9004750bcc448171f"
-dependencies = [
- "async-trait",
- "chrono",
- "lazy-regex",
- "log",
- "pin-project",
- "thiserror 2.0.21",
- "tokio",
-]
 
 [[package]]
 name = "swift-rs"
@@ -4708,14 +4639,11 @@ dependencies = [
 name = "yaskawa-ladder-ide"
 version = "0.5.0"
 dependencies = [
- "anyhow",
- "futures-util",
  "hex",
  "nom",
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "suppaftp",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
