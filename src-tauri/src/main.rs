@@ -883,7 +883,7 @@ mod unified_offline_project_ipc_tests {
         assert_eq!(opened.report.base.source_sha256,doc.source_sha256);
         assert_eq!(opened.report.static_access.read_sites,1);
         assert_eq!(opened.report.static_access.write_sites,1);
-        assert!(!opened.report.edited_export_allowed());
+        assert!(!opened.report.base.edited_export_allowed);
         assert!(opened.ioname.as_ref().unwrap().entries.len()>=4);
         assert_eq!(opened.sidecar.unwrap(),sidecar);
         assert_eq!(opened.sidecar_revision,Some(saved_notes.revision));
