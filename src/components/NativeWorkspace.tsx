@@ -516,9 +516,9 @@ export function NativeWorkspace() {
       setIssue("Локальное сохранение комментариев недоступно: "+String(error));
     }
   }
-  async function loadPortableSidecar(){
+  async function loadPortableSidecar(replaceUnsaved:boolean=false){
     if(!report||!openedSourcePath||sidecarBusy||!sidecarPath.trim())return;
-    if(sidecarDirty){
+    if(sidecarDirty&&!replaceUnsaved){
       setIssue("Есть несохранённые изменения sidecar. Сохраните их перед загрузкой другого файла.");
       return;
     }
@@ -1248,14 +1248,71 @@ export function NativeWorkspace() {
               Выберите типизированную строку исходника для анализа соседних ссылок.
             </p>}
           </section>
+          <section aria-label="Переносимый offline sidecar" style={{
+            marginBottom:14,padding:9,border:"1px solid #47708d",borderRadius:5,background:"#172d40",
+            fontSize:12,
+          }}>
+            <strong>Переносимый проект · *.mlad.json</strong>
+            <p style={{fontSize:11,color:"#d9bc82",lineHeight:1.5}}>
+              Только заметки и закладки, привязанные к SHA-256 CIOPRG.
+              Не содержит исходный Ladder и не создаёт файл для контроллера.
+            </p>
+            <label style={{display:"grid",gap:4,marginBottom:7}}>
+              Путь к отдельному sidecar JSON
+              <input aria-label="Путь к MLAD sidecar" value={sidecarPath}
+                disabled={sidecarBusy} style={{...field,width:"100%",boxSizing:"border-box"}}
+                onChange={event=>{
+                  setSidecarPath(event.target.value);setSidecarRevision(null);
+                }} placeholder="CIOPRG.mlad.json"/>
+            </label>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              <button type="button" style={btn}
+                disabled={sidecarBusy||busy||!sidecarPath.trim()}
+                onClick={()=>void loadPortableSidecar()}>
+                {sidecarBusy?"Обработка…":"Загрузить sidecar"}
+              </button>
+              <button type="button" style={btn}
+                disabled={sidecarBusy||busy||!sidecarPath.trim()||!!editing}
+                onClick={()=>void savePortableSidecar()}>
+                {sidecarBusy?"Обработка…":"Сохранить sidecar"}
+              </button>
+            </div>
+            {sidecarDirty&&<div style={{marginTop:7,fontSize:11,color:"#f2c686"}}>
+              Несохранённые в sidecar изменения.
+              <button type="button" style={{...btn,padding:"3px 6px",marginTop:5,width:"100%"}}
+                disabled={sidecarBusy||busy}
+                onClick={()=>void loadPortableSidecar(true)}>
+                Загрузить и заменить несохранённые заметки
+              </button>
+            </div>}
+            <div aria-live="polite" style={{marginTop:7,fontSize:11,color:"#b9d0e2"}}>
+              {sidecarRevision?"Sidecar открыт/сохранён; ревизия "+sidecarRevision.slice(0,12)+"…":
+                "Новый sidecar: если файл уже существует, сначала загрузите его."}
+            </div>
+            <div style={{borderTop:"1px solid #45627c",marginTop:9,paddingTop:8}}>
+              <strong>Закладки ({bookmarks.length})</strong>
+              <small style={{display:"block",color:"#c9d4e0",marginTop:4}}>
+                Выберите физическую строку исходника и добавьте закладку.
+              </small>
+              <input aria-label="Подпись закладки" value={bookmarkLabel}
+                maxLength={80} onChange={event=>setBookmarkLabel(event.target.value)}
+                placeholder={selectedLine!==null?"Строка L"+selectedLine:"Сначала выберите строку"}
+                style={{...field,width:"100%",boxSizing:"border-box",marginTop:5}}/>
+              <button type="button" style={{...btn,width:"100%",marginTop:6}}
+                disabled={selectedLine===null||bookmarks.length>=500}
+                onClick={addBookmark}>
+                Добавить закладку L{selectedLine??"—"}
+              </button>
+            </div>
+          </section>
           <section aria-label="Редактор локальных комментариев" style={{
             marginBottom:14,padding:9,border:"1px solid #527369",borderRadius:5,
             background:"#1e3536",
           }}>
-            <strong>Комментарии · только локально</strong>
+            <strong>Комментарии · локально и в sidecar по запросу</strong>
             <p style={{fontSize:11,color:"#d3c298",lineHeight:1.4}}>
               Двойной щелчок по заголовку цепи, адресу на схеме или имени IONAME.
-              CIOPRG.LST и IONAME.DAT не изменяются.
+              CIOPRG.LST и IONAME.DAT не изменяются. Переносной sidecar сохраняется только отдельной командой.
             </p>
             {editing?<div>
               <label style={{display:"grid",gap:5,fontSize:12}}>
@@ -1352,7 +1409,7 @@ export function NativeWorkspace() {
       </div>
       <footer style={{padding:"5px 12px",fontSize:11,color:"#b0c3d0",
         borderTop:"1px solid #364d5f",background:"#1b2b39"}}>
-        SHA-256 исходника неизменен · Полный текст доступен страницами · Редактирование, FTP, HSES запрещены
+        SHA-256 исходника неизменен · Запись только отдельного *.mlad.json · Native CIOPRG/IONAME, FTP, HSES — только чтение/запрет
       </footer>
     </>}
   </main>;
