@@ -138,7 +138,8 @@ test("dataflow evidence is source-order-only and always unverified",()=>{
   assert.match(rust,/MAX_STATIC_EVENTS_PREVIEW: usize = 1000/);
   assert.match(rust,/PostEndOpaque/);
   const main=readFileSync("src-tauri/src/main.rs","utf8");
-  assert.match(main,/typed_dataflow::inspect\(&doc, 1000\)/);
+  assert.match(main,/typed_dataflow::inspect\(doc, 1000\)/);
+  assert.match(main,/build_full_inspection\(&doc\)/);
 });
 
 test("OEM manual source panel never claims runtime verification",()=>{
