@@ -112,3 +112,15 @@ Baseline — слитый PR #42 в `main` `73e675f7df33c5751a35e29752736c3470b1
 5. CI: `cargo test --locked` для Windows/Linux, `npm run test:security`, все обязательные проверки `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` на финальном HEAD.
 
 **Что НЕ реализуется:** ОС-специфичная атомарная traversal через directory handles, Windows DACL/owner preservation, полномасштабный multi-process CAS, crash-safe журнал target+`*.bak`. Их считать OPEN и не оформлять как устранённые. `HSES/FTP`, native writer и deployment **BLOCKED**, `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. PR не сливать без разрешения владельца.
+
+## PR #44 — контракт portable sidecar v1 и критерии приёмки
+
+**Baseline:** слитый PR #43, `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. Новый Draft PR #44 не включён в `main`. Старые номера этапов из раннего плана v4 имеют лишь историческое значение.
+
+**Схема `*.mlad.json`:** `format=MLAD_OFFLINE_SIDECAR` и `schema_version=1` обязательны. `source.kind=CIOPRG.LST` содержит только `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`; также допускаются `annotations.rungs`, `annotations.addresses`, `annotations.ioname` и `bookmarks`. Никаких нативных байтов, пути исходника, исполняемого скрипта, адреса робота, FTP/HSES или перезаписи OEM источника. Посторонние поля, неподдерживаемые версии, неправильные ключи и объёмы отвергаются.
+
+**Правила I/O:** команды `cmd_load_offline_sidecar` и `cmd_save_offline_sidecar` только для пути `*.mlad.json`. Каждая операция выполняет read-only проверку оригинала `CIOPRG.LST` и сравнивает `SHA-256`, семейство контроллера, размер и число строк. При первом сохранении целевой файл обязан отсутствовать. Для существующего файла нужен `revision`, привязанный к его байтам и файловой идентичности. Старая/отсутствующая ревизия и ручное изменение sidecar приводят к отказу без перезаписи. Выгрузка `*.bak` подчиняется существующей проверке staged JSON, но не транзакционно атомарна с target.
+
+**Acceptance:** Rust-тесты round-trip и конфликтов, испорченной версии/метаданных, пустых и некорректных закладок, лимитов, неизвестных полей, защиты нативного файла, hardlink/symlink и сохранения резервной копии; frontend-тесты явного импорта/экспорта и LOCAL-only режима. CI по конечному SHA включает `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. Отдельно и независимо остаются `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; FTP/HSES, native writer и deployment **BLOCKED**.
+
+**Риски:** `revision` не заменяет атомарный файловый CAS; TOCTOU в `check→rename`, Windows ACL, одновременные writers, crash recovery и backup+target остаются OPEN. Решение о слиянии принимает владелец.
