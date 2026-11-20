@@ -172,7 +172,30 @@ type StaticDependencyAudit={
   semantics_verified:boolean;scan_order_verified:boolean;arithmetic_flags_verified:boolean;
   native_write_allowed:boolean;
 };
+type StaticAccessKind = "Read"|"Write"|"Unknown";
+type StaticAccessSite = {
+  line:number;mnemonic:string;operand_index:number|null;symbol:string;
+  span:{start:number;end:number};access:StaticAccessKind;
+  basis:"DocumentedOperandRole"|"InvalidForm"|"UnverifiedFamily"|
+    "UnknownOpcodeOrStructure"|"StatefulOpcodeUnresolved";
+  controller_form_verified:boolean;
+};
+type StaticAccessOverview = {
+  source_sha256:string;line_count:number;
+  total_sites:number;read_sites:number;write_sites:number;unknown_sites:number;
+  unmodeled_lines:number;skipped_literal_operands:number;post_end_lines:number;
+  sites_truncated:boolean;sites:StaticAccessSite[];
+  execution_verified:boolean;scan_order_verified:boolean;
+  address_aliases_verified:boolean;write_permission_verified:boolean;
+  native_write_allowed:boolean;
+};
+type StaticAccessPage = {
+  source_sha256:string;line_count:number;offset:number;total_matches:number;
+  next_offset:number|null;hits:StaticAccessSite[];
+  execution_verified:boolean;write_permission_verified:boolean;
+};
 type Report = {
+  static_access: StaticAccessOverview;
   advanced: AdvancedSourceReport;
   sections: NativeSection[];
   semantic: SemanticPreview;
@@ -337,6 +360,11 @@ export function NativeWorkspace() {
   const [sourceAddress,setSourceAddress]=useState("");
   const [sourceFilterResult,setSourceFilterResult]=useState<NativeFilterPage|null>(null);
   const [sourceFilterBusy,setSourceFilterBusy]=useState(false);
+  const [accessKind,setAccessKind]=useState<""|StaticAccessKind>("");
+  const [accessSymbol,setAccessSymbol]=useState("");
+  const [accessResult,setAccessResult]=useState<StaticAccessPage|null>(null);
+  const [accessBusy,setAccessBusy]=useState(false);
+  const accessRequestSeq=useRef(0);
   const nativeRequestEpoch=useRef(0);
   const activeSourceLineRef=useRef<HTMLButtonElement|null>(null);
   const selectedDiagnosticsRef=useRef<HTMLDivElement|null>(null);
@@ -395,6 +423,10 @@ export function NativeWorkspace() {
     ].filter(x=>filter==="all"||x.severity===filter).sort((a,b)=>a.line-b.line);
   },[report,filter]);
   const diagnosticGroups=useMemo(()=>groupDiagnostics(diags),[diags]);
+  const selectedAccessSites=useMemo(()=>{
+    if(!report||selectedLine===null)return [];
+    return report.static_access.sites.filter(x=>x.line===selectedLine).slice(0,16);
+  },[report,selectedLine]);
   const selectedLineDiagnostics=useMemo(()=>{
     if(!report||selectedLine===null)return [];
     return [
@@ -415,6 +447,9 @@ export function NativeWorkspace() {
     const epoch=++nativeRequestEpoch.current;
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     setSourceFilterResult(null);setSourceFilterBusy(false);
+    accessRequestSeq.current++;
+    setAccessResult(null);setAccessBusy(false);
+    setAccessKind("");setAccessSymbol("");
     setSearchBusy(false);setPageBusy(false);
     setSidecarBusy(false);setSidecarRevision(null);
     setSidecarDirty(false);setBookmarks([]);setBookmarkLabel("");
@@ -427,6 +462,14 @@ export function NativeWorkspace() {
           !value.syntax_coverage.all_source_lines_counted ||
           value.syntax_coverage.semantics_verified){
         throw Error("Несовместимый отчёт покрытия или неполный снимок");
+      }
+      if(value.static_access.source_sha256!==value.source_sha256 ||
+         value.static_access.line_count!==value.line_count ||
+         value.static_access.execution_verified ||
+         value.static_access.scan_order_verified ||
+         value.static_access.write_permission_verified ||
+         value.static_access.native_write_allowed) {
+        throw Error("Недопустимый или неполный отчёт READ/WRITE/UNKNOWN");
       }
       setPath(selectedPath);
       setOpenedSourcePath(selectedPath.trim());
@@ -523,6 +566,42 @@ export function NativeWorkspace() {
       if(epoch===nativeRequestEpoch.current){setIssue(String(error));setSourceFilterResult(null);}
     }finally{if(epoch===nativeRequestEpoch.current)setSourceFilterBusy(false);}
   }
+  async function queryStaticAccess(offset:number=0){
+    if(!report||accessBusy)return;
+    const symbol=accessSymbol.trim();
+    if(!accessKind&&!symbol){
+      setIssue("Выберите READ/WRITE/UNKNOWN или точный адрес.");return;
+    }
+    const seq=++accessRequestSeq.current;
+    const epoch=nativeRequestEpoch.current;
+    setIssue("");setAccessBusy(true);
+    try{
+      const page=await invoke<StaticAccessPage>("cmd_query_static_access",{
+        filePath:openedSourcePath,controller:report.controller,
+        expectedSha256:report.source_sha256,
+        accessKind:accessKind||null,symbol:symbol||null,offset,
+      });
+      if(epoch!==nativeRequestEpoch.current||seq!==accessRequestSeq.current)return;
+      if(page.source_sha256!==report.source_sha256||
+         page.line_count!==report.line_count||page.offset!==offset||
+         page.execution_verified||page.write_permission_verified||
+         page.hits.some(hit=>hit.line<1||hit.line>report.line_count||
+           hit.span.start<0||hit.span.end>report.byte_length||
+           hit.span.start>=hit.span.end)) {
+        throw Error("Результат аудита не относится к открытому снимку CIOPRG");
+      }
+      setAccessResult(page);
+    }catch(error){
+      if(epoch===nativeRequestEpoch.current&&seq===accessRequestSeq.current) {
+        setAccessResult(null);setIssue(String(error));
+      }
+    }finally{
+      if(epoch===nativeRequestEpoch.current&&seq===accessRequestSeq.current){
+        setAccessBusy(false);
+      }
+    }
+  }
+
   function persistAnnotations(next:Annotations) {
     if(!report||sidecarBusy)return;
     setAnnotations(next);
@@ -1283,6 +1362,107 @@ export function NativeWorkspace() {
             {!selectedStatic&&<p style={{fontSize:11,color:"#a7c1c7"}}>
               Выберите типизированную строку исходника для анализа соседних ссылок.
             </p>}
+          </section>
+          <section aria-label="READ WRITE UNKNOWN — статический аудит" style={{
+            marginBottom:12,padding:9,border:"1px solid #52637c",borderRadius:5,
+            background:"#202b3a",fontSize:12,
+          }}>
+            <strong>READ / WRITE / UNKNOWN · только роли операндов</strong>
+            <p style={{fontSize:11,color:"#e6c28b",lineHeight:1.5}}>
+              READ и WRITE — предполагаемые роли адресов по руководству OEM,
+              НЕ выполненные чтения/записи. Нет расчёта EN, scan, alias,
+              переходов флагов или разрешения записи на робот.
+            </p>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:11}}>
+              <span>READ: {report.static_access.read_sites}</span>
+              <span>WRITE: {report.static_access.write_sites}</span>
+              <span>UNKNOWN: {report.static_access.unknown_sites}</span>
+              <span>Неполная модель: {report.static_access.unmodeled_lines} строк</span>
+            </div>
+            <small style={{display:"block",color:"#9cb7ca",marginTop:5}}>
+              Всего адресных/неизвестных мест {report.static_access.total_sites}.
+              Числовых констант без доступа {report.static_access.skipped_literal_operands};
+              post-END строк данных {report.static_access.post_end_lines}.
+              {report.static_access.sites_truncated&&
+                " Preview ограничен первыми "+report.static_access.sites.length+
+                " местами; ниже доступен поиск по всему файлу."}
+            </small>
+            {selectedLine!==null&&<div style={{marginTop:9,paddingTop:7,borderTop:"1px solid #52637c"}}>
+              <strong>L{selectedLine} · роли исходных операндов</strong>
+              {selectedAccessSites.map((site,i)=><div key={i} style={{
+                display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",marginTop:4,fontSize:11,
+              }}>
+                <b style={{color:site.access==="Unknown"?"#e3bc88":"#b6d3c8"}}>
+                  {site.access.toUpperCase()}</b>
+                <code>{site.symbol}</code>
+                <span>{site.mnemonic} · байты {site.span.start}–{site.span.end}</span>
+                <small style={{color:"#b4bdce"}}>{site.basis}</small>
+              </div>)}
+              {!selectedAccessSites.length&&<small style={{display:"block",color:"#b5c7d2"}}>
+                Для строки нет сведений в ограниченном preview; полная выборка ниже.
+                Отсутствие записи не подтверждает отсутствие обращения.
+              </small>}
+            </div>}
+            <form onSubmit={event=>{event.preventDefault();void queryStaticAccess(0);}}
+              style={{display:"grid",gap:6,marginTop:10}}>
+              <label style={{display:"grid",gap:3}}>
+                Вид предполагаемого доступа
+                <select aria-label="Фильтр вида READ WRITE UNKNOWN" value={accessKind}
+                  disabled={accessBusy} style={{...field,width:"100%"}}
+                  onChange={event=>{
+                    accessRequestSeq.current++;
+                    setAccessKind(event.target.value as ""|StaticAccessKind);
+                    setAccessResult(null);
+                  }}>
+                  <option value="">Любой (укажите адрес)</option>
+                  <option value="Read">READ — роль источника</option>
+                  <option value="Write">WRITE — роль назначения</option>
+                  <option value="Unknown">UNKNOWN — требуется проверка</option>
+                </select>
+              </label>
+              <label style={{display:"grid",gap:3}}>
+                Точный текстовый адрес
+                <input aria-label="Адрес для статического аудита" value={accessSymbol}
+                  disabled={accessBusy} maxLength={7}
+                  onChange={event=>{
+                    accessRequestSeq.current++;
+                    setAccessSymbol(event.target.value);
+                    setAccessResult(null);
+                  }} placeholder="#70010 / M010 / W#70010"
+                  style={{...field,width:"100%",boxSizing:"border-box"}}/>
+              </label>
+              <button type="submit" style={btn} disabled={accessBusy||pageBusy}>
+                {accessBusy?"Проверка…":"Показать адресные роли"}
+              </button>
+            </form>
+            {accessResult&&<div style={{marginTop:8}} aria-live="polite">
+              <small>Совпадений: {accessResult.total_matches}; показано
+                {" "}{accessResult.hits.length?accessResult.offset+1:0}–
+                {accessResult.offset+accessResult.hits.length}</small>
+              <div style={{display:"flex",gap:6,marginTop:6}}>
+                <button type="button" style={btn} disabled={accessBusy||accessResult.offset===0}
+                  onClick={()=>void queryStaticAccess(Math.max(0,accessResult.offset-100))}>
+                  ← 100</button>
+                <button type="button" style={btn}
+                  disabled={accessBusy||accessResult.next_offset===null}
+                  onClick={()=>void queryStaticAccess(accessResult.next_offset!)}>
+                  100 →</button>
+              </div>
+              <div style={{maxHeight:230,overflowY:"auto",marginTop:5}}>
+                {accessResult.hits.map((site,i)=><button type="button"
+                  key={site.line+":"+site.span.start+":"+i} style={itemStyle}
+                  title={"Оригинальный byte offset: "+site.span.start+
+                    "; только синтаксическая роль"}
+                  onClick={()=>void showLine(site.line)}>
+                  L{site.line} · {site.access.toUpperCase()} · {site.mnemonic}
+                  {" "}{site.symbol} · {site.basis}
+                </button>)}
+              </div>
+              {!accessResult.hits.length&&<small>
+                В этой выборке нет совпадений. Это не доказательство отсутствия
+                аппаратного чтения/записи.
+              </small>}
+            </div>}
           </section>
           <section aria-label="Переносимый offline sidecar" style={{
             marginBottom:14,padding:9,border:"1px solid #47708d",borderRadius:5,background:"#172d40",

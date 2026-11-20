@@ -126,3 +126,11 @@ PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af
 **Gate приёмки:** подтверждённые разделы OEM 178648-1CD §§12.2.15–34, 15 позитивных и 17 негативных синтетических форм, парсер с точными byte spans/SHA/EOL, честные нераспознанные данные, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` на конечном SHA. Для DX100/DX200 новые формы не верифицированы по семейству. `MUL Dn+1` и `BMOV n` — отдельные синтаксические ограничения; происхождение утверждений документировать.
 
 Следующая **предлагаемая**, пока не начатая задача: PR #46 — source-linked static READ/WRITE/UNKNOWN с консервативными барьерами; далее PR #47 Unified Offline Project, PR #48 условный Windows Preview. Старые номера v4 выше в документе исторические. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `CIOPRG.LST`/`IONAME.DAT` read-only, HSES/FTP/native writer/deployment **BLOCKED**. Merge PR #45 только с разрешения владельца.
+
+## PR #46 — READ / WRITE / UNKNOWN: source-linked audit (20.11.2026)
+
+**База:** PR #45 слит в `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 открыт как Draft, **не слит**. Вместо не подтверждённой модели фактического потока данных введён независимый read-only аудит ролей адресных операндов `READ`, `WRITE`, `UNKNOWN` с исходными line/byte span/SHA-256. Числовая константа не является чтением памяти; неподтверждённые семейства, TMR/CNT, неверные и неизвестные конструкции не повышать до доказанных обращений.
+
+**Цели этапа:** `static_access` сохраняет неизменность `CIOPRG.LST`/`IONAME.DAT`, вычисляет счётчики по всему исходнику, отдаёт ограниченный preview (160) и фильтр по точному токену/роли с выдачей 100 записей/страницу. Native Workspace даёт переход к физической строке и объяснение ограничений. Параллельный `typed_dataflow` остаётся исторической гипотезой соседних M-регистров. Отсутствие совпадения не доказывает отсутствие фактического доступа.
+
+**Дальнейшие, пока не начатые этапы:** PR #47 Unified Offline Project, PR #48 условный Windows preview. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. HSES/FTP/native writer/deployment **BLOCKED**. Merge только по решению владельца.
