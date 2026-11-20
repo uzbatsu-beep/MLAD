@@ -137,21 +137,13 @@ pub(crate) fn write_atomic_with_revision(
     if content.len()>MAX_JSON_BYTES {
         return Err("Sidecar превышает лимит 2 МиБ".into());
     }
-    let exists=validate_file(path,true)?;
-    if exists {
-        let expected=expected.ok_or(
-            "Sidecar уже существует; сначала загрузите его, чтобы получить ревизию")?;
-        if expected.len()!=64 || !expected.bytes().all(|b|b.is_ascii_hexdigit()){
-            return Err("Недействительный токен ревизии sidecar".into());
-        }
-        let (_,current)=read_bounded_with_revision(path)?;
-        if current!=expected {
-            return Err("Конфликт sidecar: файл изменился после загрузки; перезагрузите его".into());
-        }
-    } else if expected.is_some() {
-        return Err("Конфликт sidecar: ранее существовавший файл исчез".into());
-    }
-    write_atomic(path,content)?;
+    // Compare the expected revision INSIDE the same staged-write operation,
+    // against its captured original file identity, before backup creation.
+    // This closes the separate precheck→writer-snapshot gap, but cannot
+    // eliminate the final OS verify→rename TOCTOU window.
+    write_atomic_inner_with_policy(
+        path,content,||{},RevisionPolicy::Expected(expected)
+    )?;
     let (saved,revision)=read_bounded_with_revision(path)?;
     if saved!=content {
         return Err("Sidecar после записи не совпадает с ожидаемыми байтами".into());
@@ -253,8 +245,19 @@ pub fn write_atomic(path:&Path, content:&[u8])->Result<(),String> {
     write_atomic_inner(path,content,||{})
 }
 
+/// Existing JSON writers retain their original unversioned contract.
+/// Versioned sidecars additionally compare a revision within this writer.
+enum RevisionPolicy<'a> {
+    Unversioned,
+    Expected(Option<&'a str>),
+}
 /// Internal seam for deterministic tests of external changes just before commit.
 fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->Result<(),String> {
+    write_atomic_inner_with_policy(path,content,before_commit,RevisionPolicy::Unversioned)
+}
+fn write_atomic_inner_with_policy(
+    path:&Path,content:&[u8],before_commit:impl FnOnce(),policy:RevisionPolicy<'_>
+)->Result<(),String> {
     if content.len()>MAX_JSON_BYTES {
         return Err("JSON превышает предел 2 МиБ".into());
     }
@@ -265,6 +268,23 @@ fn write_atomic_inner(path:&Path, content:&[u8], before_commit:impl FnOnce())->R
     let existed=validate_file(path,true)?;
     let staged=StagedFile::create_near(path,content)?;
     let original=if existed {Some(read_bounded_snapshot(path)?)} else {None};
+    if let RevisionPolicy::Expected(expected)=policy {
+        match (original.as_ref(),expected) {
+            (None,None)=>{},
+            (None,Some(_))=>
+                return Err("Конфликт sidecar: ранее существовавший файл исчез".into()),
+            (Some(_),None)=>
+                return Err("Sidecar уже существует; сначала загрузите его ревизию".into()),
+            (Some((bytes,id)),Some(rev))=>{
+                if rev.len()!=64 || !rev.bytes().all(|b|b.is_ascii_hexdigit()){
+                    return Err("Недействительный токен ревизии sidecar".into());
+                }
+                if revision_of(bytes,id)!=rev {
+                    return Err("Конфликт sidecar: файл изменился после загрузки".into());
+                }
+            }
+        }
+    }
     if let Some(ref original)=original {
         let basename=path.file_name().and_then(|s|s.to_str())
             .ok_or("Не удалось определить имя JSON")?;
@@ -703,6 +723,26 @@ mod tests {
         assert!(write_atomic_with_revision(&path,b"new",Some(&stale)).is_err());
         assert_eq!(fs::read(&path).unwrap(),previous);
         assert!(!root.join("same.mlad.json.bak").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+
+    #[test]
+    fn sidecar_revision_is_checked_before_existing_backup_is_modified() {
+        let root=folder();let path=root.join("policy.mlad.json");
+        let old=b"version one";
+        let initial=write_atomic_with_revision(&path,old,None).unwrap();
+        // A different writer changes the JSON before this write starts.
+        fs::write(&path,b"unseen new version").unwrap();
+        let attempted=write_atomic_inner_with_policy(
+            &path,b"bad stale replacement",||{},RevisionPolicy::Expected(Some(&initial))
+        );
+        assert!(attempted.is_err());
+        assert_eq!(fs::read(&path).unwrap(),b"unseen new version");
+        assert!(!root.join("policy.mlad.json.bak").exists(),
+            "revision rejection must occur before backup mutation");
+        assert_eq!(fs::read_dir(&root).unwrap().count(),1,
+            "no staged files may survive the conflict");
         fs::remove_dir_all(root).unwrap();
     }
 
