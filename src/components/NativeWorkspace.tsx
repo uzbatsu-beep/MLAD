@@ -212,6 +212,7 @@ type Annotations = {
   rungs:Record<string,string>;addresses:Record<string,string>;ioname:Record<string,string>;
 };
 type SidecarBookmark = {line:number;label:string};
+type SavedSidecarNotes = {annotations:Annotations;bookmarks:SidecarBookmark[]};
 type OfflineSidecar = {
   format:"MLAD_OFFLINE_SIDECAR";
   schema_version:1;
@@ -321,6 +322,7 @@ export function NativeWorkspace() {
   const [sidecarBusy,setSidecarBusy]=useState(false);
   const [sidecarDirty,setSidecarDirty]=useState(false);
   const [bookmarks,setBookmarks]=useState<SidecarBookmark[]>([]);
+  const [savedSidecarNotes,setSavedSidecarNotes]=useState<SavedSidecarNotes|null>(null);
   const [bookmarkLabel,setBookmarkLabel]=useState("");
   const [editing,setEditing]=useState<EditTarget|null>(null);
   const [commentText,setCommentText]=useState("");
@@ -402,12 +404,21 @@ export function NativeWorkspace() {
   },[report,selectedLine]);
 
   async function openSource(selectedPath:string=path){
+    if(sidecarBusy) {
+      setIssue("Сначала дождитесь завершения чтения/записи sidecar.");
+      return;
+    }
+    if(report&&sidecarDirty) {
+      setIssue("Есть несохранённые изменения sidecar: сохраните или явно отмените их перед открытием другого исходника.");
+      return;
+    }
     const epoch=++nativeRequestEpoch.current;
     setBusy(true);setIssue("");setReport(null);setHits([]);setJson("");setEditing(null);
     setSourceFilterResult(null);setSourceFilterBusy(false);
     setSearchBusy(false);setPageBusy(false);
     setSidecarBusy(false);setSidecarRevision(null);
     setSidecarDirty(false);setBookmarks([]);setBookmarkLabel("");
+    setSavedSidecarNotes(null);
     setOpenedSourcePath("");
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
@@ -425,7 +436,9 @@ export function NativeWorkspace() {
       setPageStart(1);setSelectedLine(null);
       setRung(value.semantic.rungs[0]?.number??1);
       setSelectedBlockLine(value.advanced.blocks[0]?.line??null);setTab("source");
-      setAnnotations(loadLocalAnnotations(value.source_sha256));
+      const cached=loadLocalAnnotations(value.source_sha256);
+      setAnnotations(cached);
+      setSavedSidecarNotes({annotations:cached,bookmarks:[]});
       setIoname(null);setLinkEntry(null);
     }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
     finally{if(epoch===nativeRequestEpoch.current)setBusy(false);}
@@ -433,7 +446,11 @@ export function NativeWorkspace() {
 
   /** Native desktop OPEN dialog; no save dialog, native writer, FTP or HSES. */
   async function chooseFile(kind:"cioprg"|"ioname"){
-    if(filePickerBusy||busy||ionameBusy)return;
+    if(filePickerBusy||busy||ionameBusy||sidecarBusy)return;
+    if(kind==="cioprg"&&sidecarDirty){
+      setIssue("Сохраните или отмените изменения sidecar перед выбором другого CIOPRG.");
+      return;
+    }
     setFilePickerBusy(kind);setIssue("");
     try{
       const chosen=await invoke<string|null>("cmd_pick_native_file",{kind});
@@ -507,7 +524,7 @@ export function NativeWorkspace() {
     }finally{if(epoch===nativeRequestEpoch.current)setSourceFilterBusy(false);}
   }
   function persistAnnotations(next:Annotations) {
-    if(!report)return;
+    if(!report||sidecarBusy)return;
     setAnnotations(next);
     setSidecarDirty(true);
     try {
@@ -540,6 +557,10 @@ export function NativeWorkspace() {
       }
       setAnnotations(loaded.sidecar.annotations);
       setBookmarks(loaded.sidecar.bookmarks);
+      setSavedSidecarNotes({
+        annotations:loaded.sidecar.annotations,
+        bookmarks:loaded.sidecar.bookmarks,
+      });
       setSidecarRevision(loaded.revision);
       setSidecarDirty(false);setBookmarkLabel("");
       try {
@@ -571,12 +592,13 @@ export function NativeWorkspace() {
       });
       if(epoch!==nativeRequestEpoch.current)return;
       setSidecarRevision(saved.revision);
+      setSavedSidecarNotes({annotations:payload.annotations,bookmarks:payload.bookmarks});
       setSidecarDirty(false);
     }catch(error){if(epoch===nativeRequestEpoch.current)setIssue(String(error));}
     finally{if(epoch===nativeRequestEpoch.current)setSidecarBusy(false);}
   }
   function addBookmark(){
-    if(!report||selectedLine===null)return;
+    if(!report||selectedLine===null||sidecarBusy)return;
     if(bookmarks.some(bookmark=>bookmark.line===selectedLine)){
       setIssue("Для этой строки уже есть закладка.");return;
     }
@@ -587,19 +609,33 @@ export function NativeWorkspace() {
     setBookmarkLabel("");setSidecarDirty(true);
   }
   function removeBookmark(line:number){
+    if(sidecarBusy)return;
     setBookmarks(bookmarks.filter(x=>x.line!==line));
     setSidecarDirty(true);
+  }
+  function discardUnsavedSidecarNotes(){
+    if(sidecarBusy||!report||!savedSidecarNotes)return;
+    setAnnotations(savedSidecarNotes.annotations);
+    setBookmarks(savedSidecarNotes.bookmarks);
+    setSidecarDirty(false);setBookmarkLabel("");setIssue("");cancelEdit();
+    try {
+      window.localStorage.setItem("mlad-annotations:"+report.source_sha256,
+        JSON.stringify(savedSidecarNotes.annotations));
+    } catch {
+      // Local cache is optional and may be disabled by the host.
+    }
   }
   const rungKey=(outputLine:number,output:number)=>"L"+outputLine+":OUT"+output;
   const ionameKey=(entry:IonameEntry)=>ioname!.source_sha256+":"+entry.line+":"+entry.slot;
 
   function beginEdit(type:EditKey,key:string,caption:string,current:string) {
+    if(sidecarBusy)return;
     setEditing({type,key,caption});
     setCommentText(current);
   }
   function cancelEdit(){setEditing(null);setCommentText("");}
   function saveEdit(){
-    if(!report || !editing)return;
+    if(!report || !editing||sidecarBusy)return;
     if(commentText.length>200){setIssue("Максимальная длина комментария — 200 символов");return;}
     const next={...annotations,[editing.type]:{
       ...annotations[editing.type],[editing.key]:commentText.trim(),
@@ -608,7 +644,7 @@ export function NativeWorkspace() {
     cancelEdit();
   }
   async function importIoname(selectedPath:string=ionamePath){
-    if(!selectedPath.trim()||ionameBusy)return;
+    if(!selectedPath.trim()||ionameBusy||sidecarBusy)return;
     setIonameBusy(true);setIssue("");setIoname(null);setLinkEntry(null);
     try{
       const value=await invoke<IonameReport>("cmd_inspect_ioname",{filePath:selectedPath.trim()});
@@ -618,7 +654,7 @@ export function NativeWorkspace() {
     }catch(error){setIssue(String(error));}finally{setIonameBusy(false);}
   }
   function bindIonameLabel(){
-    if(!linkEntry||!ioname||!report)return;
+    if(!linkEntry||!ioname||!report||sidecarBusy)return;
     const addr=linkAddress.trim().toUpperCase();
     // Explicit manual binding only. Never infer #XXXXX from IN/OUT row order.
     if(!/^#[0-9]{5}$/.test(addr)&&!/^M[0-9]{3}$/.test(addr)){
@@ -1283,6 +1319,10 @@ export function NativeWorkspace() {
                 disabled={sidecarBusy||busy}
                 onClick={()=>void loadPortableSidecar(true)}>
                 Загрузить и заменить несохранённые заметки
+              </button>
+              <button type="button" style={{...btn,padding:"3px 6px",marginTop:5,width:"100%"}}
+                disabled={sidecarBusy} onClick={discardUnsavedSidecarNotes}>
+                Отменить несохранённые изменения sidecar
               </button>
             </div>}
             <div aria-live="polite" style={{marginTop:7,fontSize:11,color:"#b9d0e2"}}>
