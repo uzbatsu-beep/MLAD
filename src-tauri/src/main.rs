@@ -6,6 +6,7 @@ mod draft_io;
 mod guarded_read;
 mod native_filter;
 mod sidecar;
+mod offline_project;
 // Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
@@ -219,6 +220,147 @@ async fn cmd_query_static_access(
     )
 }
 
+
+#[derive(Serialize)]
+struct UnifiedProjectOpened {
+    project:offline_project::OfflineProject,
+    revision:String,
+    source_path:String,
+    report:FullCioprgInspection,
+    ioname_path:Option<String>,
+    ioname:Option<compiler::ioname::IonameReport>,
+    sidecar_path:Option<String>,
+    sidecar:Option<sidecar::OfflineSidecar>,
+    sidecar_revision:Option<String>,
+    analysis_changed:bool,
+}
+#[derive(Serialize)]
+struct UnifiedProjectSaved {
+    project:offline_project::OfflineProject,
+    revision:String,
+}
+/// One atomic UI-level project opening: load a STRICT portable manifest,
+/// re-read all referenced native files with existing protections, check every
+/// referenced SHA, and only then deliver an internally consistent snapshot.
+/// Files are never modified. Snapshot analysis is RECOMPUTED, not trusted.
+#[tauri::command]
+async fn cmd_open_offline_project(
+    manifest_path:String
+)->Result<UnifiedProjectOpened,String>{
+    let path=std::path::PathBuf::from(manifest_path);
+    offline_project::check_project_path(&path)?;
+    let (bytes,revision)=draft_io::read_bounded_with_revision(&path)?;
+    let project:offline_project::OfflineProject=serde_json::from_slice(&bytes)
+        .map_err(|e|format!("Некорректный манифест проекта: {e}"))?;
+    let native_path=offline_project::resolve(&path,&project.source.relative_path)?;
+    let source=read_cioprg_bytes(native_path.to_str().ok_or("Неверный путь CIOPRG")?).await?;
+    let doc=compiler::lossless::parse_document(source,project.source.controller);
+    project.validate(&doc)?;
+    let (ioname_path,ioname)=if let Some(binding)=&project.ioname{
+        let target=offline_project::resolve(&path,&binding.relative_path)?;
+        let bytes=read_ioname_bytes(target.to_str().ok_or("Неверный путь IONAME")?).await?;
+        if !offline_project::matches_attachment(binding,&bytes){
+            return Err("IONAME.DAT изменён: SHA-256/размер не совпадают с проектом".into());
+        }
+        (Some(target.to_string_lossy().into_owned()),
+            Some(compiler::ioname::inspect(&bytes)))
+    }else{(None,None)};
+    let (sidecar_path,notes,sidecar_revision)=if let Some(binding)=&project.sidecar{
+        let target=offline_project::resolve(&path,&binding.relative_path)?;
+        let (bytes,revision)=draft_io::read_bounded_with_revision(&target)?;
+        if !offline_project::matches_attachment(binding,&bytes){
+            return Err("Sidecar изменён: SHA-256/размер не совпадают с проектом".into());
+        }
+        let notes:sidecar::OfflineSidecar=serde_json::from_slice(&bytes)
+            .map_err(|e|format!("Некорректный JSON sidecar: {e}"))?;
+        notes.validate(&doc)?;
+        (Some(target.to_string_lossy().into_owned()),Some(notes),Some(revision))
+    }else{(None,None,None)};
+    // A parser upgrade can legitimately change derived counts. The snapshot
+    // is labeled stale; all presented results are recomputed from original bytes.
+    let analysis_changed=project.analysis!=offline_project::snapshot(&doc);
+    let report=build_full_inspection(&doc);
+    Ok(UnifiedProjectOpened {
+        project,revision,
+        source_path:native_path.to_string_lossy().into_owned(),
+        report,ioname_path,ioname,sidecar_path,sidecar:notes,
+        sidecar_revision,analysis_changed,
+    })
+}
+
+/// Save only a separate *.mladproj.json manifest. All referenced files must
+/// ALREADY live inside its directory tree. There is NO copy/move of OEM bytes.
+/// A sidecar must be saved first and revision-matched, preventing stale
+/// unsaved UI annotations from being implicitly included.
+#[tauri::command]
+async fn cmd_save_offline_project(
+    manifest_path:String,
+    source_path:String,
+    controller:compiler::memory::ControllerFamily,
+    expected_source_sha256:String,
+    ioname_path:Option<String>,
+    expected_ioname_sha256:Option<String>,
+    sidecar_path:Option<String>,
+    expected_sidecar_revision:Option<String>,
+    expected_manifest_revision:Option<String>,
+)->Result<UnifiedProjectSaved,String>{
+    let path=std::path::PathBuf::from(manifest_path);
+    offline_project::check_project_path(&path)?;
+    let source_abs=std::path::PathBuf::from(&source_path);
+    let source_rel=offline_project::relative_file(&path,&source_abs)?;
+    let bytes=read_cioprg_bytes(&source_path).await?;
+    let doc=compiler::lossless::parse_document(bytes,controller);
+    if doc.source_sha256!=expected_source_sha256 {
+        return Err("Исходный CIOPRG изменился: проект не сохранён".into());
+    }
+    let ioname=if let Some(name)=ioname_path {
+        let rel=offline_project::relative_file(&path,std::path::Path::new(&name))?;
+        let bytes=read_ioname_bytes(&name).await?;
+        if expected_ioname_sha256.as_deref()!=Some(offline_project::sha256(&bytes).as_str()){
+            return Err("IONAME изменён: проект не сохранён".into());
+        }
+        Some(offline_project::attachment(rel,&bytes))
+    } else {
+        if expected_ioname_sha256.is_some(){
+            return Err("IONAME SHA без пути не допускается".into());
+        }
+        None
+    };
+    let sidecar_binding=if let Some(name)=sidecar_path {
+        let rel=offline_project::relative_file(&path,std::path::Path::new(&name))?;
+        let selected=sidecar::check_sidecar_path(&name)?;
+        let expected=expected_sidecar_revision.as_deref()
+            .ok_or("Sidecar должен быть загружен или сохранён до фиксации проекта")?;
+        let (data,revision)=draft_io::read_bounded_with_revision(selected)?;
+        if expected!=revision {
+            return Err("Sidecar был изменён: сохраните или загрузите его повторно".into());
+        }
+        let notes:sidecar::OfflineSidecar=serde_json::from_slice(&data)
+            .map_err(|e|format!("Неверный JSON sidecar: {e}"))?;
+        notes.validate(&doc)?;
+        Some(offline_project::attachment(rel,&data))
+    }else{
+        if expected_sidecar_revision.is_some() {
+            return Err("Ревизия sidecar без пути не допускается".into());
+        }
+        None
+    };
+    let analysis=offline_project::snapshot(&doc);
+    let project=offline_project::OfflineProject::new(
+        &doc,source_rel,ioname,sidecar_binding,analysis);
+    project.validate(&doc)?;
+    let mut data=serde_json::to_vec_pretty(&project)
+        .map_err(|e|format!("Ошибка сериализации проекта: {e}"))?;
+    data.push(b'\n');
+    if data.len()>draft_io::MAX_JSON_BYTES {
+        return Err("Манифест превышает 2 МиБ".into());
+    }
+    reject_existing_symlink(&path).await?;
+    let revision=draft_io::write_atomic_with_revision(
+        &path,&data,expected_manifest_revision.as_deref())?;
+    Ok(UnifiedProjectSaved{project,revision})
+}
+
 #[derive(Serialize)]
 struct OfflineSidecarRead {
     sidecar: sidecar::OfflineSidecar,
@@ -290,6 +432,12 @@ async fn cmd_save_offline_sidecar(
 #[tauri::command]
 async fn cmd_inspect_ioname(file_path: String)
     -> Result<compiler::ioname::IonameReport, String> {
+    let bytes=read_ioname_bytes(&file_path).await?;
+    Ok(compiler::ioname::inspect(&bytes))
+}
+
+/// Read-only bounded IONAME snapshot shared by native inspection and project rehydration.
+async fn read_ioname_bytes(file_path:&str)->Result<Vec<u8>,String>{
     const MAX_IONAME_BYTES: u64 = 4 * 1024 * 1024;
     let path=std::path::Path::new(&file_path);
     if !path.file_name().and_then(|n|n.to_str())
@@ -300,7 +448,7 @@ async fn cmd_inspect_ioname(file_path: String)
     let bytes=tokio::task::spawn_blocking(move ||
         guarded_read::read_regular(&selected,MAX_IONAME_BYTES as usize))
         .await.map_err(|e|format!("Ошибка безопасного чтения IONAME: {e}"))??;
-    Ok(compiler::ioname::inspect(&bytes))
+    Ok(bytes)
 }
 
 /// Allow only two explicitly supported native *read-only* input types.
@@ -394,19 +542,22 @@ async fn cmd_inspect_cioprg(
 ) -> Result<FullCioprgInspection, String> {
     let bytes = read_cioprg_bytes(&file_path).await?;
     let doc = compiler::lossless::parse_document(bytes, controller);
-    let semantic = compiler::semantic::analyze(&doc);
-    let advanced = compiler::advanced_source::inspect(&doc);
-    let sections = compiler::native_sections::scan(&doc);
-    let dataflow = compiler::typed_dataflow::inspect(&doc, 1000);
-    let static_access = compiler::static_access::inspect(&doc,160);
-    Ok(FullCioprgInspection {
+    Ok(build_full_inspection(&doc))
+}
+fn build_full_inspection(doc:&compiler::lossless::LosslessDocument)->FullCioprgInspection {
+    let semantic = compiler::semantic::analyze(doc);
+    let advanced = compiler::advanced_source::inspect(doc);
+    let sections = compiler::native_sections::scan(doc);
+    let dataflow = compiler::typed_dataflow::inspect(doc, 1000);
+    let static_access = compiler::static_access::inspect(doc,160);
+    FullCioprgInspection {
         base: doc.inspection_report(600, 500),
         semantic: semantic.preview(200, 200, 500),
         advanced,
         sections,
         dataflow,
         static_access,
-    })
+    }
 }
 
 // Only filenames ending in .graph.json are treated as editable graph drafts.
@@ -478,7 +629,7 @@ fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
     let name = std::path::Path::new(file_path).file_name()
         .and_then(|name| name.to_str())
         .ok_or("Не указан путь к JSON-проекту")?;
-    if !name.ends_with(".json") || name.ends_with(".graph.json") || name.ends_with(".advanced.json") || name.ends_with(".mlad.json") {
+    if !name.ends_with(".json") || name.ends_with(".graph.json") || name.ends_with(".advanced.json") || name.ends_with(".mlad.json") || name.ends_with(".mladproj.json") {
         return Err("Старый редактор может сохранять только обычный *.json, но не *.graph.json или *.LST".into());
     }
     Ok(())
@@ -611,6 +762,8 @@ fn main() {
             cmd_search_cioprg,
             cmd_filter_cioprg_lines,
             cmd_query_static_access,
+            cmd_open_offline_project,
+            cmd_save_offline_project,
             cmd_load_offline_sidecar,
             cmd_save_offline_sidecar,
             cmd_inspect_ioname,
@@ -686,6 +839,7 @@ mod graph_write_safety_tests {
         assert!(check_legacy_json_path("ladder.graph.json").is_err());
         assert!(check_legacy_json_path("ladder.advanced.json").is_err());
         assert!(check_legacy_json_path("robot.mlad.json").is_err());
+        assert!(check_legacy_json_path("cell.mladproj.json").is_err());
         assert!(check_legacy_json_path("project.json").is_ok());
     }
 

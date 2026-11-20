@@ -88,8 +88,9 @@ pub fn relative_file(project_path:&Path,target:&Path)->Result<String,String>{
     let relative=target.strip_prefix(project_path.parent().ok_or("Нет каталога проекта")?)
         .map_err(|_|"Файл находится вне переносимой папки проекта")?;
     let text=relative.to_str().ok_or("Путь компонента не Unicode")?;
-    checked_relative(text)?;
-    Ok(text.replace('\\',"/"))
+    let normalized=text.replace('\\',"/");
+    checked_relative(&normalized)?;
+    Ok(normalized)
 }
 fn is_lst_file(file:&str)->bool {
     Path::new(file).extension().is_some_and(|e|e.to_string_lossy().eq_ignore_ascii_case("lst"))
