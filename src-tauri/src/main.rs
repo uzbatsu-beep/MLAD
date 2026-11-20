@@ -887,6 +887,15 @@ mod unified_offline_project_ipc_tests {
         assert!(opened.ioname.as_ref().unwrap().entries.len()>=4);
         assert_eq!(opened.sidecar.unwrap(),sidecar);
         assert_eq!(opened.sidecar_revision,Some(saved_notes.revision));
+        // Saved counters are a comparison marker, NOT authoritative analysis.
+        let mut stale=saved.project.clone();
+        stale.analysis.read_roles+=1;
+        std::fs::write(&manifest,serde_json::to_vec(&stale).unwrap()).unwrap();
+        let refreshed=cmd_open_offline_project(manifest_path.clone()).await.unwrap();
+        assert!(refreshed.analysis_changed);
+        assert_eq!(refreshed.report.static_access.read_sites,1,
+            "recomputed from immutable CIOPRG rather than forged/stale manifest");
+        std::fs::write(&manifest,&manifest_bytes).unwrap();
         assert_eq!(std::fs::read(&source).unwrap(),source_bytes);
         assert_eq!(std::fs::read(&ioname).unwrap(),ioname_bytes);
         assert!(cmd_save_offline_project(
