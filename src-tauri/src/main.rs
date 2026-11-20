@@ -5,6 +5,7 @@ pub mod compiler;
 mod draft_io;
 mod guarded_read;
 mod native_filter;
+mod sidecar;
 // Offline-only build: no compiled robot networking implementation.
 
 use serde::{Deserialize, Serialize};
@@ -191,6 +192,73 @@ async fn cmd_filter_cioprg_lines(
     native_filter::filter_source(
         &doc, syntax_class.as_deref(), opcode.as_deref(), address.as_deref(), offset
     )
+}
+
+
+#[derive(Serialize)]
+struct OfflineSidecarRead {
+    sidecar: sidecar::OfflineSidecar,
+    revision: String,
+}
+#[derive(Serialize)]
+struct OfflineSidecarSaved {
+    revision: String,
+}
+
+/// Load only a portable user-authored JSON sidecar. Recheck the immutable
+/// native source SHA/profile before applying any saved annotations.
+#[tauri::command]
+async fn cmd_load_offline_sidecar(
+    file_path: String,
+    source_path: String,
+    controller: compiler::memory::ControllerFamily,
+    expected_source_sha256: String,
+) -> Result<OfflineSidecarRead,String> {
+    let selected=sidecar::check_sidecar_path(&file_path)?.to_path_buf();
+    let source=read_cioprg_bytes(&source_path).await?;
+    let doc=compiler::lossless::parse_document(source,controller);
+    if doc.source_sha256!=expected_source_sha256 {
+        return Err("CIOPRG изменился: нельзя применять sidecar к другому снимку".into());
+    }
+    let (bytes,revision)=tokio::task::spawn_blocking(move ||
+        draft_io::read_bounded_with_revision(&selected))
+        .await.map_err(|e|format!("Ошибка чтения sidecar: {e}"))??;
+    let sidecar:sidecar::OfflineSidecar=serde_json::from_slice(&bytes)
+        .map_err(|e|format!("Некорректный JSON sidecar: {e}"))?;
+    sidecar.validate(&doc)?;
+    Ok(OfflineSidecarRead{sidecar,revision})
+}
+
+/// Save a portable sidecar only, after validating the CURRENT native source.
+/// A first save needs an absent target; overwriting an existing sidecar
+/// requires an opaque revision from a previous load/save in this session.
+#[tauri::command]
+async fn cmd_save_offline_sidecar(
+    file_path: String,
+    source_path: String,
+    controller: compiler::memory::ControllerFamily,
+    expected_source_sha256: String,
+    sidecar: sidecar::OfflineSidecar,
+    expected_revision: Option<String>,
+) -> Result<OfflineSidecarSaved,String> {
+    let selected=sidecar::check_sidecar_path(&file_path)?.to_path_buf();
+    let source=read_cioprg_bytes(&source_path).await?;
+    let doc=compiler::lossless::parse_document(source,controller);
+    if doc.source_sha256!=expected_source_sha256 {
+        return Err("CIOPRG изменился: сохранение sidecar запрещено".into());
+    }
+    sidecar.validate(&doc)?;
+    let mut content=serde_json::to_vec_pretty(&sidecar)
+        .map_err(|e|format!("Ошибка сериализации sidecar: {e}"))?;
+    content.push(b'\n');
+    if content.len()>draft_io::MAX_JSON_BYTES {
+        return Err("Sidecar превышает предел 2 МиБ".into());
+    }
+    reject_existing_symlink(&selected).await?;
+    let revision=tokio::task::spawn_blocking(move ||
+        draft_io::write_atomic_with_revision(&selected,&content,expected_revision.as_deref()))
+        .await.map_err(|e|format!("Ошибка сохранения sidecar: {e}"))??;
+    Ok(OfflineSidecarSaved{revision})
 }
 
 /// Import only a *display snapshot* of IONAME.DAT, without editing source or
@@ -384,7 +452,7 @@ fn check_legacy_json_path(file_path: &str) -> Result<(), String> {
     let name = std::path::Path::new(file_path).file_name()
         .and_then(|name| name.to_str())
         .ok_or("Не указан путь к JSON-проекту")?;
-    if !name.ends_with(".json") || name.ends_with(".graph.json") || name.ends_with(".advanced.json") {
+    if !name.ends_with(".json") || name.ends_with(".graph.json") || name.ends_with(".advanced.json") || name.ends_with(".mlad.json") {
         return Err("Старый редактор может сохранять только обычный *.json, но не *.graph.json или *.LST".into());
     }
     Ok(())
@@ -516,6 +584,8 @@ fn main() {
             cmd_read_cioprg_page,
             cmd_search_cioprg,
             cmd_filter_cioprg_lines,
+            cmd_load_offline_sidecar,
+            cmd_save_offline_sidecar,
             cmd_inspect_ioname,
             cmd_validate_advanced_draft,
             cmd_load_advanced_draft,
@@ -544,6 +614,7 @@ mod graph_write_safety_tests {
         assert!(check_legacy_json_path("robot.lst").is_err());
         assert!(check_legacy_json_path("ladder.graph.json").is_err());
         assert!(check_legacy_json_path("ladder.advanced.json").is_err());
+        assert!(check_legacy_json_path("robot.mlad.json").is_err());
         assert!(check_legacy_json_path("project.json").is_ok());
     }
 
@@ -704,5 +775,96 @@ mod cioprg_search_tests {
             p.clone(), compiler::memory::ControllerFamily::DX200, hash, "MOV".into(),
         ).await.is_err());
         std::fs::remove_file(path).unwrap();
+    }
+}
+
+
+#[cfg(test)]
+mod offline_sidecar_ipc_tests {
+    use super::*;
+    fn temporary()->std::path::PathBuf {
+        let root=std::env::temp_dir().join(format!("mlad-sidecar-{}",uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        root
+    }
+    #[tokio::test]
+    async fn export_import_revision_conflict_and_source_binding_are_enforced() {
+        let root=temporary();
+        let native=root.join("CIOPRG.LST");
+        let saved=root.join("session.mlad.json");
+        let raw=b"STR #70010\r\nOUT #70020\r\nEND\n";
+        std::fs::write(&native,raw).unwrap();
+        let source_path=native.to_string_lossy().into_owned();
+        let file_path=saved.to_string_lossy().into_owned();
+        let controller=compiler::memory::ControllerFamily::YRC1000;
+        let doc=compiler::lossless::parse_document(raw.to_vec(),controller);
+        let mut notes=sidecar::OfflineSidecar::new(&doc);
+        notes.bookmarks.push(sidecar::Bookmark{line:2,label:"first".into()});
+        notes.annotations.addresses.insert("#70010".into(),"Entry".into());
+        let first=cmd_save_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone(),
+            notes.clone(),None
+        ).await.unwrap();
+        assert_eq!(first.revision.len(),64);
+        assert!(cmd_save_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone(),
+            notes.clone(),None
+        ).await.is_err(),"explicit revision required for existing JSON");
+        let loaded=cmd_load_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone()
+        ).await.unwrap();
+        assert_eq!(loaded.sidecar,notes);
+        assert_eq!(loaded.revision,first.revision);
+        let old_bytes=std::fs::read(&saved).unwrap();
+        notes.bookmarks[0].label="second".into();
+        let second=cmd_save_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone(),
+            notes.clone(),Some(first.revision.clone())
+        ).await.unwrap();
+        assert_ne!(first.revision,second.revision);
+        assert_eq!(std::fs::read(saved.with_file_name("session.mlad.json.bak")).unwrap(),old_bytes);
+        assert!(cmd_save_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone(),
+            notes,Some(first.revision)
+        ).await.is_err(),"stale sidecar revisions must never overwrite");
+        assert_eq!(std::fs::read(&native).unwrap(),raw);
+        std::fs::write(&native,b"END\n").unwrap();
+        assert!(cmd_load_offline_sidecar(
+            file_path.clone(),source_path.clone(),controller,doc.source_sha256.clone()
+        ).await.is_err(),"changed source cannot use stale sidecar");
+        assert!(cmd_save_offline_sidecar(
+            file_path,source_path,controller,doc.source_sha256,
+            sidecar::OfflineSidecar::new(&doc),Some(second.revision)
+        ).await.is_err(),"changed source must block sidecar write");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[tokio::test]
+    async fn mismatched_sidecar_and_native_target_are_rejected_without_write() {
+        let root=temporary();let source=root.join("CIOPRG.LST");
+        let source_path=source.to_string_lossy().into_owned();
+        let raw=b"STR #70010\nEND\n";
+        std::fs::write(&source,raw).unwrap();
+        let family=compiler::memory::ControllerFamily::YRC1000;
+        let doc=compiler::lossless::parse_document(raw.to_vec(),family);
+        let notes=sidecar::OfflineSidecar::new(&doc);
+        for invalid in ["CIOPRG.LST","IONAME.DAT","old.graph.json","old.advanced.json","legacy.json"] {
+            let target=root.join(invalid).to_string_lossy().into_owned();
+            assert!(cmd_save_offline_sidecar(
+                target,source_path.clone(),family,doc.source_sha256.clone(),
+                notes.clone(),None
+            ).await.is_err());
+        }
+        let mut wrong=notes.clone();wrong.source.sha256="0".repeat(64);
+        let target=root.join("safe.mlad.json").to_string_lossy().into_owned();
+        assert!(cmd_save_offline_sidecar(
+            target.clone(),source_path.clone(),family,doc.source_sha256.clone(),
+            wrong,None
+        ).await.is_err());
+        assert!(!root.join("safe.mlad.json").exists());
+        assert!(cmd_save_offline_sidecar(
+            target,source_path,family,"0".repeat(64),notes,None
+        ).await.is_err());
+        assert_eq!(std::fs::read(source).unwrap(),raw);
+        std::fs::remove_dir_all(root).unwrap();
     }
 }
