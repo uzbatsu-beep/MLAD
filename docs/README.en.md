@@ -10,7 +10,7 @@
 
 # MLAD — Technical Documentation Index
 
-**Verified baseline (18 November 2026):** `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest [published Windows preview, rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), **does not include PR #24–#29**. Creating PR #30 did not by itself merge it into `main`; consult [project status](project_status.en.md) for an up-to-date baseline.
+**Historical repository baseline (18 November 2026):** `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest [published Windows preview, rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), **does not include PR #24–#29**. Creating PR #30 did not by itself merge it into `main`; consult [project status](project_status.en.md) for an up-to-date baseline.
 
 ## Start here
 
@@ -18,8 +18,8 @@
 | --- | --- |
 | Project scope and quick start | [Repository README](../README.en.md) |
 | Verified features, risks, and maturity | [Project status](project_status.en.md) |
-| Roadmap v3: M0–M13, priorities, dependencies | [Roadmap](roadmap.en.md) |
-| Proposed implementation sequence PR #30–#37 | [Implementation plan](implementation_plan.en.md) |
+| Roadmap v3 as of 18 November 2026 (historical): M0–M13, priorities, dependencies | [Roadmap](roadmap.en.md) |
+| Historical proposal PR #30–#37 (18 November 2026) | [Implementation plan](implementation_plan.en.md) |
 | CI, Windows acceptance, testing, and release gates | [Verification gates](verification_gates.en.md) |
 | PR #28: Windows Acceptance & Security Regression | [Windows acceptance protocol](windows_acceptance_pr28.en.md) |
 | PR #29: Filesystem Security Hardening and residual risks | [Filesystem threat review](filesystem_security_pr29.en.md) |
