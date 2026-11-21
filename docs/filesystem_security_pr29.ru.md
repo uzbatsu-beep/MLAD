@@ -3,6 +3,8 @@
 >
 > **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.ru.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # MLAD PR #29 — Filesystem Security Hardening: threat review and evidence
 
 **История:** PR #29 разработан от `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea` и [merged](https://github.com/uzbatsu-beep/MLAD/pull/29) 18.11.2026 в `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. Финальные проверки [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Исторические [Linux PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892563) и [Windows PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892566) также успешны. **UserSmoke/OEMBench = NOT RUN**; это не release.

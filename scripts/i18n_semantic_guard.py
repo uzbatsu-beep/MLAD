@@ -43,6 +43,7 @@ SOURCE_ALIGNED_RU = {
     "docs/roadmap_v2_archive.md",
     "docs/implementation_plan_v2_archive.md",
     "docs/controller_fixture_intake.md",
+    "docs/repository_audit_2026-11-21.md",
 }
 
 EDITORIAL_RU = {
@@ -154,8 +155,8 @@ def main() -> None:
     drafts = 0
     found = sources()
 
-    if len(found) != 54:
-        failures.append(f"source inventory changed: expected 53, found {len(found)}; update review register")
+    if len(found) != 55:
+        failures.append(f"source inventory changed: expected 55, found {len(found)}; update review register")
 
     for src in found:
         original = strip_nav((ROOT / src).read_text(encoding="utf-8"))
@@ -223,7 +224,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_ru_editorial, count_en, drafts) != (27, 13, 22, 46):
+    if (count_ru, count_ru_editorial, count_en, drafts) != (28, 13, 22, 47):
         failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:

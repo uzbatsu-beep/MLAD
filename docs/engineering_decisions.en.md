@@ -3,6 +3,8 @@
 >
 > **Authority:** Only decisions explicitly approved by the project owner are binding. Translation does not create a new engineering decision or authorize controller operations.
 
+> **Current applicability (21 November 2026):** the verified `main` baseline is `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, with Windows pre-release `v0.5.0-rc.10-unified-offline`. This historical technical record must be read together with [the current Git audit](repository_audit_2026-11-21.en.md); security and OEM claims are limited: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` and deployment remain `BLOCKED`.
+
 # MLAD — Register of Approved Engineering Decisions
 
 **Register version:** 18 November 2026. This document records agreed restrictions separately from proposals that have **not yet been adopted**. References: [roadmap v3](roadmap.en.md) and the [archived roadmap v2](roadmap_v2_archive.en.md), [current project status](project_status.en.md), and [proposed PR plan](implementation_plan.en.md). **Merging each individual PR requires a separate owner decision.**

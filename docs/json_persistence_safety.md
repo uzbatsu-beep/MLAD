@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](json_persistence_safety.ru.md) · [English](json_persistence_safety.en.md) · [Original / Исходный текст](json_persistence_safety.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Область актуальности (21.11.2026):** проверенный `main` — `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release — `v0.5.0-rc.10-unified-offline`. Исторические инженерные формулировки читать вместе с [актуальным аудитом Git](repository_audit_2026-11-21.md); `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` и deployment остаются `BLOCKED`.
+
 # MLAD — модель безопасности JSON сохранения (PR #24)
 
 **Дата:** 18.11.2026. **Статус:** PR #24 merged в main 18.11.2026; Windows MSVC regression CI SUCCESS, но отдельный Windows binary с изменением ещё не опубликован. Расширение M2, не изменение CIOPRG grammar.

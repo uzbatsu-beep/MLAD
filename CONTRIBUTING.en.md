@@ -72,3 +72,9 @@ For each PR, indicate the actual CI, SHA and `NOT RUN`It is not intended to run 
 ## Post-development PR #29
 
 [Roadmap v3](docs/roadmap.en.md) и [backlog PR #30–#37](docs/implementation_plan.en.md) Synthetic parser fixtures, Native Workspace navigation, portable annotations/sidecar, typed grammar and static analysis. Each PR must specify physical source span, level of evidence, negative cases, not modify `CIOPRG.LST`/`IONAME.DAT` Do not add network/native writer permissions. When working with JSON, consider [File ID/hardlink/staging guards](docs/filesystem_security_pr29.en.md)The TOCTOU/ACL/backup transaction is closed. For Rust/Tauri changes, Windows workflow is required; for docs-only PR, a basic CI is sufficient. The owner separately approves merge and release.
+
+## Current privacy and governance addendum (21 November 2026)
+
+The current Windows pre-release is `v0.5.0-rc.10-unified-offline`, not rc.9. Any earlier release/baseline statements above are scoped to their stated dates. `UserSmoke=NOT RUN` and `OEMBench=NOT RUN` remain independently unverified. Consult the [current repository audit](docs/repository_audit_2026-11-21.en.md).
+
+Treat local `*.mlad.json` sidecars and `*.mladproj.json` manifests as **potentially sensitive**, even without raw `CIOPRG.LST` or `IONAME.DAT` bytes: comments, relative paths and SHA-256 inventories can reveal plant details. The repository's `.gitignore` is an accidental-addition guard, not a leak prevention policy for previously tracked files. `HSES`/`FTP`, native writer and robot deployment stay `BLOCKED`. GitHub `main` branch protection currently requires `frontend-build` but not the aggregate `ci-gate`; only the repository owner may approve a stricter Ruleset.

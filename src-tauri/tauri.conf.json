@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "MLAD Bench | OEM 5-Opcode Reference rc.9 · OFFLINE",
+        "title": "MLAD Bench | Unified Offline Workspace · OFFLINE",
         "width": 1280,
         "height": 800,
         "resizable": true,

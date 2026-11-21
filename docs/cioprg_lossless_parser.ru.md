@@ -3,6 +3,8 @@
 >
 > **Граница:** побайтовое чтение не является проверенным компилятором. Исходный `CIOPRG.LST`/`IONAME.DAT` только для чтения; HSES/FTP/native writer/deployment **BLOCKED**, OEMBench **NOT RUN**.
 
+> **Актуальная граница достоверности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` и Windows pre-release `v0.5.0-rc.10-unified-offline`. Сверяйте данную техническую спецификацию с [актуальным аудитом Git](repository_audit_2026-11-21.ru.md); прежние статусы PR и parser относятся к своим датам. Native write и `HSES`/`FTP` — `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Не следует из документа OEM подтверждения работы на контроллере.
+
 # Lossless-парсер CIOPRG.LST — контракт реализации PR #2
 
 > **Статус и применимость:** документ описывает подмножество, реализованное и проверенное до/по PR #21, **не** утверждает прекращения разработки на этом этапе. Текущее состояние `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и раздельные уровни CI/UserSmoke/OEM — [project_status.md](project_status.ru.md). Он не разрешает native writer, HSES или реальный scan.

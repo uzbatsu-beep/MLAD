@@ -3,6 +3,8 @@
 >
 > **Evidence:** Syntax-only `TypedCandidate` forms; not verified runtime behavior. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; OEMBench **NOT RUN**.
 
+> **Current bounded interpretation (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. The [Git/MD audit](repository_audit_2026-11-21.en.md) establishes the release baseline but does not establish actual controller memory ownership or live scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment `BLOCKED`.
+
 # MLAD — Typed Candidate forms for native CIOPRG.LST (PR #19)
 
 > **Status and applicability:** this describes the constrained feature subset and evidence available by PR #21, **not** a claim that all MLAD development stopped at PR #21. See [current project status](project_status.en.md) for `main` after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and the distinct CI/UserSmoke/OEM evidence levels. No native writer, HSES or scan execution permission follows from this specification.

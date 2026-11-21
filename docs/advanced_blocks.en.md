@@ -3,6 +3,8 @@
 >
 > **Safety/evidence:** Documentation-derived offline models, not observed robot behavior. Native `CIOPRG.LST`/`IONAME.DAT` are read-only. HSES/FTP, native writer and deployment remain **BLOCKED**; OEMBench **NOT RUN**.
 
+> **Current evidence boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` and Windows pre-release `v0.5.0-rc.10-unified-offline`. This technical specification must be read with the [current repository audit](repository_audit_2026-11-21.en.md); historical parser/PR statuses below are time-scoped. Native file write and `HSES`/`FTP` remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. No new OEM semantic or firmware guarantee is asserted.
+
 # Yaskawa Advanced CIO Instructions — PR #5, updated after PR #21
 
 > **Status and applicability:** this describes the constrained implementation subset and evidence available by PR #21. It **does not** mean MLAD development stopped with PR #21. See [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) for separate CI/UserSmoke/OEM evidence. The document does **not** authorize native writing, HSES or real controller scan execution.

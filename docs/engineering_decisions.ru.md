@@ -3,6 +3,8 @@
 >
 > **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
+> **Область актуальности (21.11.2026):** проверенный `main` — `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release — `v0.5.0-rc.10-unified-offline`. Исторические инженерные формулировки читать вместе с [актуальным аудитом Git](repository_audit_2026-11-21.ru.md); `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` и deployment остаются `BLOCKED`.
+
 # MLAD — реестр утверждённых инженерных решений
 
 **Версия реестра:** 18.11.2026. Этот документ фиксирует согласованные ограничения и разделяет их с ещё не принятыми предложениями. Основание: [дорожная карта v3](roadmap.ru.md) и [архив v2](roadmap_v2_archive.ru.md), [текущий статус](project_status.ru.md), [план PR](implementation_plan.ru.md). Решение о merge конкретного PR всегда принимается отдельно.

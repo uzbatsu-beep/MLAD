@@ -3,6 +3,8 @@
 >
 > **Доказательность:** описаны **только типизированные кандидаты синтаксиса**, не исполняемая программа. Native `CIOPRG.LST`/`IONAME.DAT` остаются read-only; HSES/FTP/native writer/deployment **BLOCKED**; OEMBench **NOT RUN**.
 
+> **Актуальная ограниченная интерпретация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. [Аудит Git/MD](repository_audit_2026-11-21.ru.md) фиксирует базу релиза, но не подтверждает реальные права памяти или scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment — `BLOCKED`.
+
 # MLAD — типизированные формы-кандидаты native CIOPRG.LST (PR #19)
 
 > **Статус и применимость:** документ описывает ограниченное подмножество и доказательства, собранные до/по PR #21; это **не** последний этап проекта. Текущее состояние `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и уровни CI/UserSmoke/OEM — [project_status.md](project_status.ru.md). Документ не разрешает native writer, HSES или исполнение скана.

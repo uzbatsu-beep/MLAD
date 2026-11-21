@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](semantic_verification_matrix.ru.md) · [English](semantic_verification_matrix.en.md) · [Original / Исходный текст](semantic_verification_matrix.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # MLAD PR #20 — семантическая верификация и аудит ссылок
 
 **Актуально на 18.11.2026:** PR #20 и PR #21 **merged**. Статический аудит и автономные OEM manual-derived векторы реализованы, но **реальные EN/scan/flags не измерялись на контроллере**. Таблица ниже — исторический исходный статус до PR #21; текущий документальный уровень дополнен в [исследовании пяти команд](oem_5_opcode_analysis.md). [Матрица готовности](project_status.md).

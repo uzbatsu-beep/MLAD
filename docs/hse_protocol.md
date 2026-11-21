@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](hse_protocol.ru.md) · [English](hse_protocol.en.md) · [Original / Исходный текст](hse_protocol.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Yaskawa High-Speed Ethernet (HSES) — статус и требования к верификации
 
 **Проверено в `main` на 18.11.2026:** HSES/FTP runtime удалён из компилируемого backend в PR #13. Мониторинг и загрузка в контроллер отключены; протокол не верифицирован. [Текущий статус](project_status.md).

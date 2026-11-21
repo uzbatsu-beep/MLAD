@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Living architecture/workflow context (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; Windows pre-release `v0.5.0-rc.10-unified-offline`. Native `CIOPRG.LST` and `IONAME.DAT` remain immutable, `*.mlad.json` and `*.mladproj.json` are separate metadata. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`/native writer/deploy `BLOCKED`. See [repository audit](repository_audit_2026-11-21.en.md); earlier component/PR snapshots are historical.
+
 # MLAD development, testing and release process
 
 **Update:** 18.11.2026; `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Last published rc.9 - before PR #24-#29. New plan. [roadmap v3](roadmap.en.md); docs PR #30 It doesn't extend runtime.

@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](guarded_io_review.ru.md) · [English](guarded_io_review.en.md) · [Original / Исходный текст](guarded_io_review.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # MLAD PR #26 — Guarded Reads & JSON Conflict Prevention
 
 **Дата:** 18.11.2026. **Статус:** [PR #26 merged](https://github.com/uzbatsu-beep/MLAD/pull/26) в `main` `2092db1825880d251c87efcb7c331d78cb5e4d28`; [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44228204776), [Windows MSVC/Tauri CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44227145031). Опубликованный rc.9 не изменён; M2 остаётся PARTIAL.

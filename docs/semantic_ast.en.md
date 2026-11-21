@@ -3,6 +3,8 @@
 >
 > **Evidence:** Static analysis of a **limited Boolean subset**, not the actual controller scan. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
+> **Current semantic confidence (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; released Windows pre-release `v0.5.0-rc.10-unified-offline`. See the [dated Git audit](repository_audit_2026-11-21.en.md) for currently supported parser and source-linked roles. These references do **not** validate robot scan, flag effects or write permissions: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` and deployment `BLOCKED`.
+
 # Semantic AST & Ladder Logic Analyzer — PR #3, updated after PR #21
 
 > **Status and applicability:** this document covers the limited implementation subset and evidence available by PR #21, **not** the final development stage of MLAD. See [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM evidence levels. This is **not** permission for a native writer, HSES or real controller scan execution.

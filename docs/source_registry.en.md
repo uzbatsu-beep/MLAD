@@ -3,6 +3,8 @@
 >
 > **Evidence:** Translation reviewed against MLAD's source registry, **not** an independent audit of every OEM PDF revision or controller firmware. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
+> **Current applicability (21 November 2026):** the verified `main` baseline is `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, with Windows pre-release `v0.5.0-rc.10-unified-offline`. This historical technical record must be read together with [the current Git audit](repository_audit_2026-11-21.en.md); security and OEM claims are limited: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` and deployment remain `BLOCKED`.
+
 # Source register — Yaskawa Concurrent I/O / Ladder Editor
 
 > **Status and applicability:** this records the documented subset and evidence available by PR #21, **not** the final stage of the whole project. See the [current `main` status](project_status.en.md) after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM evidence levels. Nothing in this registry authorizes a native writer, HSES or actual controller scan execution.

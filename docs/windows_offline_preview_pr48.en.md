@@ -8,7 +8,7 @@
 
 ## 1. Preview contents
 
-The artifact `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` is produced by the [Windows Preview workflow](../.github/workflows/windows-offline-preview.yml). Download it from a SUCCESSFUL GitHub Actions run **Artifacts**, NOT Releases; no Git tag is created. The inner ZIP contains:
+The artifact `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` is produced by the [Windows Preview workflow](../.github/workflow-archive/windows-offline-preview-pr48.yml). Download it from a SUCCESSFUL GitHub Actions run **Artifacts**, NOT Releases; no Git tag is created. The inner ZIP contains:
 
 - `app/yaskawa-ladder-ide.exe`: unsigned Windows x64 production build, not a signed installer.
 - `sample/cell.mladproj.json`, `sample/CIOPRG.LST`, `sample/IONAME.DAT`, `sample/cell.mlad.json`: a completely **SYNTHETIC** unified project from the [fixture generator](../scripts/offline-preview-fixture.py). These bytes do not claim OEM-compatible robot code and must never be uploaded.

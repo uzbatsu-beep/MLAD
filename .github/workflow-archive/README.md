@@ -29,3 +29,7 @@ This archive is **historical evidence**, not permission to rebuild a legacy work
 - [`MLAD — Prune merged PR branches (manual)`](../workflows/merged-branches-prune.yml) — manual-only dry-run/delete with explicit confirmation
 
 **Safety:** `CIOPRG.LST` and `IONAME.DAT` remain read-only; HSES/FTP, live I/O, native robot writer and deployment remain blocked. Historical CI success is **not** manual `UserSmoke=PASS` or OEM bench validation.
+
+## PR #48 Windows Offline Preview — исторический workflow (21.11.2026)
+
+[windows-offline-preview-pr48.yml](windows-offline-preview-pr48.yml) — workflow, создавший проверенный [PR #48 Windows preview](https://github.com/uzbatsu-beep/MLAD/actions/runs/44733777072). После слияния PR #48 его постоянные триггеры в активной папке стали не нужны; файл перенесён в архив **без правки команд**. Из `.github/workflow-archive` GitHub Actions не запускает этот workflow. Текущий [Windows rc.10](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.10-unified-offline) опубликован другим release workflow из его точного тега.

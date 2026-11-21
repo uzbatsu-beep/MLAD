@@ -3,6 +3,8 @@
 >
 > **Scope:** Source-aligned engineering explanation, **not** an independent OEM firmware audit. Source `CIOPRG.LST`/`IONAME.DAT` remain read-only. HSES/FTP, native writer and deployment are **BLOCKED**; OEMBench is **NOT RUN**.
 
+> **Current bounded interpretation (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. The [Git/MD audit](repository_audit_2026-11-21.en.md) establishes the release baseline but does not establish actual controller memory ownership or live scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment `BLOCKED`.
+
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
 > **Status and scope:** this document describes the constrained feature subset and evidence available by PR #21; this **does not** imply the whole project stopped at PR #21. See the [current project status](project_status.en.md) for merged PR #29 and independent CI/UserSmoke/OEM evidence levels. This specification does **not** authorize a native writer, HSES or execution of a controller scan.

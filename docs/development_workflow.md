@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](development_workflow.ru.md) · [English](development_workflow.en.md) · [Original / Исходный текст](development_workflow.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Действующий архитектурный/процессный контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Native `CIOPRG.LST` и `IONAME.DAT` неизменяемы; `*.mlad.json` и `*.mladproj.json` — отдельные метаданные. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`/native writer/deploy `BLOCKED`. [Аудит Git](repository_audit_2026-11-21.md); прежние этапы ниже исторические.
+
 # Процесс разработки, тестирования и релизов MLAD
 
 **Актуализация:** 18.11.2026; `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`, PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный rc.9 — до PR #24–#29. Новый план — [roadmap v3](roadmap.md); docs PR #30 не расширяет runtime.

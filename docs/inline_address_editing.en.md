@@ -3,6 +3,8 @@
 >
 > **Safety:** Only independent `*.graph.json`/`*.advanced.json` addresses can be edited. Native `CIOPRG.LST`/`IONAME.DAT` are read-only; HSES/FTP/native writer/deployment **BLOCKED**. Manual Windows WebView2 UserSmoke and OEMBench remain **NOT RUN** absent independent evidence.
 
+> **Current product boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest Windows pre-release `v0.5.0-rc.10-unified-offline`. This description is supplemented by the [current Git audit](repository_audit_2026-11-21.en.md). Original `CIOPRG.LST` and `IONAME.DAT` are read-only, offline metadata stays separate, `UserSmoke=NOT RUN` and `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` `BLOCKED`.
+
 # Inline editing of operand addresses — merged PR #8
 
 > **Status and applicability:** `main` is the evolving primary branch; this describes the functionality and evidence available up to PR #21; **it does not imply all project development ended with PR #21**. See [project_status.md](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and separate CI/UserSmoke/OEM evidence levels. This specification authorizes **no** native writer, HSES or actual controller scan.

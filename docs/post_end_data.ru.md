@@ -3,6 +3,8 @@
 >
 > **Доказательность:** наблюдения по приватным выгрузкам, **не** универсальная грамматика Yaskawa и **не** право записи. `CIOPRG.LST`/`IONAME.DAT` — только чтение; HSES/FTP/native writer/deployment — **BLOCKED**, `OEMBench=NOT RUN`.
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.ru.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # MLAD — классификация и диагностика данных после END (только чтение)
 
 **Область действия на 18.11.2026:** PR #18 **объединён**, [Windows rc.6 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.6-postend); функциональность присутствует в `main`. Описана структура, **наблюдавшаяся** после END, а **не** полная OEM-грамматика и не нативный редактор. См. [текущее состояние](project_status.ru.md).

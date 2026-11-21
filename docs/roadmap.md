@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Исходный текст](roadmap.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуализация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. PR #40–#48 уже слиты: parser/UX, sidecar, typed grammar, source-linked роли, переносимый проект и Preview. Прежняя запланированная нумерация ниже **историческая**, а не текущая очередь. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` остаются `BLOCKED`. [Актуальный аудит](repository_audit_2026-11-21.md).
+
 # MLAD — дорожная карта v4: безопасная Offline Engineering IDE
 
 **Проверенный baseline:** `main` = `066db5f8c01a9da8f5f0218f12539b305ab021e4` (слияние [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39), 19.11.2026). **История:** PR #1–#39 слиты. [PR #39 CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321) успешен на HEAD данного PR; это не ручная Windows приёмка и не отдельное доказательство CI на новом commit main.

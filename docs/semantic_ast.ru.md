@@ -3,6 +3,8 @@
 >
 > **Доказательность:** статический анализ **ограниченного булева подмножества**, не моделирование реального контроллерного цикла. `CIOPRG.LST`/`IONAME.DAT` — только чтение; HSES/FTP/native writer/deployment **BLOCKED**, `OEMBench=NOT RUN`.
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.ru.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # Семантический AST и анализатор логики Ladder — PR #3, актуализация после PR #21
 
 > **Статус и применимость:** функциональное подмножество и доказательства относятся к разработке до PR #21; **не** означают, что весь проект завершился на PR #21. Состояние `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM — [project_status.md](project_status.ru.md). Нельзя выводить разрешение на native writer, HSES или исполнение скана из этой спецификации.

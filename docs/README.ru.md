@@ -5,9 +5,12 @@
 
 > **Принцип:** исходная документация и OEM-руководства имеют приоритет в случае расхождений. Двуязычное представление не подтверждает исполнение логики на контроллере или разрешение записи.
 
+> **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](repository_audit_2026-11-21.ru.md).
+> **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
+
 # MLAD — каталог технической документации
 
-**Сверено 18.11.2026:** `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged), [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) не содержит PR #24–#29. Публикация документационного PR #30 не означает merge; [текущий статус](project_status.md).
+**Исторический статус каталога на 18.11.2026:** `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged), [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) не содержит PR #24–#29. Публикация документационного PR #30 не означает merge; [текущий статус](project_status.md).
 
 ## С чего начать
 
@@ -15,8 +18,8 @@
 | --- | --- |
 | Назначение и быстрый старт | [README репозитория](../README.md) |
 | Полная сверенная функциональность, риски, прогресс | [project_status.md](project_status.md) |
-| **Актуальная roadmap v3:** M0–M13, приоритеты, зависимости | [roadmap.md](roadmap.md) |
-| **План разработки PR #30–#37:** объём, проверки, последовательность | [implementation_plan.md](implementation_plan.md) |
+| **Roadmap v3 на 18.11.2026 (история):** M0–M13, приоритеты, зависимости | [roadmap.md](roadmap.md) |
+| **План PR #30–#37 на 18.11.2026 (история):** объём, проверки, последовательность | [implementation_plan.md](implementation_plan.md) |
 | Матрица CI, Windows smoke, проверок и релизов | [verification_gates.md](verification_gates.md) |
 | Windows Acceptance & Security Regression (PR #28 merged) | [windows_acceptance_pr28.md](windows_acceptance_pr28.md) |
 | Filesystem Security Hardening и остаточные угрозы (PR #29 merged) | [filesystem_security_pr29.md](filesystem_security_pr29.md) |
@@ -75,7 +78,7 @@
 | rc.6 | Post-END и группировка диагностики | [rc.6](releases/v0.5.0-rc.6-postend.md) |
 | rc.7 | Типизация пяти команд | [rc.7](releases/v0.5.0-rc.7-typed.md) |
 | rc.8 | Статические гипотезы источников | [rc.8](releases/v0.5.0-rc.8-evidence.md) |
-| **rc.9** | **OEM reference для пяти команд — последний опубликованный** | [rc.9](releases/v0.5.0-rc.9-oem-reference.md) |
+| **rc.9** | **OEM reference для пяти команд — исторический выпуск от 17.11.2026** | [rc.9](releases/v0.5.0-rc.9-oem-reference.md) |
 
 Текущий [GitHub Release](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference); опубликованный архив исходников соответствует релизному commit, а не будущим изменениям `main`.
 

@@ -3,6 +3,8 @@
 >
 > **Safety and scope:** Graph Workspace edits **JSON drafts only**; `CIOPRG.LST` and `IONAME.DAT` are read-only. HSES/FTP, live I/O, native writer and deployment remain **BLOCKED**. Manual Windows UserSmoke and OEMBench remain **NOT RUN** unless independently documented. This is an editorial translation of the project's stated behavior, not OEM certification.
 
+> **Current safety context (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. This document's older security and UI results are scoped to their original revisions. [Current Git audit](repository_audit_2026-11-21.en.md) lists residual Windows DACL, TOCTOU and multi-file transaction risks; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer and `HSES`/`FTP` `BLOCKED`.
+
 # Ladder Graph Editor & Visualization — PR #4, plus UI changes in PR #7/#8
 
 **Status:** interactive **JSON graph-draft editor** + independent **read-only CIOPRG.LST semantic visualization**.

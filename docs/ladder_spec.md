@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](ladder_spec.ru.md) · [English](ladder_spec.en.md) · [Original / Исходный текст](ladder_spec.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Ladder / CIOPRG.LST — архив предварительной спецификации
 
 > **Исторический документ (навигационная отметка 18.11.2026):** нижеследующие выводы сохраняют дату первоначальной проверки, а не подменяют текущую реализацию. PR #1–#21 merged, Windows rc.9 опубликован. [Текущее состояние MLAD](project_status.md).

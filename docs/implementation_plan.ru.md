@@ -3,6 +3,8 @@
 >
 > **Примечание:** русскоязычный исходник сохранён без машинного пересказа; OEM validation independent.
 
+> **Актуализация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. PR #40–#48 уже слиты: parser/UX, sidecar, typed grammar, source-linked роли, переносимый проект и Preview. Прежняя запланированная нумерация ниже **историческая**, а не текущая очередь. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` остаются `BLOCKED`. [Актуальный аудит](repository_audit_2026-11-21.ru.md).
+
 # MLAD — план разработки v4 после PR #39
 
 **Baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, PR #1–#39 слиты. Номера #40–#47 — план, не автоматически созданные или завершённые PR. Функциональная реализация PR #40 не подтверждается одним обновлением Markdown. [Roadmap v4](roadmap.ru.md) · [Фактический статус](project_status.ru.md).
