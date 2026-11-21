@@ -3,6 +3,8 @@
 >
 > **Evidence:** Green/red/gray are manually controlled **OFFLINE** truth values, **not** energized wires, measured I/O, interlock or safety status. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; independent UserSmoke/OEMBench **NOT RUN**.
 
+> **Current bounded interpretation (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. The [Git/MD audit](repository_audit_2026-11-21.en.md) establishes the release baseline but does not establish actual controller memory ownership or live scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment `BLOCKED`.
+
 # Multiple visible rungs and offline tri-state visualization — merged PR #7
 
 > **Status and applicability:** this document records OFFLINE tri-state display and UI behavior from PR #7/#8/#16/#17. For the status of `main` after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent validation levels, see [project_status.md](project_status.en.md). **This UI is NOT live I/O and NOT a physical safety-status indicator.**
