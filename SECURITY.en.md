@@ -60,3 +60,9 @@ The maintainer evaluates reports, assesses impact and coordinates appropriate di
 ## Technical baseline (18 November 2026)
 
 Verified `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` after [PR #29 merged](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) apply to that SHA. These results **do not** establish successful manual WebView2 testing, elimination of all filesystem races, OEM bench equivalence or permission for native controller writes. Independent `UserSmoke=NOT RUN` and `OEMBench=NOT RUN` remain separate evidence statuses. [Verification gates](docs/verification_gates.en.md) · [Roadmap v3](docs/roadmap.en.md).
+
+## Current privacy and governance addendum (21 November 2026)
+
+The current Windows pre-release is `v0.5.0-rc.10-unified-offline`, not rc.9. Any earlier release/baseline statements above are scoped to their stated dates. `UserSmoke=NOT RUN` and `OEMBench=NOT RUN` remain independently unverified. Consult the [current repository audit](docs/repository_audit_2026-11-21.en.md).
+
+Treat local `*.mlad.json` sidecars and `*.mladproj.json` manifests as **potentially sensitive**, even without raw `CIOPRG.LST` or `IONAME.DAT` bytes: comments, relative paths and SHA-256 inventories can reveal plant details. The repository's `.gitignore` is an accidental-addition guard, not a leak prevention policy for previously tracked files. `HSES`/`FTP`, native writer and robot deployment stay `BLOCKED`. GitHub `main` branch protection currently requires `frontend-build` but not the aggregate `ci-gate`; only the repository owner may approve a stricter Ruleset.

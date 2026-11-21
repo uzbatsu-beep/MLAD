@@ -72,3 +72,9 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 ## Разработка после PR #29
 
 [Roadmap v3](docs/roadmap.ru.md) и [backlog PR #30–#37](docs/implementation_plan.ru.md) разделяют синтетические parser fixtures, Native Workspace navigation, переносимые annotations/sidecar, typed grammar и static analysis. Каждый PR должен указывать физический source span, уровень доказательности, negative cases, не модифицировать `CIOPRG.LST`/`IONAME.DAT` и не добавлять network/native writer разрешений. При работе с JSON учитывать [File ID/hardlink/staging guards](docs/filesystem_security_pr29.ru.md), но **не** считать TOCTOU/ACL/backup transaction закрытыми. Для Rust/Tauri изменений обязателен Windows workflow; для docs-only PR достаточно основного CI. Владелец отдельно утверждает merge и release.
+
+## Дополнение к конфиденциальности и управлению PR (21.11.2026)
+
+Последний Windows pre-release — `v0.5.0-rc.10-unified-offline`, а не rc.9. Старые указания релизов и baselines выше относятся к собственным датам. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` не подтверждены отдельно; подробности — [аудит Git](docs/repository_audit_2026-11-21.ru.md).
+
+Локальные `*.mlad.json` sidecar и `*.mladproj.json` manifests могут раскрывать **конфиденциальную** информацию даже без сырых байтов `CIOPRG.LST` и `IONAME.DAT`: комментарии, относительные пути и SHA-256 способны идентифицировать инженерную среду. `.gitignore` защищает лишь от случайной индексации новых файлов, но не очищает уже отслеживаемые данные. `HSES`/`FTP`, native writer и robot deployment остаются `BLOCKED`. Защита ветки `main` сейчас требует `frontend-build`, но не обязательного `ci-gate`; Ruleset изменяет только владелец после согласования.
