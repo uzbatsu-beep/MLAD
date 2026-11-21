@@ -3,6 +3,8 @@
 >
 > **Safety/evidence:** This is a **not-yet-executed OEM bench test matrix**: original `CIOPRG.LST` and `IONAME.DAT` must remain read-only. Expected values are *manual-model predictions*, not measured DX100/DX200/YRC1000 outputs. `OEMBench=NOT RUN`; HSES/FTP, native CIO export and deployment **BLOCKED**.
 
+> **Current evidence boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` and Windows pre-release `v0.5.0-rc.10-unified-offline`. This technical specification must be read with the [current repository audit](repository_audit_2026-11-21.en.md); historical parser/PR statuses below are time-scoped. Native file write and `HSES`/`FTP` remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. No new OEM semantic or firmware guarantee is asserted.
+
 # MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.

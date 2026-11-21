@@ -3,6 +3,8 @@
 >
 > **Evidence:** Language review against the MLAD source, **not** independent OEM controller verification. Native `CIOPRG.LST`/`IONAME.DAT` stay read-only; HSES/FTP/native writer/deployment remain **BLOCKED**; OEMBench **NOT RUN**.
 
+> **Current evidence boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` and Windows pre-release `v0.5.0-rc.10-unified-offline`. This technical specification must be read with the [current repository audit](repository_audit_2026-11-21.en.md); historical parser/PR statuses below are time-scoped. Native file write and `HSES`/`FTP` remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. No new OEM semantic or firmware guarantee is asserted.
+
 # CIOPRG.LST specification baseline (DX100 / DX200 / YRC1000)
 
 > **Status and applicability:** this document covers the constrained implementation subset and evidence available by PR #21; it does **not** imply that all project development stopped at PR #21. See the current `main` [project status](project_status.en.md) for the post-[PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) baseline and independent CI/UserSmoke/OEM evidence levels. This specification authorizes **neither** native writing, HSES nor real scan execution.

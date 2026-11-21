@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](advanced_hardware_test_matrix.ru.md) · [English](advanced_hardware_test_matrix.en.md) · [Original / Исходный текст](advanced_hardware_test_matrix.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная граница достоверности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` и Windows pre-release `v0.5.0-rc.10-unified-offline`. Сверяйте данную техническую спецификацию с [актуальным аудитом Git](repository_audit_2026-11-21.md); прежние статусы PR и parser относятся к своим датам. Native write и `HSES`/`FTP` — `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Не следует из документа OEM подтверждения работы на контроллере.
+
 # MLAD — Hardware Bench Validation Matrix (DX100 / DX200 / YRC1000)
 
 Applies separately to **DX100**, **DX200**, and **YRC1000**. Each result must record exact model/firmware/application, Ladder Editor revision, `CIOPRG.LST` backup SHA-256, electrical I/O mapping, scan timing and the engineer who authorized the test.
