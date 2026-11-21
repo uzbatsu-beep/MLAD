@@ -12,7 +12,7 @@
     "test:advanced": "node --experimental-strip-types --test src/ladder/advancedModel.test.ts",
     "test:visual": "node --experimental-strip-types --test src/ladder/visualState.test.ts",
     "test:inline": "node --experimental-strip-types --test src/ladder/inlineOperand.test.ts",
-    "docs:check": "node scripts/check-docs.mjs",
+    "docs:check": "node scripts/check-docs.mjs && node --test scripts/check-docs.test.mjs",
     "test:security": "node --test scripts/offline-boundary.test.mjs",
     "test:native": "node --test scripts/native-workspace.test.mjs",
     "test:diagnostics": "node --experimental-strip-types --test src/ladder/diagnosticsModel.test.ts",

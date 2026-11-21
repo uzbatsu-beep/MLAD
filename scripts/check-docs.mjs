@@ -24,13 +24,32 @@ const markdownFiles=[
   ...walk(path.join(root,"docs")),
   ...walk(path.join(root,".github")),
 ].filter((p,i,paths)=>fs.existsSync(p)&&paths.indexOf(p)===i);
+// Only a matching closing marker can end a fenced block. A broad regex that
+// mixes backticks and tildes can accidentally hide broken links in prose.
+function withoutFencedCode(text){
+  const lines=text.split("\n");
+  let fence=null;
+  return lines.map(line=>{
+    const marker=/^ {0,3}(`{3,}|~{3,})/.exec(line);
+    if(fence===null){
+      if(marker)fence={char:marker[1][0],min:marker[1].length};
+      return marker?"":line;
+    }
+    if(marker && marker[1][0]===fence.char &&
+       marker[1].length>=fence.min &&
+       line.slice(marker[0].length).trim()===""){
+      fence=null;
+    }
+    return "";
+  }).join("\n");
+}
 const issues=[];
 let checked=0;
 for(const filename of markdownFiles){
   const relative=path.relative(root,filename).split(path.sep).join("/");
   const text=fs.readFileSync(filename,"utf8");
   // Do not interpret Markdown examples embedded in fenced code as links.
-  const prose=text.replace(/^(?:`{3,}|~{3,})[^\n]*\n[\s\S]*?^(?:`{3,}|~{3,})\s*$/gm,"");
+  const prose=withoutFencedCode(text);
   const links=prose.matchAll(/!?\[[^\]]*\]\(([^)]+)\)/g);
   for(const match of links){
     const target=match[1].trim().replace(/^<|>$/g,"");
