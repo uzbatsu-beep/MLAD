@@ -3,6 +3,8 @@
 >
 > **Доказательность:** реестр ссылок и выводов из источников MLAD; редактура перевода **не** означает независимой проверки каждой редакции OEM-руководства или исполнения на контроллере. `CIOPRG.LST` и `IONAME.DAT` — только чтение; HSES/FTP/native writer/deployment — **BLOCKED**, `OEMBench=NOT RUN`.
 
+> **Область актуальности (21.11.2026):** проверенный `main` — `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release — `v0.5.0-rc.10-unified-offline`. Исторические инженерные формулировки читать вместе с [актуальным аудитом Git](repository_audit_2026-11-21.ru.md); `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` и deployment остаются `BLOCKED`.
+
 # Реестр первоисточников — Yaskawa Concurrent I/O / Ladder Editor
 
 > **Статус и применимость:** документ описывает источники и подтверждённое подмножество, собранные до/по PR #21; это **не** последняя стадия всего проекта. Актуальное состояние `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29), а также отдельные уровни CI/UserSmoke/OEM приведены в [project_status.md](project_status.ru.md). Из перечисленных источников нельзя выводить право на native writer, HSES либо подтверждённый контроллерный scan.
