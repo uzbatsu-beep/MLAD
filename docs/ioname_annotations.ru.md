@@ -3,6 +3,8 @@
 >
 > **Безопасность:** `IONAME.DAT` и `CIOPRG.LST` — неизменяемые источники только для чтения. Автоматическая карта имён→адресов **не подтверждена**; HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.ru.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # MLAD — IONAME.DAT и комментарии к адресам и цепям (экспериментально)
 
 **Статус на 18.11.2026:** функциональность PR #16 **объединена с `main`**. В Native Workspace доступны read-only импорт `IONAME.DAT`, локальные комментарии и **ручные** ассоциации. Нативного writer и подтверждённого автоматического сопоставления IONAME→#XXXXX **нет**. См. [сверенный статус](project_status.ru.md).

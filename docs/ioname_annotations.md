@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](ioname_annotations.ru.md) · [English](ioname_annotations.en.md) · [Original / Исходный текст](ioname_annotations.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 
 **Status на 18.11.2026:** функциональность PR #16 **слита в `main`**; read-only import `IONAME.DAT`, локальные комментарии и ручные ассоциации доступны в Native Workspace. **Нет** нативного writer и проверенной автоматической карты IONAME→#XXXXX. [Сверенный статус](project_status.md).

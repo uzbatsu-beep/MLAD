@@ -3,6 +3,8 @@
 >
 > **Safety:** `CIOPRG.LST` and `IONAME.DAT` are immutable read-only inputs. Automatic label-to-address mapping is **unverified**. HSES/FTP/native writer/deployment **BLOCKED**; `OEMBench=NOT RUN`.
 
+> **Current product boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest Windows pre-release `v0.5.0-rc.10-unified-offline`. This description is supplemented by the [current Git audit](repository_audit_2026-11-21.en.md). Original `CIOPRG.LST` and `IONAME.DAT` are read-only, offline metadata stays separate, `UserSmoke=NOT RUN` and `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` `BLOCKED`.
+
 # MLAD — IONAME.DAT and per-address/per-rung comments (experimental)
 
 **Status as of 18 November 2026:** PR #16 was **merged into `main`**. Native Workspace offers read-only `IONAME.DAT` import, local annotations and **manual** associations. There is **no** native writer or verified automatic IONAME→#XXXXX mapping. See the [project status](project_status.en.md).

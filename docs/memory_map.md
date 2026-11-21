@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](memory_map.ru.md) · [English](memory_map.en.md) · [Original / Исходный текст](memory_map.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Memory map — архив предварительной карты адресов
 
 > **Архивный указатель (сверка 18.11.2026):** этот файл сохраняется для ссылок; не использовать его как действующую спецификацию. PR #1–#21 слиты, последний Windows релиз — rc.9. [Текущий статус](project_status.md).

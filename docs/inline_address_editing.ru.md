@@ -3,6 +3,8 @@
 >
 > **Безопасность:** править адреса можно **только в независимых JSON-черновиках**. `CIOPRG.LST` и `IONAME.DAT` — только чтение; HSES/FTP/native writer/deployment — **BLOCKED**. Ручные Windows WebView2 UserSmoke и OEMBench остаются **NOT RUN** без независимых доказательств.
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.ru.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Редактирование адресов операндов прямо на схеме — объединённый PR #8
 
 > **Статус и применимость:** описано ограниченное подмножество и доказательства до/по PR #21; это **не** значит, что вся разработка завершилась на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и уровни CI/UserSmoke/OEM отражены в [project_status.md](project_status.ru.md). Спецификация **не** разрешает native writer, HSES или исполнение скана на роботе.
