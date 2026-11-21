@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Current safety context (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. This document's older security and UI results are scoped to their original revisions. [Current Git audit](repository_audit_2026-11-21.en.md) lists residual Windows DACL, TOCTOU and multi-file transaction risks; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer and `HSES`/`FTP` `BLOCKED`.
+
 # Yaskawa High-Speed Ethernet (HSESstatus and verification requirements
 
 **Verified in `main` at 18.11.2026:** HSES/FTP Runtime removed from compiled backend PR #13. Monitoring and loading to the controller are disabled; the protocol is not verified. [Current status](project_status.en.md).
