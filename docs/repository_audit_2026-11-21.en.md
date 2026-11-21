@@ -50,6 +50,8 @@ The PR48 bundled sample is strictly synthetic. `CIOPRG.LST` / `IONAME.DAT` must 
 3. Separate subsequent risk-oriented PRs: Windows ACL/TOCTOU and race tests; UI/UX; transitive dependency / licensing review; OEM-evidenced syntax expansion.
 4. Commission human editorial review for the remaining `MachineDraft` companions, rather than automatically upgrading provenance.
 
+**Preserved identifiers from the source inventory (not additional validation):** `.github/workflow-archive/README.md`, `strict_required_status_checks_policy=false`, `cioprg_lst_spec`, `typed_opcode_grammar`, `semantic_ast`, `json_persistence_safety`, `ioname_annotations`, `post_end_data`, `source_registry`, historical `rc.1`, manual cases `P48-01` through `P48-17`, `UserSmoke`, and future dependency tools `npm audit` and `cargo audit`. These are tokens from the Russian original, not evidence that any such command or test has been executed.
+
 ## 5. References and limits
 
 [main CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44743083267) · [Windows RC10 CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44754693972) · [Release RC10](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.10-unified-offline) · [PR48](https://github.com/uzbatsu-beep/MLAD/pull/48).
