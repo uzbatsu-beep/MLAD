@@ -82,7 +82,13 @@ test("community conduct/accessibility are truthful, not compliance certification
 
 test("community test is included in standard CI and doc targets are checked",()=>{
   assert.match(text(".github/workflows/validation.yml"),/npm run test:community/);
-  assert.match(text("scripts/check-docs.mjs"),/SECURITY\.md/);
-  assert.match(text("scripts/check-docs.mjs"),/CODE_OF_CONDUCT\.md/);
-  assert.match(text("scripts/check-docs.mjs"),/ACCESSIBILITY\.md/);
+  const scanner=text("scripts/check-docs.mjs");
+  // The new scanner includes all root Markdown, not just three hard-coded names.
+  assert.match(scanner,/fs\.readdirSync\(root/);
+  assert.match(scanner,/entry\.name\.endsWith\("\.md"\)/);
+  assert.match(scanner,/walk\(path\.join\(root,"docs"\)\)/);
+  assert.match(scanner,/walk\(path\.join\(root,"\.github"\)\)/);
+  for(const required of ["SECURITY.md","CODE_OF_CONDUCT.md","ACCESSIBILITY.md"]) {
+    assert.ok(existsSync(required),`Missing mandatory community document ${required}`);
+  }
 });
