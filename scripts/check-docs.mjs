@@ -15,18 +15,22 @@ function walk(directory){
     return item.isDirectory()?walk(p):item.isFile()&&p.endsWith(".md")?[p]:[];
   });
 }
+// Scan all maintained Markdown surfaces including language variants and
+// archived GitHub workflow READMEs, not only one language of root documents.
 const markdownFiles=[
-  ...["README.md","CONTRIBUTING.md","SECURITY.md","CODE_OF_CONDUCT.md","ACCESSIBILITY.md",
-    ".github/PULL_REQUEST_TEMPLATE.md"].map(p=>path.join(root,p)),
+  ...fs.readdirSync(root,{withFileTypes:true})
+    .filter(entry=>entry.isFile()&&entry.name.endsWith(".md"))
+    .map(entry=>path.join(root,entry.name)),
   ...walk(path.join(root,"docs")),
-].filter(p=>fs.existsSync(p));
+  ...walk(path.join(root,".github")),
+].filter((p,i,paths)=>fs.existsSync(p)&&paths.indexOf(p)===i);
 const issues=[];
 let checked=0;
 for(const filename of markdownFiles){
   const relative=path.relative(root,filename).split(path.sep).join("/");
   const text=fs.readFileSync(filename,"utf8");
   // Do not interpret Markdown examples embedded in fenced code as links.
-  const prose=text.replace(/^`{3}[^\n]*\n[\s\S]*?^`{3}\s*$/gm,"");
+  const prose=text.replace(/^(?:`{3,}|~{3,})[^\n]*\n[\s\S]*?^(?:`{3,}|~{3,})\s*$/gm,"");
   const links=prose.matchAll(/!?\[[^\]]*\]\(([^)]+)\)/g);
   for(const match of links){
     const target=match[1].trim().replace(/^<|>$/g,"");

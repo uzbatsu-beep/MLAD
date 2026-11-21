@@ -36,3 +36,13 @@ _i18n_staging/
 # Local JSON draft backups (not distributable fixtures)
 *.graph.json.bak
 *.advanced.json.bak
+
+# Local, user-owned MLAD project metadata is private by default.
+# Never commit actual robot filenames, SHA inventories or personal notes.
+**/*.mlad.json
+**/*.mladproj.json
+**/*.mlad.json.bak
+**/*.mladproj.json.bak
+*.swp
+*.swo
+*~
