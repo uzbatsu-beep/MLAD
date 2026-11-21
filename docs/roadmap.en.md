@@ -2,6 +2,8 @@
 > **English** · [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Оригинал](roadmap.md)
 > **Translation review:** AI-assisted translation; check engineering claims against the Russian original and OEM evidence. `CIOPRG.LST` and `IONAME.DAT` are read-only. `HSES`/`FTP`, native writer and robot deployment remain **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
 
+> **Current audit (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest published Windows pre-release `v0.5.0-rc.10-unified-offline`. Merged PR #40–#48 implemented the parser UX, sidecar, extended typed grammar, source-linked access roles, portable project and preview; older proposed PR numbers below are **historical**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` remain `BLOCKED`. [Current audit](repository_audit_2026-11-21.en.md).
+
 # MLAD — roadmap v4: safe Offline Engineering IDE
 
 **Verified baseline:** `main` = `066db5f8c01a9da8f5f0218f12539b305ab021e4` (merge [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39), 19.11.2026). **History:** PR #1–#39 merged. [PR #39 CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321) passed on the PR head; this is not manual Windows acceptance, nor independent CI evidence on the new main merge commit.
