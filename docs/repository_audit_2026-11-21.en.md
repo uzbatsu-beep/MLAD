@@ -36,6 +36,8 @@ The PR48 bundled sample is strictly synthetic. `CIOPRG.LST` / `IONAME.DAT` must 
 | **P2 — Filesystems** | Staged JSON plus `*.bak`, source SHA and File ID safety; Windows DACL, TOCTOU, atomic multi-file recovery unresolved | **OPEN:** dedicated security test evidence |
 | **P2 — Acceptance** | CI/Windows build succeeded, but no observed Windows GUI P48-01…P48-17 or real OEM controller test | **OPEN:** separate UserSmoke and OEMBench protocols |
 
+**Branch hygiene and build reproducibility (additional check):** 39 branch refs were listed, including protected `main` and `release/v0.5.0-rc.10-unified-offline`; only PR #49 (Draft) was open. **No branches were deleted**: `.github/workflows/merged-branches-prune.yml` supports `dry-run`, with separate confirmation required for `delete`. Some Actions still use floating `@v4`/`@stable` tags; `npm ci` and Cargo `--locked` alone do not guarantee byte-identical Windows binaries if the runner/toolchain changes. Full SHA pinning and a toolchain policy merit a separate reviewed PR.
+
 ## 3. Documentation ownership and historical records
 
 - **Living documentation:** [README](../README.en.md), [index](README.en.md), [roadmap](roadmap.en.md), [plan](implementation_plan.en.md), [status](project_status.en.md), [verification](verification_gates.en.md), [architecture](architecture.en.md), [development](development_workflow.en.md), [decisions](engineering_decisions.en.md).

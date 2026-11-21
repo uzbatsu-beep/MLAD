@@ -36,6 +36,8 @@
 | **P2 — Filesystem** | Сохранение JSON staged + `*.bak`, SHA, File ID guards; есть ограничения Windows DACL, TOCTOU, многофайловой атомарности | **OPEN:** OS-level threat review, crash recovery, cross-volume и race tests |
 | **P2 — Testing** | Linux/Rust/Windows CI и production NSIS успешны; нет записанного интерактивного Windows протокола по P48-01…P48-17 | **OPEN:** провести `UserSmoke`; OEMBench отдельно и без расширения native полномочий |
 
+**Гигиена Git-веток и воспроизводимость CI (дополнительная проверка):** на момент аудита было **39 веток**, включая защищённую `main` и релизную `release/v0.5.0-rc.10-unified-offline`; открыт один PR #49 (Draft). Удаление веток **не выполнялось**: `.github/workflows/merged-branches-prune.yml` имеет отдельный режим `dry-run` и требует явного подтверждения для `delete`. Также часть GitHub Actions использует плавающие `@v4`, `@stable` или теги зависимостей; `npm ci` и Cargo `--locked` не гарантируют побайтово воспроизводимый EXE при изменении OS runner/toolchain. Предлагается отдельный PR на SHA-пиннинг actions и зафиксированный toolchain после анализа совместимости.
+
 ## 3. Структура документации и владение содержимым
 
 - **Живые документы:** [README](../README.ru.md), [каталог](README.ru.md), [roadmap](roadmap.ru.md), [implementation plan](implementation_plan.ru.md), [project status](project_status.ru.md), [verification gates](verification_gates.ru.md), [architecture](architecture.ru.md), [development workflow](development_workflow.ru.md), [engineering decisions](engineering_decisions.ru.md). Они отражают текущий status layer и ссылаются на это расследование.
