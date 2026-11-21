@@ -8,7 +8,7 @@
 
 ## 1. Что входит в preview
 
-Артефакт `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` собирается отдельным [Windows Preview workflow](../.github/workflows/windows-offline-preview.yml). **Загрузка — через Artifacts успешного запуска GitHub Actions**, не через Releases; Git tag не создаётся. Внутри zip:
+Артефакт `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` собирается отдельным [Windows Preview workflow](../.github/workflow-archive/windows-offline-preview-pr48.yml). **Загрузка — через Artifacts успешного запуска GitHub Actions**, не через Releases; Git tag не создаётся. Внутри zip:
 
 - `app/yaskawa-ladder-ide.exe` — неподписанная production-сборка Windows x64; это тестовый бинарный файл, не штатное установочное ПО.
 - `sample/cell.mladproj.json`, `sample/CIOPRG.LST`, `sample/IONAME.DAT`, `sample/cell.mlad.json` — полностью **СИНТЕТИЧЕСКИЙ** единый проект, изготовленный [генератором](../scripts/offline-preview-fixture.py). Эти байты не являются подтверждённым OEM-форматом/программой робота; в реальный контроллер их не загружать.

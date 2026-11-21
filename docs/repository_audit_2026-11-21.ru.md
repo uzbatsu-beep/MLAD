@@ -41,7 +41,7 @@
 - **Живые документы:** [README](../README.ru.md), [каталог](README.ru.md), [roadmap](roadmap.ru.md), [implementation plan](implementation_plan.ru.md), [project status](project_status.ru.md), [verification gates](verification_gates.ru.md), [architecture](architecture.ru.md), [development workflow](development_workflow.ru.md), [engineering decisions](engineering_decisions.ru.md). Они отражают текущий status layer и ссылаются на это расследование.
 - **Технические спецификации:** `cioprg_lst_spec`, `typed_opcode_grammar`, `semantic_ast`, `json_persistence_safety`, `ioname_annotations`, `post_end_data`, `source_registry` и остальные active docs — договорные границы поведения; отсутствие нового OEM-испытания не превращается в факт OEM compatibility.
 - **Исторические материалы:** датированные старые audits/inventory, `roadmap_v2_archive`, `implementation_plan_v2_archive`, release notes `rc.1`–`rc.9` и workflow-archive — неизменяемые свидетельства прошлых проверок. Старые заявления верны **только для указанного baseline**.
-- **Локализация:** [реестр переводов](translation_coverage.ru.md) фиксирует оценку каждого source + RU + EN, а `scripts/i18n_verify.py` и `scripts/i18n_semantic_guard.py` блокируют нарушение структуры/критичных оговорок. `MachineDraft` означает не прошедший независимую техническую редактуру материал, не готовую официальную инструкцию.
+- **Локализация:** [реестр переводов](translation_coverage.md) фиксирует оценку каждого source + RU + EN, а `scripts/i18n_verify.py` и `scripts/i18n_semantic_guard.py` блокируют нарушение структуры/критичных оговорок. `MachineDraft` означает не прошедший независимую техническую редактуру материал, не готовую официальную инструкцию.
 
 ## 4. Следующие решения владельца
 
