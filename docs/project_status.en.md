@@ -2,6 +2,8 @@
 > **English** · [Русский](project_status.ru.md) · [English](project_status.en.md) · [Original / Оригинал](project_status.md)
 > **Translation review:** AI-assisted translation; check engineering claims against the Russian original and OEM evidence. `CIOPRG.LST` and `IONAME.DAT` are read-only. `HSES`/`FTP`, native writer and robot deployment remain **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
 
+> **Verified status (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` (validation SUCCESS), `v0.5.0-rc.10-unified-offline` published from a separately verified release commit. PR #40–#48 are merged, not pending Drafts. Sidecar v1, unified `*.mladproj.json`, bounded READ/WRITE/UNKNOWN and Windows preview are present, but `UserSmoke=NOT RUN` and `OEMBench=NOT RUN`. Native writer and `HSES`/`FTP` remain `BLOCKED`. See [current Git audit](repository_audit_2026-11-21.en.md).
+
 # MLAD — project status after PR #39
 
 **GitHub baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, after merging [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39) (19.11.2026); PR #1–#39 merged. [PR #39 CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321): `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` = **SUCCESS** on the PR head; not independent acceptance of merge commit.

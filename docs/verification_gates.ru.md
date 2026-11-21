@@ -3,6 +3,8 @@
 >
 > **Примечание:** перевод не заменяет исходную спецификацию; русскоязычный оригинал сохранён без машинного искажения. / Technical source fidelity retained; OEM verification remains independent.
 
+> **Подтверждённое состояние (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` (CI SUCCESS), опубликован `v0.5.0-rc.10-unified-offline` из отдельного проверенного коммита. PR #40–#48 слиты, не являются ожидающими Draft. Sidecar v1, единый `*.mladproj.json`, ограниченный READ/WRITE/UNKNOWN и Windows Preview реализованы; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native writer, `HSES`/`FTP` — `BLOCKED`. [Аудит Git](repository_audit_2026-11-21.ru.md).
+
 # MLAD — единые критерии верификации, CI и выпуска
 
 **Дата актуализации:** 18.11.2026. `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Автоматическая Windows проверка не включает независимый ручной WebView2/OEM стенд.

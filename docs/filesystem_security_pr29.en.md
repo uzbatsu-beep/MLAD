@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Current safety context (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. This document's older security and UI results are scoped to their original revisions. [Current Git audit](repository_audit_2026-11-21.en.md) lists residual Windows DACL, TOCTOU and multi-file transaction risks; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer and `HSES`/`FTP` `BLOCKED`.
+
 # MLAD PR #29 — Filesystem Security Hardening: threat review and evidence
 
 ** History:** PR #29 designed `main` SHA `3c184cd36e076dc2e5c9aed7a663b601b4899dea` и [merged](https://github.com/uzbatsu-beep/MLAD/pull/29) 18.11.2026 в `main` SHA `f85ddfcce3063dd087425be981a9d2b7a16d6309`. Final inspections [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) on this SHA. Historical [Linux PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892563) и [Windows PR CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44369892566) They're also successful. **UserSmoke/OEMBench = NOT RUN; this is not a release.

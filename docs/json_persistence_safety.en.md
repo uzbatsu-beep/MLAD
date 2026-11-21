@@ -3,6 +3,8 @@
 >
 > **Evidence and safety:** This is a technical translation of the original PR #24–#29 persistence contract, **not** an independent filesystem-security certification. Native `CIOPRG.LST` and `IONAME.DAT` are **read-only**; HSES/FTP/native writer/deployment remain **BLOCKED**. WindowsCI does not establish manual `UserSmoke=PASS` or OEMBench; both are **NOT RUN** absent separate reports.
 
+> **Current applicability (21 November 2026):** the verified `main` baseline is `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, with Windows pre-release `v0.5.0-rc.10-unified-offline`. This historical technical record must be read together with [the current Git audit](repository_audit_2026-11-21.en.md); security and OEM claims are limited: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` and deployment remain `BLOCKED`.
+
 # MLAD — JSON Save-Safety Model (PR #24)
 
 **Date:** 18 November 2026. **Historical status:** PR #24 merged into `main` on 18 November; the Windows MSVC regression CI succeeded, but no separate published Windows binary yet included this change at that checkpoint. This extends milestone M2 and **does not change CIOPRG grammar**.

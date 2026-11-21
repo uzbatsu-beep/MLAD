@@ -2,6 +2,8 @@
 > **English** · [Русский](implementation_plan.ru.md) · [English](implementation_plan.en.md) · [Original / Оригинал](implementation_plan.md)
 > **Translation review:** AI-assisted translation; check engineering claims against the Russian original and OEM evidence. `CIOPRG.LST` and `IONAME.DAT` are read-only. `HSES`/`FTP`, native writer and robot deployment remain **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
 
+> **Current audit (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest published Windows pre-release `v0.5.0-rc.10-unified-offline`. Merged PR #40–#48 implemented the parser UX, sidecar, extended typed grammar, source-linked access roles, portable project and preview; older proposed PR numbers below are **historical**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` remain `BLOCKED`. [Current audit](repository_audit_2026-11-21.en.md).
+
 # MLAD — implementation plan v4 after PR #39
 
 **Baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, PR #1–#39 merged. Numbers #40–#47 are planning identifiers, not automatically created or completed PRs. Markdown updates alone do not establish functional completion of PR #40. [Roadmap v4](roadmap.en.md) · [Project status](project_status.en.md).

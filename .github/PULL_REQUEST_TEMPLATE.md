@@ -53,3 +53,11 @@
 - [ ] Если затронуты file paths/JSON/Tauri, проведён review [PR #29 filesystem boundaries](../docs/filesystem_security_pr29.md) (File ID/hardlink/ADS ≠ закрытие TOCTOU/ACL/backup transaction).
 - [ ] Уровни `SyntheticTested`, `WindowsCI`, `UserSmoke`, `OEMBenchVerified`, `Authorized` зафиксированы независимо, отсутствующие тесты честно отмечены `NOT RUN`.
 - [ ] Отдельное явное согласие владельца на merge получено (не считать CI разрешением).
+
+## Дополнительный checklist актуальной разработки (после PR #48)
+
+- [ ] Сверены текущий `main`, GitHub Releases и исходный SHA с [аудитом Git](../docs/repository_audit_2026-11-21.md); не использовать исторические названия PR как актуальную очередь.
+- [ ] Локальные `*.mlad.json` и `*.mladproj.json` не попали в коммит (включая backup); `CIOPRG.LST`/`IONAME.DAT` остаются read-only.
+- [ ] Изменения документации выполнены вместе с RU/EN companions и проверены `docs:check`, `i18n_verify.py`, `i18n_semantic_guard.py`. `MachineDraft` не повышен до Reviewed без редакционной проверки.
+- [ ] Для затрагивающего runtime PR проверены `frontend-build`, Rust, Windows и `ci-gate` на точном SHA, а не только обязательный status `frontend-build` Ruleset `main`.
+- [ ] `UserSmoke=NOT RUN` и `OEMBench=NOT RUN` сохранены, если отсутствует независимая запись испытаний. `HSES`/`FTP` и native writer/deployment `BLOCKED`.

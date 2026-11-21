@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** автоматический черновик — сверяйте инженерные утверждения с оригиналом и OEM документацией.
 > **Контрольные ограничения MLAD:** `CIOPRG.LST` и `IONAME.DAT` — строго **только чтение**. FTP/HSES, live I/O, native writer и загрузка в контроллер — **BLOCKED (запрещены)**. `WindowsCI` не заменяет `UserSmoke=NOT RUN` и `OEMBench=NOT RUN`; машинный перевод должен быть сверен с исходным документом и документацией Yaskawa.
 
+> **Актуальный продуктовый контекст (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущую границу функций фиксирует [аудит Git](repository_audit_2026-11-21.ru.md). Оригинальные `CIOPRG.LST` и `IONAME.DAT` read-only, offline-метаданные отдельны; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Memory map — архив предварительной карты адресов
 
 > **Архивный указатель (сверка 18.11.2026):** этот файл сохраняется для ссылок; не использовать его как действующую спецификацию. PR #1–#21 слиты, последний Windows релиз — rc.9. [Текущий статус](project_status.ru.md).

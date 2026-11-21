@@ -3,6 +3,8 @@
 >
 > **Evidence:** The historical pre-PR21 "not verified" table and the newer manual-derived reference matrix have **different dates and evidence levels**. Neither constitutes a verified controller scan. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**; OEMBench **NOT RUN**.
 
+> **Current semantic confidence (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; released Windows pre-release `v0.5.0-rc.10-unified-offline`. See the [dated Git audit](repository_audit_2026-11-21.en.md) for currently supported parser and source-linked roles. These references do **not** validate robot scan, flag effects or write permissions: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` and deployment `BLOCKED`.
+
 # MLAD PR #20 — Semantic Verification and Source-Reference Audit
 
 **Current as of 18 November 2026:** PR #20 and #21 had **merged**. Limited static reference auditing and independent OEM manual-derived vectors were implemented, but **actual EN/scan/flag behavior had not been measured on a controller**. The first table below documents the **historical state before PR #21**. The subsequent documentary status is in the [five-opcode analysis](oem_5_opcode_analysis.en.md). See the [project maturity matrix](project_status.en.md).

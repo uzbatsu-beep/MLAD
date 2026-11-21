@@ -3,6 +3,8 @@
 >
 > **Boundary:** Exact-byte source inspection is **not** a verified native compiler. `CIOPRG.LST`/`IONAME.DAT` read-only, HSES/FTP/native writer/deployment **BLOCKED**, OEMBench **NOT RUN**.
 
+> **Current evidence boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` and Windows pre-release `v0.5.0-rc.10-unified-offline`. This technical specification must be read with the [current repository audit](repository_audit_2026-11-21.en.md); historical parser/PR statuses below are time-scoped. Native file write and `HSES`/`FTP` remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. No new OEM semantic or firmware guarantee is asserted.
+
 # CIOPRG.LST lossless parser — PR #2 implementation contract
 
 > **Status and applicability:** this is the constrained parser implementation and evidence available by PR #21; it **does not** mean that the whole project stopped at PR #21. For `main` after [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent CI/UserSmoke/OEM levels see [project status](project_status.en.md). This document authorizes **no** native writer, HSES or real controller scan execution.

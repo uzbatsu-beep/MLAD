@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Current product boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest Windows pre-release `v0.5.0-rc.10-unified-offline`. This description is supplemented by the [current Git audit](repository_audit_2026-11-21.en.md). Original `CIOPRG.LST` and `IONAME.DAT` are read-only, offline metadata stays separate, `UserSmoke=NOT RUN` and `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` `BLOCKED`.
+
 # Ladder / CIOPRG.LST Archive of Preliminary Specification
 
 > **Historical document (navigation mark 18.11.2026):** The following conclusions preserve the date of the initial verification, and do not replace the current implementation. PR #1#21 merged, Windows rc.9 published. [Current status of MLAD](project_status.en.md).

@@ -59,3 +59,9 @@
 ## Техническая контрольная точка (18.11.2026)
 
 Проверен `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` после merged [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) и [Windows security CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) на этом SHA. Это **не** подтверждает независимый WebView2 smoke, защиту от всех файловых гонок, OEM bench или допуск native writer. [Verification gates](docs/verification_gates.md) · [Roadmap v3](docs/roadmap.md).
+
+## Дополнение к конфиденциальности и управлению PR (21.11.2026)
+
+Последний Windows pre-release — `v0.5.0-rc.10-unified-offline`, а не rc.9. Старые указания релизов и baselines выше относятся к собственным датам. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` не подтверждены отдельно; подробности — [аудит Git](docs/repository_audit_2026-11-21.md).
+
+Локальные `*.mlad.json` sidecar и `*.mladproj.json` manifests могут раскрывать **конфиденциальную** информацию даже без сырых байтов `CIOPRG.LST` и `IONAME.DAT`: комментарии, относительные пути и SHA-256 способны идентифицировать инженерную среду. `.gitignore` защищает лишь от случайной индексации новых файлов, но не очищает уже отслеживаемые данные. `HSES`/`FTP`, native writer и robot deployment остаются `BLOCKED`. Защита ветки `main` сейчас требует `frontend-build`, но не обязательного `ci-gate`; Ruleset изменяет только владелец после согласования.

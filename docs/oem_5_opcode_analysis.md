@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](oem_5_opcode_analysis.ru.md) · [English](oem_5_opcode_analysis.en.md) · [Original / Исходный текст](oem_5_opcode_analysis.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # PR #21 — MOV, ADD, SUB, SHL, SHR: исследование по Yaskawa Concurrent I/O
 
 > **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.

@@ -3,6 +3,8 @@
 >
 > **Безопасность:** зелёный/красный/серый цвет — значения **автономной** трёхзначной логики из **вручную заданных** входов, **не** физическое напряжение, live I/O, interlock или safety-индикация. `CIOPRG.LST`/`IONAME.DAT` только для чтения; HSES/FTP/native writer/deployment — **BLOCKED**; независимые UserSmoke/OEMBench — **NOT RUN**.
 
+> **Актуальная ограниченная интерпретация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. [Аудит Git/MD](repository_audit_2026-11-21.ru.md) фиксирует базу релиза, но не подтверждает реальные права памяти или scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment — `BLOCKED`.
+
 # Одновременное отображение цепей и OFFLINE тристейт-подсветка — объединённый PR #7
 
 > **Статус и применимость:** документ описывает OFFLINE tri-state и UI-поведение PR #7/#8/#16/#17. Общее состояние `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни проверки см. в [project_status.md](project_status.ru.md). **Этот интерфейс не является live I/O и не показывает физическое состояние цепей безопасности.**

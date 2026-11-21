@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](graph_editor.ru.md) · [English](graph_editor.en.md) · [Original / Исходный текст](graph_editor.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Ladder Graph Editor & Visualization — PR #4 + интерфейсные изменения PR #7/#8
 
 **Status:** interactive **JSON graph-draft editor** + independent **read-only CIOPRG.LST semantic visualization**.

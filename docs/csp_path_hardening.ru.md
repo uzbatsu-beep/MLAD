@@ -3,6 +3,8 @@
 >
 > **Примечание:** сохранены исходные русские определения безопасности, команды и технические обозначения; OEM-проверки независимы. / No native writer, HSES/FTP or controller permission is granted by localization.
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.ru.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # MLAD — CSP и проверки безопасности файловых путей (PR #25)
 
 **Контекст:** проект OFFLINE/BENCH. Дата: 18.11.2026. **Статус:** PR #25 merged в main 18.11.2026; Windows CI SUCCESS, но опубликованный rc.9 не содержит CSP.

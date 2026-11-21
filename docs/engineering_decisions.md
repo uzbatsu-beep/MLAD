@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](engineering_decisions.ru.md) · [English](engineering_decisions.en.md) · [Original / Исходный текст](engineering_decisions.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Область актуальности (21.11.2026):** проверенный `main` — `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release — `v0.5.0-rc.10-unified-offline`. Исторические инженерные формулировки читать вместе с [актуальным аудитом Git](repository_audit_2026-11-21.md); `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer, `HSES`/`FTP` и deployment остаются `BLOCKED`.
+
 # MLAD — реестр утверждённых инженерных решений
 
 **Версия реестра:** 18.11.2026. Этот документ фиксирует согласованные ограничения и разделяет их с ещё не принятыми предложениями. Основание: [дорожная карта v3](roadmap.md) и [архив v2](roadmap_v2_archive.md), [текущий статус](project_status.md), [план PR](implementation_plan.md). Решение о merge конкретного PR всегда принимается отдельно.

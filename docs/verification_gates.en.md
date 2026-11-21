@@ -3,6 +3,8 @@
 >
 > **Scope:** This is a test-evidence and acceptance contract, not a robot commissioning procedure. Do not equate CI, GUI smoke testing, OEM bench validation and authorization.
 
+> **Verified status (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` (validation SUCCESS), `v0.5.0-rc.10-unified-offline` published from a separately verified release commit. PR #40–#48 are merged, not pending Drafts. Sidecar v1, unified `*.mladproj.json`, bounded READ/WRITE/UNKNOWN and Windows preview are present, but `UserSmoke=NOT RUN` and `OEMBench=NOT RUN`. Native writer and `HSES`/`FTP` remain `BLOCKED`. See [current Git audit](repository_audit_2026-11-21.en.md).
+
 # MLAD — Verification, CI and Release Acceptance Gates
 
 **Baseline updated:** 18 November 2026. `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309`: PR #1–#29 merged, [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Automated Windows checks did **not** include independently performed WebView2 user testing or a real OEM controller bench.

@@ -6,7 +6,7 @@ import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {spawnSync} from "node:child_process";
 
-const workflow=readFileSync(".github/workflows/windows-offline-preview.yml","utf8");
+const workflow=readFileSync(".github/workflow-archive/windows-offline-preview-pr48.yml","utf8");
 const packaging=readFileSync("scripts/windows-offline-preview.ps1","utf8");
 const guide=readFileSync("docs/windows_offline_preview_pr48.md","utf8");
 const rust=readFileSync("src-tauri/src/main.rs","utf8");

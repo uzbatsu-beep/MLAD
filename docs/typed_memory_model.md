@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](typed_memory_model.ru.md) · [English](typed_memory_model.en.md) · [Original / Исходный текст](typed_memory_model.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная ограниченная интерпретация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. [Аудит Git/MD](repository_audit_2026-11-21.md) фиксирует базу релиза, но не подтверждает реальные права памяти или scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP`, deployment — `BLOCKED`.
+
 # Typed CIO memory model — DX100 / DX200 / YRC1000
 
 > **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.

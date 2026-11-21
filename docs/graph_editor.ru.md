@@ -3,6 +3,8 @@
 >
 > **Безопасность:** редактируются **только отдельные JSON-черновики**. Исходные `CIOPRG.LST` и `IONAME.DAT` неизменяемы. HSES/FTP, live I/O, native writer и deployment — **BLOCKED**. Успех CI не означает прохождения ручной Windows-приёмки или OEMBench; без отдельных протоколов они имеют статус **NOT RUN**.
 
+> **Актуальная оговорка безопасности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Старые security/UX-результаты ниже относятся к своим ревизиям. [Аудит Git](repository_audit_2026-11-21.ru.md) сохраняет риски Windows DACL, TOCTOU и многофайловой транзакции; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, native writer и `HSES`/`FTP` — `BLOCKED`.
+
 # Графический редактор Ladder и визуализация — PR #4, интерфейс PR #7/#8
 
 **Статус:** интерактивный **редактор графа в формате JSON** и независимое **семантическое отображение CIOPRG.LST только для чтения**.

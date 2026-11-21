@@ -2,11 +2,14 @@
 > 🌐 **Язык / Language:** [Русский](README.ru.md) · [English](README.en.md) · [Original / Исходный текст](README.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](docs/repository_audit_2026-11-21.md).
+> **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
+
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Сверка 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [roadmap v3](docs/roadmap.md), [полный статус](docs/project_status.md); ручной WebView2/OEM bench **NOT RUN**.
+**Исторический срез репозитория (18.11.2026):** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [roadmap v3](docs/roadmap.md), [полный статус](docs/project_status.md); ручной WebView2/OEM bench **NOT RUN**.
 
-**Последний опубликованный Windows x64 Preview:** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
+**Windows-релиз по состоянию на 18.11.2026 (историческое сообщение):** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
 
 > **Безопасность:** MLAD не является сертифицированной средой Yaskawa или подтверждённым компилятором `CIOPRG.LST`. Оригинальные `CIOPRG.LST` и `IONAME.DAT` открываются **только для чтения**; native writer, FTP/HSES, загрузка в робот и реальная телеметрия выключены. Для работы с оборудованием применять официальные средства производителя и отдельную процедуру допуска.
 
@@ -90,4 +93,4 @@ MLAD — независимый проект, **не разработан и н�
 
 ## Дальнейшая разработка
 
-**Следующий цикл:** [PR #30 — документация](docs/implementation_plan.md), далее предложены синтетические parser fixtures, улучшение Native Workspace, versioned sidecar `*.mlad.json`, typed syntax, source-linked static analysis, Unified Offline IDE и условный Windows 0.6.x preview. Отдельные PR с тестами и **без автоматического merge**. [Дорожная карта v3](docs/roadmap.md) · [подробный backlog](docs/implementation_plan.md) · [принятые инженерные решения](docs/engineering_decisions.md).
+**Историческая очередь на 18.11.2026 (указанные PR впоследствии реализованы):** [PR #30 — документация](docs/implementation_plan.md), далее предложены синтетические parser fixtures, улучшение Native Workspace, versioned sidecar `*.mlad.json`, typed syntax, source-linked static analysis, Unified Offline IDE и условный Windows 0.6.x preview. Отдельные PR с тестами и **без автоматического merge**. [Дорожная карта v3](docs/roadmap.md) · [подробный backlog](docs/implementation_plan.md) · [принятые инженерные решения](docs/engineering_decisions.md).

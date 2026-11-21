@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](post_end_data.ru.md) · [English](post_end_data.en.md) · [Original / Исходный текст](post_end_data.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # MLAD — read-only post-END data classification and diagnostics
 
 **Scope на 18.11.2026:** PR #18 **merged**, [Windows rc.6 опубликован](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.6-postend); поддержка входит в текущий `main`. Описан наблюдаемый post-END формат, **не** полная OEM грамматика/редактор. [Текущий статус](project_status.md).

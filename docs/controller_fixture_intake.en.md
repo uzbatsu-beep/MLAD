@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Current evidence boundary (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` and Windows pre-release `v0.5.0-rc.10-unified-offline`. This technical specification must be read with the [current repository audit](repository_audit_2026-11-21.en.md); historical parser/PR statuses below are time-scoped. Native file write and `HSES`/`FTP` remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. No new OEM semantic or firmware guarantee is asserted.
+
 # CIOPRG.LST Accepting original files from DX100/DX200/YRC1000
 
 > ** Status and applicability:** This document describes the relevant functional subset and evidence collected before/by PR #21This does **not** mean the entire project stopped at PR #21. Actual `main` later [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) and independent levels of CI/UserSmoke/OEM: [project_status.md](project_status.en.md). Do not give permission to a native writer, HSES or perform a scan from the specification described herein.

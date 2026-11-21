@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](advanced_blocks.ru.md) · [English](advanced_blocks.en.md) · [Original / Исходный текст](advanced_blocks.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная граница достоверности (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` и Windows pre-release `v0.5.0-rc.10-unified-offline`. Сверяйте данную техническую спецификацию с [актуальным аудитом Git](repository_audit_2026-11-21.md); прежние статусы PR и parser относятся к своим датам. Native write и `HSES`/`FTP` — `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Не следует из документа OEM подтверждения работы на контроллере.
+
 # Yaskawa Advanced CIO Instructions — PR #5, актуализация после PR #21
 
 > **Статус и применимость:** этот документ описывает соответствующее функциональное подмножество и доказательства, собранные до/по PR #21; он **не** означает, что весь проект остановился на PR #21. Актуальный `main` после [PR #29](https://github.com/uzbatsu-beep/MLAD/pull/29) и независимые уровни CI/UserSmoke/OEM: [project_status.md](project_status.md). Не выводить разрешение на native writer, HSES или исполнение скана из описанной здесь спецификации.
