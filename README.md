@@ -2,6 +2,9 @@
 > 🌐 **Язык / Language:** [Русский](README.ru.md) · [English](README.en.md) · [Original / Исходный текст](README.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](docs/repository_audit_2026-11-21.md).
+> **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
+
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
 **Сверка 18.11.2026:** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [roadmap v3](docs/roadmap.md), [полный статус](docs/project_status.md); ручной WebView2/OEM bench **NOT RUN**.

@@ -5,6 +5,9 @@
 
 > **Translation policy:** source documents and OEM manuals remain authoritative. Machine-generated companions that have not been editorially reviewed must not be treated as validated engineering or safety specifications.
 
+> **Current audit (21 November 2026):** verified `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, published Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer and deployment `BLOCKED`. [Current Git audit](repository_audit_2026-11-21.en.md).
+> **Historical context:** old release/PR references below are dated snapshots, not a claim that rc.9 or PR #29 is latest.
+
 # MLAD — Technical Documentation Index
 
 **Verified baseline (18 November 2026):** `main` at `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged). [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). The latest [published Windows preview, rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference), **does not include PR #24–#29**. Creating PR #30 did not by itself merge it into `main`; consult [project status](project_status.en.md) for an up-to-date baseline.

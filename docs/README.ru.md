@@ -5,6 +5,9 @@
 
 > **Принцип:** исходная документация и OEM-руководства имеют приоритет в случае расхождений. Двуязычное представление не подтверждает исполнение логики на контроллере или разрешение записи.
 
+> **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](repository_audit_2026-11-21.ru.md).
+> **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
+
 # MLAD — каталог технической документации
 
 **Сверено 18.11.2026:** `main` @ `f85ddfcce3063dd087425be981a9d2b7a16d6309` (PR #1–#29 merged), [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный [rc.9](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) не содержит PR #24–#29. Публикация документационного PR #30 не означает merge; [текущий статус](project_status.md).

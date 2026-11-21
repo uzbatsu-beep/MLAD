@@ -3,6 +3,9 @@
 >
 > **Scope:** This English version explains the project's repository baseline. The original and manufacturer documentation take precedence where there is any discrepancy. Controller compatibility, scan semantics, and authorization are **not** established by translation.
 
+> **Current audit (21 November 2026):** verified `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, published Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer and deployment `BLOCKED`. [Current Git audit](docs/repository_audit_2026-11-21.en.md).
+> **Historical context:** old release/PR references below are dated snapshots, not a claim that rc.9 or PR #29 is latest.
+
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
 **Repository baseline (18 November 2026):** [main](https://github.com/uzbatsu-beep/MLAD) at `f85ddfcce3063dd087425be981a9d2b7a16d6309`; pull requests **#1–#29 merged**. The corresponding [Linux CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454) and [Windows CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621) succeeded. The most recent **published** Windows release is **rc.9**; it **does not contain PR #24–#29**. See the [v3 roadmap](docs/roadmap.en.md) and [project status](docs/project_status.en.md). Independent Windows/WebView2 GUI acceptance and OEM controller bench testing are **NOT RUN**.
