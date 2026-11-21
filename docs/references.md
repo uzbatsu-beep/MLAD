@@ -2,6 +2,8 @@
 > 🌐 **Язык / Language:** [Русский](references.ru.md) · [English](references.en.md) · [Original / Исходный текст](references.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
+> **Актуальная достоверность семантики (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. Текущий состав парсера и роли операндов описывает [аудит Git](repository_audit_2026-11-21.md). Источники **не** подтверждают реальный scan/flags или права записи: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` и deployment — `BLOCKED`.
+
 # References — архив предварительного списка источников
 
 > **Архивный указатель (сверка 18.11.2026):** этот файл сохраняется для ссылок; не использовать его как действующую спецификацию. PR #1–#21 слиты, последний Windows релиз — rc.9. [Текущий статус](project_status.md).

@@ -3,6 +3,8 @@
 > **Translation review / Проверка:** machine-generated draft — verify engineering claims against the original and OEM manuals.
 > **MLAD safety invariants:** `CIOPRG.LST` and `IONAME.DAT` are strictly **read-only**. FTP/HSES, live I/O, native writer and robot deployment remain **BLOCKED**. Passing `WindowsCI` does **not** imply `UserSmoke=PASS` or `OEMBenchVerified`: both remain **NOT RUN** unless independently documented. Machine translation requires source and Yaskawa manual review.
 
+> **Current semantic confidence (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; released Windows pre-release `v0.5.0-rc.10-unified-offline`. See the [dated Git audit](repository_audit_2026-11-21.en.md) for currently supported parser and source-linked roles. These references do **not** validate robot scan, flag effects or write permissions: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` and deployment `BLOCKED`.
+
 # References – Archive of Preliminary Source List
 
 > **Archived index (reconciliation 18.11.2026):** This file is saved for references; do not use it as a valid specification. PR #1-#21 merged, the latest Windows release is rc.9. [Current status](project_status.en.md).
