@@ -3,6 +3,8 @@
 >
 > **Примечание:** русскоязычный исходник сохранён без машинного пересказа; OEM validation independent.
 
+> **Подтверждённое состояние (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` (CI SUCCESS), опубликован `v0.5.0-rc.10-unified-offline` из отдельного проверенного коммита. PR #40–#48 слиты, не являются ожидающими Draft. Sidecar v1, единый `*.mladproj.json`, ограниченный READ/WRITE/UNKNOWN и Windows Preview реализованы; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native writer, `HSES`/`FTP` — `BLOCKED`. [Аудит Git](repository_audit_2026-11-21.ru.md).
+
 # MLAD — фактическое состояние после PR #39
 
 **GitHub baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, состояние после слияния [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39) (19.11.2026); PR #1–#39 слиты. [CI PR #39](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321): `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` = **SUCCESS** на HEAD PR, не отдельная аттестация merge commit.
