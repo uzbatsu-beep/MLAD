@@ -2,155 +2,99 @@
 > 🌐 **Язык / Language:** [Русский](roadmap.ru.md) · [English](roadmap.en.md) · [Original / Исходный текст](roadmap.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
-> **Актуализация (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, Windows pre-release `v0.5.0-rc.10-unified-offline`. PR #40–#48 уже слиты: parser/UX, sidecar, typed grammar, source-linked роли, переносимый проект и Preview. Прежняя запланированная нумерация ниже **историческая**, а не текущая очередь. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer, `HSES`/`FTP` остаются `BLOCKED`. [Актуальный аудит](repository_audit_2026-11-21.md).
+# MLAD — Roadmap v5.0: Engineering Workbench
 
-# MLAD — дорожная карта v4: безопасная Offline Engineering IDE
+Утверждено владельцем 26.11.2026: все 11 направлений, стратегия C (сбалансированная), единая модель сигналов, функциональные Preview, специализированные компоновки, независимый офлайн 1.0. Это решение о направлении, не о слиянии PR.
 
-**Проверенный baseline:** `main` = `066db5f8c01a9da8f5f0218f12539b305ab021e4` (слияние [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39), 19.11.2026). **История:** PR #1–#39 слиты. [PR #39 CI](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321) успешен на HEAD данного PR; это не ручная Windows приёмка и не отдельное доказательство CI на новом commit main.
+База: PR #49 слит, `main` `e291d414f2440e2e407c1e0fdadc248de3d9dc80`, [CI PR #49](https://github.com/uzbatsu-beep/MLAD/actions/runs/44906615882) SUCCESS. Последний документированный Windows pre-release `v0.5.0-rc.10-unified-offline`. История v4: [roadmap](https://github.com/uzbatsu-beep/MLAD/blob/e291d414f2440e2e407c1e0fdadc248de3d9dc80/docs/roadmap.md), [plan](https://github.com/uzbatsu-beep/MLAD/blob/e291d414f2440e2e407c1e0fdadc248de3d9dc80/docs/implementation_plan.md).
 
-**Последний подтверждённый опубликованный Windows release:** [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (17.11.2026), не включает PR #24–#39. `UserSmoke=NOT RUN`; `OEMBench=NOT RUN`. Историческая v3 сохранена в Git: [roadmap @ pre-PR40 main](https://github.com/uzbatsu-beep/MLAD/blob/066db5f8c01a9da8f5f0218f12539b305ab021e4/docs/roadmap.md).
+## 1. Продукт и границы
 
-## 1. Продуктовый контракт и неотменённые ограничения D1–D9
+Независимая офлайн-среда понимания, анализа, диагностики, сравнения, моделирования и сопровождения Yaskawa Motoman Concurrent I/O. Аудитория: АСУ ТП, робототехника, сервис, интеграция и обучение. DX100, DX200, YRC1000; сохраняем Rust/Tauri/React/TypeScript. Не расширяем область до универсальной PLC IDE, других марок, 3D-симуляции, обязательного сервера или облака.
 
-MLAD — независимая OFFLINE/BENCH среда для анализа экспортированных Yaskawa Concurrent I/O; профили `DX100`, `DX200`, `YRC1000`. В основном окне можно просматривать `CIOPRG.LST` и отдельно `IONAME.DAT`, а редактировать только самостоятельные пользовательские JSON-черновики.
+`CIOPRG.LST` и `IONAME.DAT` остаются read-only. `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` до независимых доказательств. JSON-черновики не программы контроллера. Публичные fixtures синтетические или явно разрешённые; без закрытых производственных файлов и хешей.
 
-- `CIOPRG.LST` / `IONAME.DAT`: **read-only**, исходные байты и `SHA-256` неизменны; native writer/export не реализован.
-- `PART 1/2`, `//$M`, `END` не предоставляют автоматически прав на System/User Ladder.
-- `*.graph.json`, `*.advanced.json` и legacy JSON — черновики, не программы контроллера; будущий `*.mlad.json` — отдельный sidecar, не native формат.
-- `TypedCandidate`, `ManualDerived`, `SyntheticTested` не равны OEM-проверенному выполнению; `unknown` / `opaque` / `malformed` не превращаются в выдуманную Ladder-логику.
-- `HSES`/`FTP`, live I/O, native writer и robot deployment **BLOCKED** до отдельных независимых допусков.
-- Настоящие клиентские файлы и сведения нельзя коммитить; использовать разрешённые приватные данные и открытые `SYNTHETIC` fixtures.
-- Каждый технический этап — отдельный PR, тесты обязательны; merge только после явного согласия владельца. [Решения D1–D9](engineering_decisions.md).
+## 2. Этапы M0–M21
 
-## 2. Что действительно реализовано в PR #1–#39
+| ID | Milestone | Priority | Содержание / целевой результат |
+| --- | --- | --- | --- |
+| M0 | Governance & Build | Continuous | CI, lockfiles, лицензии; обязательный ci-gate требует отдельного согласования. |
+| M1 | OEM Knowledge & Evidence | P0 | Реальные приватные fixtures, документация, firmware, доказательства по утверждениям. |
+| M2 | Filesystem & Project Reliability | Continuous | Неизменность источников, backup/recovery; ACL, TOCTOU, многофайловая атомарность открыты. |
+| M3 | Engineering Workspace | P0 | IDE, панели, вкладки, многоцепное Ladder, специализированные компоновки. |
+| M4 | Controller Dialect Engine | P0 | DX100/DX200/YRC1000, lossless parser, покрытие по профилям, unknown явно. |
+| M5 | Navigation & Signal Index | P0 | Единый индекс, адреса, source spans, двусторонняя навигация. |
+| M6 | Static Analysis & Diagnostics | P0 | Типизированные операнды, READ/WRITE/UNKNOWN, объяснимые правила. |
+| M7 | Portable Sidecar v2 | P1 | Символы, группы, комментарии и закладки, явная перепривязка при смене SHA. |
+| M8 | Unified Project Management | P1 | Проекты, снимки, относительные пути, эталоны и история, переносимость. |
+| M9 | Windows User Acceptance | Continuous | Независимый ручной UserSmoke каждого функционального Preview. |
+| M10 | OEM Bench Verification | Parallel | Команда, модель, firmware, сценарий и результат; без необоснованного обобщения. |
+| M11 | Read-only Online Monitoring | BLOCKED | Отдельный OEM/owner допуск HSES/FTP и проверка протокола. |
+| M12 | Native Writer & Compiler | BLOCKED | Применимая грамматика, OEM round-trip, семантика и права записи. |
+| M13 | Robot Deployment | BLOCKED | Отдельный аппаратный и процедурный допуск; M12 не разрешает загрузку. |
+| M14 | Signal Intelligence | P0 | Карточка, Cross Reference, обозреватель, группы, словарь, множественные записи без ложных диагнозов. |
+| M15 | Project Compare | P0 | Byte/text → structural → ограниченный semantic diff → impact/fleet; неоднозначность явно. |
+| M16 | Logic Tracing | P0 | Forward/backward slicing, дерево условий, циклы, Why TRUE/FALSE только в заданной модели. |
+| M17 | Virtual Laboratory | P1 | Tri-state, виртуальная память, шаги, время, TMR/CNT, регистры и сценарии поддерживаемого подмножества. |
+| M18 | Trace & Test | P1 | Watch Table, осциллограммы, курсоры, триггеры, события, PASS/FAIL/INCONCLUSIVE. |
+| M19 | Documentation Engine | P1 | Отчёты сигналов, Ladder, диагностики, diff и тестов; CSV/HTML/PDF/SVG/JSON по назначению. |
+| M20 | Robot Fleet | P2 | Локальный каталог предприятие–участок–комплекс–робот–контроллер–проект, снимки и знания. |
+| M21 | Engineering AI | P2 | Опциональные локальные LLM, объяснения по структурам и OEM evidence, отдельно от детерминированных выводов. |
 
-| PR | Результат | Граница |
+M0–M13 сохраняют историю; M14–M21 расширяют функции. Реализация baseline частичная, новые функции запланированы; приоритет не означает готовность.
+
+## 3. Сбалансированные фазы
+
+| Phase | Milestones | Gate / target |
 | --- | --- | --- |
-| #1–#3 | Типы памяти, lossless source и Boolean AST | Не полный OEM parser |
-| #4–#8 | Graph/Advanced JSON, TMR/CNT/GSTR/GOUT subset, tri-state и inline editing | Только самостоятельные drafts |
-| #9–#12 | Документация v2, GPL-3.0-only, npm lockfile / npm ci | Third-party license audit открыт |
-| #13–#18 | Удалён рабочий FTP/HSES код; Native Workspace, paging/search, IONAME, post-END data | Неполная grammar/UX |
-| #19–#21 | MOV/ADD/SUB/SHL/SHR candidate и статические гипотезы | Не проверены EN/flags/scan |
-| #22–#29 | Security/docs, staged JSON, guarded reads, CSP, File ID, Windows regression | ACL/TOCTOU/crash risks открыты |
-| #30–#35 | Roadmap v3, RU/EN локализация, редакционный аудит | Не добавлен parser corpus/sidecar |
-| #36–#39 | Housekeeping, единый fail-closed ci-gate, docs-only probe, архивирование 15 workflows | Ruleset всё ещё требует frontend-build |
+| 00 | M0–M13 | Existing Offline Preview |
+| 01 | M1/M4/M5/M6 | G1 Semantic Core |
+| 02 | M3/M5/M14 | G2 Workspace Preview |
+| 03 | M6/M14/M16 | G3 Diagnostics Preview |
+| 04 | M7/M8/M15 | G4 Engineering Preview |
+| 05 | M17 | Simulation Preview |
+| 06 | M18 | Engineering Test Suite |
+| 07 | M19/M20 | Offline Engineering Suite |
+| 08 | M21 | AI-assisted Workbench |
+| 09 | M11/M12/M13 | BLOCKED |
 
-## 3. Функциональные этапы M0–M13
+M0/M1/M2/M9/M10 параллельно. Выпуск и OEM-допуски независимы. 1.0 не зависит от online engineering.
 
-| Этап | Статус | Следующий допуск/результат |
-| --- | --- | --- |
-| M0 — Git/CI/legal | **DONE core / PARTIAL governance** | Ruleset обязателен `frontend-build`, но пока не `ci-gate` |
-| M1 — OEM evidence | **PARTIAL** | Приватные real fixtures, firmware, независимый OEM review |
-| M2 — Filesystem safety | **PARTIAL** | ACL, TOCTOU, crash/backup recovery |
-| M3 — Native Workspace | **DONE baseline** | Read-only UI есть, UX требует доработки |
-| M4 — Parser fidelity | **PARTIAL** | Синтетический корпус и честные coverage-метрики — PR #40 |
-| M5 — Navigation/diagnostics | **PARTIAL** | Полные переходы, фильтры и large-file UX — PR #41 |
-| M6 — Typed grammar/static analysis | **PARTIAL** | Новые формы — только с OEM evidence; PR #44–#45 |
-| M7 — `*.mlad.json` | **OPEN** | Sidecar schema/backup/source binding — PR #43 |
-| M8 — Unified Offline IDE | **OPEN** | Один инженерный сценарий без native writer — PR #46 |
-| M9 — Windows acceptance | **PARTIAL** | CI есть; `UserSmoke=NOT RUN` |
-| M10 — OEM bench | **NOT RUN** | Модель, firmware и разрешённый стенд не подтверждены |
-| M11 — read-only HSES | **BLOCKED** | Требуется отдельный OEM/security/owner допуск |
-| M12 — native writer | **BLOCKED** | Полная грамматика и безопасный OEM round-trip не доказаны |
-| M13 — deployment | **BLOCKED** | Нельзя активировать загрузку программ в контроллер |
+## 4. Специализированные рабочие компоновки
 
-## 4. Очередь разработки после PR #39
+| Workspace | Компоновка |
+| --- | --- |
+| Ladder Engineering | Дерево, многоцепное поле, инспектор, исходник. |
+| Signal Intelligence | Таблица, фильтры, карточка, Cross Reference. |
+| Diagnostics | Диагностика, граф, дерево условий, ссылки. |
+| Project Compare | Два снимка, diff и инспектор изменений. |
+| Virtual Laboratory | Ladder, виртуальные I/O, сценарии, управление моделью. |
+| Trace & Test | Watch, трассы, события и результаты тестов. |
+| Robot Fleet | Каталог, паспорт робота, снимки. |
+| Documentation | Выбор отчёта, просмотр, экспорт. |
 
-| PR | Приоритет | Содержание |
-| --- | --- | --- |
-| #40 | P0 | Native Parser Fidelity — synthetic fixture corpus, coverage, spans, диагностический UI; текущий PR начинается с обновления документации |
-| #41 | P0 | Native Workspace UX v2 — source↔rung↔block↔diagnostic, фильтры, большие файлы |
-| #42 | P0 | Filesystem/dependency/security: ACL/TOCTOU/backup, неиспользуемые FTP-зависимости, Ruleset |
-| #43 | P1 | Portable `*.mlad.json` sidecar v1, версия, bookmarks, source SHA, conflict/recovery |
-| #44 | P1 | Evidence-driven typed grammar, строго по OEM подтверждённым формам |
-| #45 | P1 | Static source-linked READ/WRITE/UNKNOWN, неоднозначность явно отображать |
-| #46 | P1 | Unified Offline Project: immutable native snapshot + sidecar + JSON drafts |
-| #47 | P1 | Условный Windows OFFLINE preview 0.6.x после ручного smoke/legal/release gate |
+Общий контекст проекта, снимка и выбора. Переключение без переоткрытия источника и потери несохранённых изменений; отдельные настройки размеров, видимости, вкладок и пресетов, восстановление умолчаний. Нереализованные модули явно недоступны. Компоновка не граница полномочий.
 
-Номера PR после #40 ориентировочные: GitHub их не резервирует. Текущий PR #40 может начаться с документационного baseline, но не считается функционально завершённым без parser corpus/coverage, реализации и CI.
+| ID | Требование |
+| --- | --- |
+| UI-01–03 | Светлая/тёмная темы, палитры, сохранение настроек. |
+| UI-04–09 | Узкая навигация, дерево слева, инспектор справа, вкладки, диагностика снизу, resize/hide. |
+| UI-10–12 | Виртуализированное многоцепное поле, клавиатура, RU/EN. |
+| UI-13–18 | Сохранённые компоновки, split view, несколько проектов, Command Palette, справка, fullscreen. |
+| UI-19–20 | Настраиваемые клавиши, отдельные окна и мониторы. |
 
-## 5. Приоритетные инженерные потоки
+TRUE зелёный, FALSE красный, UNKNOWN нейтральный, UNSUPPORTED янтарный; SELECTED независимый акцент, текст/форма дублируют цвет. Офлайн без заданного сценария UNKNOWN. Все распознанные цепи доступны в одном поле; TMR/CNT/GSTR/GOUT только поддерживаемые формы; F2/двойной щелчок редактирует отдельный черновик.
 
-1. **P0 — доверие к источнику:** `SYNTHETIC` корпус, точные byte spans и line endings, прозрачное покрытие без выдуманного синтаксиса.
-2. **P0 — навигация:** `source↔rung↔block↔diagnostic`, unknown-фильтры, крупные файлы и проверенный переход по физической строке.
-3. **P0 — безопасность:** закрывать обнаруженные уязвимости независимо от UX; `suppaftp` в Cargo.toml требует отдельной ревизии.
-4. **P1 — инженерная сессия:** `*.mlad.json` с bookmark/annotation и source binding; раздельные JSON editors остаются.
-5. **P1 — семантика:** каждое расширение opcode: OEM manual/version → typed grammar → positive/negative fixture → честные статусы UNKNOWN.
-6. **Сквозной gate:** `WindowsCI` ≠ `UserSmoke` ≠ `OEMBenchVerified`. Никакой релиз автоматически не разрешён.
+## 5. Качество и доказательность
 
-## 6. Governance, filesystem и релизные блокеры
+Зрелость L0 Planned, L1 Prototype, L2 Implemented, L3 Automated Tested, L4 User Accepted, L5 OEM Verified (только применимые утверждения о контроллере). Независимые признаки evidence могут сочетаться: `Unknown`, `TypedCandidate`, `ManualDerived`, `RealFixtureObserved`, `SyntheticTested`, `OEMBenchVerified`. Наблюдение реального файла не доказывает исполнение.
 
-- GitHub Ruleset `MLAD — main branch protection` включён, но required status check — `frontend-build`, а не `ci-gate`. Изменять только после проверки и отдельного решения владельца.
-- Остаточные локальные риски: `check→rename` TOCTOU, Windows ACL/owner, hardlinks после проверки, concurrent writers, atomic `*.bak` + target, crash/power-loss durability.
-- Новый Windows offline release 0.6.x возможен лишь после приёмки и отдельного решения; опубликованный rc.9 не обновлять задним числом.
-- `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`/native write/deploy **BLOCKED**.
+Предварительные цели: 10/50/100 тыс. физических строк; 100% классифицированных строк включая unknown и 100% сохранённых байтов; индексный поиск/переход ≤150 мс; целевые 60 FPS. Сначала измерить baseline на типовом ПК. Детерминированные сценарии, без потери аннотаций при переоткрытии.
 
-## 7. Документы и traceability
+## 6. Исследования и версии
 
-[Исполнимый план](implementation_plan.md) · [Фактический статус](project_status.md) · [Решения](engineering_decisions.md) · [Verification gates](verification_gates.md) · [Приватные fixtures](controller_fixture_intake.md) · [Файловые риски](filesystem_security_pr29.md).
+R-01…R-11: реальные CIOPRG, IONAME, память/firmware, OEM-семантика, инженерные IDE, статический анализ, diff, детерминированное моделирование, trace/test, HSES/FTP (только исследование), локальные LLM. Результаты переводить в спецификации, fixtures и задачи.
 
-## Актуализация после слияния PR #40 — 20.11.2026
+Версии ориентировочно: 0.5.x foundation; 0.6.x core/workspace; 0.7.x intelligence; 0.8.x compare/history; 0.9.x lab/test; 0.10.x documentation/fleet; 0.11.x AI; 1.0.0 stable offline. Отдельное согласование каждого выпуска и merge.
 
-PR #40 слит как документационная актуализация в main (2f28d5c0941c7495c2577fa4839eabc28d52298e). Техническая реализация Parser Fidelity выполняется отдельным PR #41: синтетические фикстуры, классификация полного исходника по физическим строкам, исходные байтовые позиции и диагностика неизвестного синтаксиса. Ранее предложенная задача Native Workspace UX PR #41 откладывается на PR #42 или позднее. Номера задач Security, Sidecar, Typed Grammar, Static Analysis, Unified IDE и Windows Preview — предварительные, не закреплены за открытыми PR.
-
-Обязательны проверки на окончательном HEAD и отдельное согласование слияния. CIOPRG.LST/IONAME.DAT строго read-only. HSES/FTP, native writer и deployment — **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Синтетические тесты не подтверждают OEM scan или права System/User.
-
-## Актуальная очередь после слияния PR #41 — UX в PR #42
-
-PR #41 Parser Fidelity слит в `main` SHA `0c1b233354564d9fd3c242675a78a45417feacc1`. PR #42 — Native CIOPRG Offline Workspace UX v2 — создан отдельно как Draft. Его содержание: source↔rung↔advanced block↔diagnostic, схема только выбранной цепи/блока, навигация с клавиатуры и фильтрация всего файла по `SyntaxClass`, opcode, точному текстовому адресу со страничной выдачей.
-
-Предлагаемая дальнейшая очередь (номера не зарезервированы): PR #43 security/dependencies, PR #44 portable sidecar, PR #45 typed grammar, PR #46 static analysis, PR #47 Unified Offline Project, PR #48 Windows offline preview. Прежняя нумерация v4 — исторический план, а не закреплённые PR.
-
-CIOPRG.LST/IONAME.DAT остаются read-only; HSES/FTP, native writer, deployment **BLOCKED**. Совпадения адреса — лишь текстовые, не результат scan. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; merge только после отдельного согласования владельца.
-
-## PR #43 — файловая безопасность и ревизия зависимостей (Draft, 20.11.2026)
-
-**Актуальный baseline:** PR #42 слит в `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`. Отдельный PR #43 открыт как Draft и не включён в `main`. Зафиксированы конкретные изменения: удаление неиспользуемого FTP-крейта `suppaftp` и 5 изолированных транзитивных зависимостей из `Cargo.lock`, а также неиспользуемых прямых `anyhow` и `futures-util` (их транзитивные пакеты остаются); права `0600` на новые Unix staged JSON и backup, отказ от commit staged-файла с дополнительным hardlink и проверка File ID при удалении временного файла.
-
-**Статус M2 — PARTIAL, не CLOSED.** Проверка `check→rename` остаётся неатомарной; Windows ACL/DACL/owner и наследование прав при замене не подтверждены; между сохранением target и `*.bak` нет атомарной транзакции; multi-writer, сбои питания и файловые системы вне локального тестового стенда остаются открытыми. Режим `0600` может намеренно сделать ранее доступный другим пользователям Unix JSON частным.
-
-Следующая задача после PR #43 (только по отдельному решению): portable offline sidecar `*.mlad.json` с привязкой к исходному SHA-256 и пересмотром политики сохранения. `CIOPRG.LST`/`IONAME.DAT` по-прежнему read-only, `HSES/FTP`, native writer и deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` пока нет самостоятельных протоколов.
-
-## PR #44 — переносимый offline sidecar v1 (20.11.2026)
-
-**Актуальная база:** PR #43 слит в `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 создан как отдельный Draft. Этап M7 из OPEN переводится в **IN PROGRESS**, но не объявляется завершённым до слияния и приёмки.
-
-**Артефакт:** независимый `*.mlad.json` с `format=MLAD_OFFLINE_SIDECAR`, `schema_version=1`, `source.kind=CIOPRG.LST`, `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`, `annotations`, `bookmarks`. Сырые байты `CIOPRG.LST`, путь к нему, алгоритмы контроллера и данные HSES/FTP не копируются в sidecar. Ссылки на IONAME в комментариях основаны на SHA-256 исходного IONAME, а не на неподтверждённой автоматической карте адресов.
-
-**Инженерный сценарий:** открыть read-only CIOPRG, выбрать отдельный `*.mlad.json`, загрузить/сохранить комментарии и физические закладки. Backend повторно читает native-источник и проверяет `SHA-256`, профиль и длины. Новый файл требует отсутствующей цели; обновление требует `revision`, вычисленной по фактическим байтам и File ID. `*.bak` создаётся существующим механизмом staged JSON. Несовпадения и неизвестные версии отвергаются без fallback в нативный writer.
-
-**Остаточные риски:** File ID + revision — оптимистическая проверка, не ОС-атомарный CAS; `check→rename` TOCTOU, права Windows ACL, многопроцессная запись, атомарность target+backup и crash recovery остаются OPEN. Исходные `CIOPRG.LST`/`IONAME.DAT` только read-only; FTP/HSES, native writer и robot deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Следующий предлагаемый этап — PR #45 typed grammar.
-
-## Актуальная очередь: PR #45 — OEM-доказательная расширенная грамматика (20.11.2026)
-
-PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 создан отдельно как **Draft**, не в main. На этапе M6 расширяется только синтаксическая классификация: 15 документированных YRC1000 R12 команд дополнительно к пяти прежним. Роли и допустимые значения операндов проверяются как `TypedCandidate`; все новые команды остаются барьерами исполнительной/булевой модели и не могут генерировать native Ladder. Источники и матрица — `docs/typed_opcode_grammar.md`, `docs/source_registry.md`.
-
-**Gate приёмки:** подтверждённые разделы OEM 178648-1CD §§12.2.15–34, 15 позитивных и 17 негативных синтетических форм, парсер с точными byte spans/SHA/EOL, честные нераспознанные данные, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` на конечном SHA. Для DX100/DX200 новые формы не верифицированы по семейству. `MUL Dn+1` и `BMOV n` — отдельные синтаксические ограничения; происхождение утверждений документировать.
-
-Следующая **предлагаемая**, пока не начатая задача: PR #46 — source-linked static READ/WRITE/UNKNOWN с консервативными барьерами; далее PR #47 Unified Offline Project, PR #48 условный Windows Preview. Старые номера v4 выше в документе исторические. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `CIOPRG.LST`/`IONAME.DAT` read-only, HSES/FTP/native writer/deployment **BLOCKED**. Merge PR #45 только с разрешения владельца.
-
-## PR #46 — READ / WRITE / UNKNOWN: source-linked audit (20.11.2026)
-
-**База:** PR #45 слит в `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 открыт как Draft, **не слит**. Вместо не подтверждённой модели фактического потока данных введён независимый read-only аудит ролей адресных операндов `READ`, `WRITE`, `UNKNOWN` с исходными line/byte span/SHA-256. Числовая константа не является чтением памяти; неподтверждённые семейства, TMR/CNT, неверные и неизвестные конструкции не повышать до доказанных обращений.
-
-**Цели этапа:** `static_access` сохраняет неизменность `CIOPRG.LST`/`IONAME.DAT`, вычисляет счётчики по всему исходнику, отдаёт ограниченный preview (160) и фильтр по точному токену/роли с выдачей 100 записей/страницу. Native Workspace даёт переход к физической строке и объяснение ограничений. Параллельный `typed_dataflow` остаётся исторической гипотезой соседних M-регистров. Отсутствие совпадения не доказывает отсутствие фактического доступа.
-
-**Дальнейшие, пока не начатые этапы:** PR #47 Unified Offline Project, PR #48 условный Windows preview. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. HSES/FTP/native writer/deployment **BLOCKED**. Merge только по решению владельца.
-
-## PR #47 — единый переносимый офлайн-проект MLAD (20.11.2026)
-
-**База:** PR #46 статического анализа READ/WRITE/UNKNOWN слит в `main` SHA `39197458dac01045b30f9ac5a810720c729e2a65`. PR #47 ведётся отдельно как **Draft**, в `main` не входит. Цель: открывать Native Workspace, `CIOPRG.LST`, необязательный `IONAME.DAT`, существующий `*.mlad.json` и результаты синтаксического/статического анализа одной согласованной сессией.
-
-**Контракт:** новый `*.mladproj.json` — только переносимый манифест версии 1 с относительными путями внутри папки проекта, SHA-256, размерами, семейством контроллера, количеством строк и ограниченной сводкой анализа. Он не содержит оригинальных байтов Ladder, абсолютных путей, IP контроллера или данных авторизации. Отдельный sidecar `*.mlad.json` остаётся версии 1 и сохраняется самостоятельно. Проект не перемещает и не копирует native файлы; пользователь размещает проверенные копии внутри папки проекта.
-
-**Безопасность:** при загрузке перепроверить все вложения, source SHA-256/размер/профиль, sidecar binding и затем пересчитать анализ по исходнику. Старую сводку признавать только контрольной отметкой; при изменении алгоритма анализа показывать предупреждение `analysis_changed`. Отсутствующий/переименованный/изменённый файл = ошибка открытия, без частичной замены сессии. При сохранении метаданных — `*.bak`, обязательная ревизия для существующего файла, отказ при несохранённом sidecar. Источники по-прежнему read-only.
-
-**Далее:** PR #48 Windows preview — предложен, но не запущен до решения владельца. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; HSES/FTP, native writer, live robot control/deployment **BLOCKED**. Merge PR #47 исключительно после согласования.
-
-## PR #48 — Windows Offline Preview и ручной UserSmoke (20.11.2026)
-
-**База:** PR #47 слит в `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 открыт как отдельный **Draft**, без публичного GitHub Release. Этап обеспечивает Windows x64 `MLAD-PR48-Windows-x64-OfflinePreview-Unsigned-NonRelease` Actions artifact: неподписанный Tauri EXE, переносимый SYNTHETIC проект `*.mladproj.json` с `CIOPRG.LST`, `IONAME.DAT`, `*.mlad.json`, независимые SHA-256, лицензию GPL-3.0-only, архив соответствующего исходного кода и протокол приёмки.
-
-**CI Gate:** полный Linux/Windows тестовый граф `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` и отдельный Windows Preview workflow на **точном HEAD**. Включены отрицательные проверки изменения синтетических файлов, PE/SHA и запрета публикации. **Human Gate:** 17 сценариев `P48-01`…`P48-17` в `docs/windows_offline_preview_pr48.md` на Windows 10/11 x64 с WebView2. Их не исполняют GitHub Actions; до протокола `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
-
-После приёмки: исправить выявленные UX-дефекты и отдельно принять решение о PR merge и публичном Windows Release. `CIOPRG.LST`/`IONAME.DAT` read-only, `FTP`/`HSES`, native writer, deployment `BLOCKED`. TOCTOU/ACL/атомарность нескольких файлов остаются OPEN.
+[Implementation plan](implementation_plan.md) · [Architecture](architecture.md) · [Decisions](engineering_decisions.md) · [Verification gates](verification_gates.md).

@@ -52,3 +52,20 @@
 Любая смена D1–D9 оформляется через отдельный ADR/PR с мотивировкой, рисками и тестами. Новое решение не действует, пока владелец не утвердил его.
 
 [Матрица проверок](verification_gates.ru.md) · [Процесс PR](development_workflow.ru.md) · [Текущая модель угроз](filesystem_security_pr29.ru.md)
+
+## Утверждённое направление Roadmap v5 (26.11.2026)
+
+D10–D15 заменяют только противоречащие части исторических D1/D3/D8/D9. Остальные ограничения D1–D9 действуют. Утверждение направления не является согласием на merge.
+
+| ID | Decision | Следствие |
+| --- | --- | --- |
+| D10 | Strategy C | Ядро → UI → диагностика итерациями; OEM/reliability параллельно. |
+| D11 | Shared Semantic Core / Signal Index | Одна модель, идентичность профиля/снимка, evidence. |
+| D12 | Functional Preview | Отдельное согласование Preview, независимый UserSmoke. |
+| D13 | Specialized Workspace | Именованные сохраняемые компоновки, общая сессия, многоцепная виртуализация заменяет ограничение D3 на одну цепь. |
+| D14 | Independent offline 1.0 | Без зависимости от HSES/native writer/deployment. |
+| D15 | Evidence separation | Синтаксис, наблюдение, моделирование и OEM evidence раздельны. |
+
+`CIOPRG.LST` и `IONAME.DAT` остаются read-only. `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` до независимых доказательств. JSON-черновики не программы контроллера. Публичные fixtures синтетические или явно разрешённые; без закрытых производственных файлов и хешей.
+
+[Roadmap v5](roadmap.ru.md).

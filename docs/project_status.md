@@ -110,3 +110,11 @@ PR #46 принят и слит в `main` SHA `39197458dac01045b30f9ac5a810720c7
 PR #47 слит в `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 открыт как **Draft, не слит**. Подготовлена отдельная Windows x64 сборка с неподписанным EXE, синтетическим переносимым `MLAD_OFFLINE_PROJECT`, SHA-256 как каждого вложения, так и ZIP, GPL-3.0-only лицензией и исходниками точного коммита. GitHub Actions публикует только ограниченный по сроку artifact **NOT a Release**. `SYNTHETIC-SHA256.json` не является OEM-подтверждением, `build-evidence.json` честно сообщает неиспытанные сценарии.
 
 Фактические CI run и конечный HEAD указывать только после повторной проверки `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` и отдельного Preview job на одном SHA. Ручная матрица `P48-01`…`P48-17` — `docs/windows_offline_preview_pr48.md`. GUI UserSmoke без запуска на отдельном Windows/WebView2 компьютере: `UserSmoke=NOT RUN`; аппаратные тесты `OEMBench=NOT RUN`. Нативные `CIOPRG.LST`/`IONAME.DAT` read-only; `FTP`/`HSES`, native writer и deployment `BLOCKED`. Merge/Windows Release не выполнялись.
+
+## Утверждённое направление Roadmap v5 (26.11.2026)
+
+PR #49 слит в `e291d414f2440e2e407c1e0fdadc248de3d9dc80`. Roadmap v5 (стратегия C) утверждена владельцем; M0–M21 и V5-01…15 — актуальный план. Исторические записи выше не являются очередью. Этот документационный PR не реализует новое ядро, интерфейс, диагностику и не публикует релиз.
+
+`CIOPRG.LST` и `IONAME.DAT` остаются read-only. `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` до независимых доказательств. JSON-черновики не программы контроллера. Публичные fixtures синтетические или явно разрешённые; без закрытых производственных файлов и хешей.
+
+[Roadmap v5](roadmap.md) · [Implementation plan](implementation_plan.md).

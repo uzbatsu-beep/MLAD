@@ -105,3 +105,21 @@ Setting up `app.security.csp` Limits external loads in WebView packaged `devCsp`
 ## 10. Architectural route after PR #29
 
 **Synthetic native parser corpus → source navigationrung navigation → versioned sidecar `*.mlad.json` → evidence-based typed syntax → source-linked static analysis → unified Offline Engineering IDE → conditional Windows 0.6.x preview. [Implementation plan](implementation_plan.en.md) · [Verification gates](verification_gates.en.md) · [Decisions D1–D9](engineering_decisions.en.md). No document authorizes native recording or controller connection.
+
+## Approved Roadmap v5 direction (26 November 2026)
+
+Target architecture, not implemented by this PR. SourceSnapshot → ControllerProfile/Dialect → existing lossless parser → AST/IR → shared Signal Index → analysis/compare/simulation/test/documentation. Rust backend owns canonical source-linked analysis; TypeScript consumes versioned IPC DTOs, not an independent parser. Exact contracts designed in V5-02…04.
+
+| Entity | Responsibility |
+| --- | --- |
+| ControllerProfile / MemoryArea / AddressKey | Profile, firmware, address identity; aliases only with evidence. |
+| SourceSnapshot / SourceSpan | Immutable bytes, SHA, physical positions. |
+| Instruction / Rung / ProgramSection | Types, unknown barriers, provenance. |
+| Signal / SignalReference / Dependency | Shared index, READ/WRITE/UNKNOWN, qualified edges. |
+| Diagnostic / Evidence / TestScenario | Rules, claim evidence, deterministic inputs. |
+
+Layout registry and shared session retain selection and unsaved drafts; UI preferences separate from project. Robot Fleet and AI consume the core; AI does not replace parser/validator.
+
+`CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
+
+[Roadmap v5](roadmap.en.md).

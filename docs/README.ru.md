@@ -5,6 +5,8 @@
 
 > **Принцип:** исходная документация и OEM-руководства имеют приоритет в случае расхождений. Двуязычное представление не подтверждает исполнение логики на контроллере или разрешение записи.
 
+> **Roadmap v5 (26.11.2026, утверждена владельцем):** стратегия C, M0–M21, Semantic Core v2, специализированные рабочие компоновки, Signal Intelligence, Compare, Virtual Lab, Trace & Test, Documentation, Fleet и AI. [Актуальная дорожная карта](roadmap.ru.md) · [План V5-01…15](implementation_plan.ru.md) · [Решения D10–D15](engineering_decisions.ru.md). Это план, не заявление о реализации новых функций. Срезы v3/v4 ниже исторические.
+
 > **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](repository_audit_2026-11-21.ru.md).
 > **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
 

@@ -3,6 +3,8 @@
 >
 > **Scope:** This English version explains the project's repository baseline. The original and manufacturer documentation take precedence where there is any discrepancy. Controller compatibility, scan semantics, and authorization are **not** established by translation.
 
+> **Roadmap v5 (26 November 2026, owner-approved):** strategy C, M0–M21, Semantic Core v2, specialized workspace layouts, Signal Intelligence, Compare, Virtual Lab, Trace & Test, Documentation, Fleet and AI. [Current roadmap](docs/roadmap.en.md) · [V5-01…15 plan](docs/implementation_plan.en.md) · [Decisions D10–D15](docs/engineering_decisions.en.md). This is a plan, not a claim that new features are implemented. The v3/v4 snapshots below are historical.
+
 > **Current audit (21 November 2026):** verified `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, published Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer and deployment `BLOCKED`. [Current Git audit](docs/repository_audit_2026-11-21.en.md).
 > **Historical context:** old release/PR references below are dated snapshots, not a claim that rc.9 or PR #29 is latest.
 
