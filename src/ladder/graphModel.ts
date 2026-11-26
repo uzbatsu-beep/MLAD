@@ -1,6 +1,7 @@
 /** Offline-only graph draft and bounded layout helpers. No CIOPRG file writer. */
 
-export type Controller = "DX100" | "DX200" | "YRC1000";
+import type { Controller, SemanticNode as CoreSemanticNode, SemanticRung as CoreSemanticRung } from "../engineering/types.ts";
+export type { Controller } from "../engineering/types.ts";
 
 export type ContactExpr = {
   kind: "contact";
@@ -24,21 +25,9 @@ export type DraftRung = {
 };
 export type GraphDraft = { version: 1; controller: Controller; rungs: DraftRung[] };
 
-export type SemanticNode = {
-  op: { Contact: { relay: number; inverted: boolean } }
-    | { And: { left: number; right: number } }
-    | { Or: { left: number; right: number } };
-  line: number;
-};
-export type SemanticRung = {
-  number: number;
-  output: number;
-  expression_root: number;
-  expression_preview: string;
-  first_line: number;
-  output_line: number;
-  section: "Unspecified" | "System" | "User";
-};
+// Graph rendering accepts the minimal projection; IPC nodes retain byte spans.
+export type SemanticNode = Pick<CoreSemanticNode, "op" | "line">;
+export type SemanticRung = Omit<CoreSemanticRung, "inputs">;
 
 export type WireSegment = { x1: number; y1: number; x2: number; y2: number };
 export type ContactLocation = ContactExpr & {

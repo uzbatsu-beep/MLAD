@@ -2,6 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod compiler;
+mod engineering;
+use engineering::FullCioprgInspection;
 mod draft_io;
 mod guarded_read;
 mod native_filter;
@@ -49,16 +51,6 @@ async fn cmd_load_project(file_path: String) -> Result<Vec<Rung>, String> {
     }
 }
 
-#[derive(Serialize)]
-struct FullCioprgInspection {
-    #[serde(flatten)]
-    base: compiler::lossless::InspectionReport,
-    semantic: compiler::semantic::SemanticPreview,
-    advanced: compiler::advanced_source::AdvancedSourceReport,
-    sections: Vec<compiler::native_sections::SourceSectionMarker>,
-    dataflow: compiler::typed_dataflow::StaticAudit,
-    static_access: compiler::static_access::AccessOverview,
-}
 
 /// Bound native input before allocation-intensive parsing. Read-only, no mutation.
 async fn read_cioprg_bytes(file_path: &str) -> Result<Vec<u8>, String> {
@@ -545,19 +537,7 @@ async fn cmd_inspect_cioprg(
     Ok(build_full_inspection(&doc))
 }
 fn build_full_inspection(doc:&compiler::lossless::LosslessDocument)->FullCioprgInspection {
-    let semantic = compiler::semantic::analyze(doc);
-    let advanced = compiler::advanced_source::inspect(doc);
-    let sections = compiler::native_sections::scan(doc);
-    let dataflow = compiler::typed_dataflow::inspect(doc, 1000);
-    let static_access = compiler::static_access::inspect(doc,160);
-    FullCioprgInspection {
-        base: doc.inspection_report(600, 500),
-        semantic: semantic.preview(200, 200, 500),
-        advanced,
-        sections,
-        dataflow,
-        static_access,
-    }
+    engineering::inspect(doc)
 }
 
 // Only filenames ending in .graph.json are treated as editable graph drafts.

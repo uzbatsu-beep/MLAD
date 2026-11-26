@@ -138,7 +138,7 @@ test("dataflow evidence is source-order-only and always unverified",()=>{
   assert.match(rust,/MAX_STATIC_EVENTS_PREVIEW: usize = 1000/);
   assert.match(rust,/PostEndOpaque/);
   const main=readFileSync("src-tauri/src/main.rs","utf8");
-  assert.match(main,/typed_dataflow::inspect\(doc, 1000\)/);
+  assert.match(readFileSync("src-tauri/src/engineering/mod.rs","utf8"),/typed_dataflow::inspect\(doc, 1000\)/);
   assert.match(main,/build_full_inspection\(&doc\)/);
 });
 
@@ -342,4 +342,20 @@ test("unified manifest-bound source cannot be silently replaced and external fil
   assert.match(native,/disabled=\{!!filePickerBusy\|\|busy\|\|!!projectRevision\|\|projectBusy\}/);
   assert.match(native,/setIonamePath\(event\.target\.value\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
   assert.match(native,/setSidecarPath\(event\.target\.value\);setSidecarRevision\(null\);\s*if\(projectRevision\)setProjectDirty\(true\)/);
+});
+
+test("Semantic Core identity contract guards both native open paths and exposes a shared context",()=>{
+  const core=readFileSync("src-tauri/src/engineering/mod.rs","utf8");
+  const summary=readFileSync("src/components/EngineeringSummary.tsx","utf8");
+  assert.match(core,/fn inspect\(doc: &lossless::LosslessDocument\)/);
+  assert.match(core,/schema_version: SCHEMA_VERSION/);
+  assert.match(core,/semantic::analyze\(doc\)/);
+  assert.match(native,/assertEngineeringContract\(value\)/);
+  assert.match(native,/assertEngineeringContract\(source\)/);
+  assert.match(native,/<EngineeringSummary core=\{report\.core\}/);
+  assert.match(summary,/aria-label="Инженерный контекст"/);
+  assert.match(summary,/OFFLINE · READ ONLY/);
+  assert.match(summary,/не телеметрия/);
+  assert.match(summary,/rung_refs_truncated/);
+  assert.match(summary,/onLocate\(selected\.source\.first_line\)/);
 });

@@ -19,7 +19,7 @@ test("monitoring and deployment remain deny-only Tauri IPC commands", () => {
 });
 test("native CIO inspection remains bounded and read-only", () => {
   assert.match(rust, /MAX_CIO_FILE_BYTES: u64 = 16 \* 1024 \* 1024/);
-  assert.match(rust, /inspection_report\(600, 500\)/);
+  assert.match(readFileSync("src-tauri/src/engineering/mod.rs","utf8"), /inspection_report\(600, 500\)/);
 });
 
 
@@ -184,8 +184,8 @@ test("PR46 static access is bounded, SHA-pinned, and distinct from a controller 
   const parser=readFileSync("src-tauri/src/compiler/static_access.rs","utf8");
   const compiler=readFileSync("src-tauri/src/compiler/mod.rs","utf8");
   assert.match(compiler,/pub mod static_access;/);
-  assert.match(rust,/static_access: compiler::static_access::AccessOverview/);
-  assert.match(rust,/compiler::static_access::inspect\(doc,160\)/);
+  assert.match(readFileSync("src-tauri/src/engineering/mod.rs","utf8"),/static_access: static_access::AccessOverview/);
+  assert.match(readFileSync("src-tauri/src/engineering/mod.rs","utf8"),/static_access::inspect\(doc,160\)/);
   assert.match(rust,/build_full_inspection\(&doc\)/);
   assert.match(rust,/async fn cmd_query_static_access\(/);
   assert.match(rust,/if doc\.source_sha256!=expected_sha256/);

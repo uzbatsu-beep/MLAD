@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LadderCircuit } from "./LadderCircuit.tsx";
 import { AdvancedBlockDiagram } from "./AdvancedBlockDiagram.tsx";
 import type { AdvancedBlock, Preset } from "../ladder/advancedModel.ts";
-import { semanticToExpression, relayText, type SemanticNode } from "../ladder/graphModel.ts";
+import { semanticToExpression, relayText } from "../ladder/graphModel.ts";
+import type { Controller, EngineeringCore, SemanticPreview } from "../engineering/types.ts";
+import { assertEngineeringContract } from "../engineering/contracts.ts";
+import { EngineeringSummary } from "./EngineeringSummary.tsx";
 import { invoke } from "@tauri-apps/api/core";
 import {groupDiagnostics} from "../ladder/diagnosticsModel.ts";
 import {oemManualEntry} from "../ladder/oemReference.ts";
 import "./native-workspace.css";
 
-type Controller = "DX100" | "DX200" | "YRC1000";
 type Encoding = "Utf8" | "Utf8Bom" | "OpaqueBytes";
 type SyntaxClass = "Recognized" | "TypedCandidate" | "Unsupported" |
   "Malformed" | "Opaque" | "PostEndData" | "Structural";
@@ -54,42 +56,6 @@ type PreviewLine = {
   ending: string;
   kind: unknown;
   display_text: string;
-};
-type SemanticDiagnostic = {
-  code: string;
-  level: "Warning" | "Error";
-  line: number;
-  message: string;
-};
-type SemanticRung = {
-  number: number;
-  first_line: number;
-  output_line: number;
-  output: number;
-  inputs: number[];
-  expression_preview: string;
-  expression_root: number;
-  section: "Unspecified" | "System" | "User";
-};
-type SemanticPreview = {
-  nodes: SemanticNode[];
-  nodes_truncated: boolean;
-  node_count: number;
-  rung_count: number;
-  reference_count: number;
-  diagnostic_count: number;
-  unsupported_segments: number;
-  subset_analysis_complete: boolean;
-  system_user_boundaries_verified: boolean;
-  edited_export_allowed: boolean;
-  end_seen: boolean;
-  rungs: SemanticRung[];
-  references: { symbol: string; sites: { line: number; operation: string }[] }[];
-  part_markers: { line: number; section: string }[];
-  diagnostics: SemanticDiagnostic[];
-  rungs_truncated: boolean;
-  references_truncated: boolean;
-  diagnostics_truncated: boolean;
 };
 type AdvancedSourceBlock = {
   kind:"Timer"|"Counter"|"GroupCopy";
@@ -195,6 +161,7 @@ type StaticAccessPage = {
   execution_verified:boolean;write_permission_verified:boolean;
 };
 type Report = {
+  core: EngineeringCore;
   static_access: StaticAccessOverview;
   advanced: AdvancedSourceReport;
   sections: NativeSection[];
@@ -484,6 +451,7 @@ export function NativeWorkspace() {
     try{
       const value=await invoke<Report>("cmd_inspect_cioprg",{filePath:selectedPath.trim(),controller});
       if(epoch!==nativeRequestEpoch.current)return;
+      assertEngineeringContract(value);
       if(value.syntax_coverage.total_lines!==value.line_count ||
           !value.syntax_coverage.all_source_lines_counted ||
           value.syntax_coverage.semantics_verified){
@@ -652,6 +620,7 @@ export function NativeWorkspace() {
       });
       if(epoch!==nativeRequestEpoch.current)return;
       const source=loaded.report,meta=loaded.project;
+      assertEngineeringContract(source);
       if(meta.format!=="MLAD_OFFLINE_PROJECT"||meta.schema_version!==1 ||
          meta.source.sha256!==source.source_sha256 ||
          meta.source.line_count!==source.line_count ||
@@ -1069,6 +1038,11 @@ export function NativeWorkspace() {
         диагностика будут расположены в основном рабочем окне. Это не JSON-черновик.</p>
       <p style={{color:"#e2c18b"}}>Изменение файла, экспорт CIOPRG.LST и сетевой доступ заблокированы.</p>
     </section>:<>
+      <EngineeringSummary core={report.core} selectedRung={rung} activeTab={tab}
+        onSource={()=>setTab("source")} onLadder={()=>setTab("diagram")}
+        onLocate={line=>void showLine(line)}/>
+      <details className="engineering-source-details">
+        <summary>Подробности источника и покрытия синтаксиса</summary>
       <div style={{display:"flex",gap:15,flexWrap:"wrap",padding:"7px 14px",fontSize:12,
         background:"#192735",borderBottom:"1px solid #35485b"}}>
         <span>{report.controller} · <b>{report.line_count}</b> строк · {report.byte_length} байт</span>
@@ -1100,6 +1074,7 @@ export function NativeWorkspace() {
         <span>Структура {report.syntax_coverage.structural}</span>
         <span style={{color:"#e9c489"}}>* Только синтаксис; исполнение OEM не проверено.</span>
       </div>
+      </details>
       <div style={{display:"grid",gridTemplateColumns:"220px minmax(300px,1fr) 290px",flex:1,minHeight:0}}>
         <aside style={sideStyle} aria-label="Дерево программы">
           <strong>Закладки sidecar ({bookmarks.length})</strong>

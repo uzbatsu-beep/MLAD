@@ -119,3 +119,20 @@ PR #49 merged at `e291d414f2440e2e407c1e0fdadc248de3d9dc80`. Roadmap v5 (strateg
 `CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
 
 [Roadmap v5](roadmap.en.md) · [Implementation plan](implementation_plan.en.md).
+
+## Semantic Core v2 — V5-02 / PR #51
+
+Strategy B: modular evolution without a second parser. The `src-tauri/src/engineering/mod.rs` module unifies existing lossless, semantic, advanced_source, native_sections, typed_dataflow and static_access in one read-only projection. The existing Boolean DAG remains the IR; independent operand-role evidence and dataflow hypotheses are not conflated with execution. Old report fields are retained during staged consumer migration; this is not a long-term compatibility promise.
+
+| Contract | Purpose |
+| --- | --- |
+| SourceIdentity | SHA-256 of original bytes, controller family, size, physical line count. Firmware/extended profiles belong to V5-03. |
+| SourceSpan / RungReference | One-based physical lines, byte range [start, end), deterministic ID within snapshot and family. ID is not a cross-version comparison key. |
+| EngineeringCore | schema_version=1, rung count, bounded preview links, explicit truncation flag and Evidence. |
+| Evidence | Completeness of supported Boolean subset only, unsupported segment count; execution, scan order and writing are not verified. |
+
+`src/engineering/types.ts` defines common DTOs. `src/engineering/contracts.ts` checks version, identity, ranges, links and boundaries before accepting a report on both direct native and portable project opening. `src/components/EngineeringSummary.tsx` shows snapshot, controller, rung and unknown segment counts, analysis status and source/Ladder navigation; technical details can be expanded separately. This is not the new IDE shell, full Signal Index or live I/O.
+
+Tests: repeatable IDs, family/byte changes, exact mixed-EOL spans, unknown/post-END, empty source, 200-rung bound, serialization, incompatible version/snapshot, invalid links and false verification claims. CI runs Node contract tests and existing Rust/Windows/frontend checks. Do not claim PASS before CI results and manual evidence as applicable. Full rung virtualization, indexing, caching, detailed firmware model and layouts are subsequent V5-03…07 stages.
+
+`CIOPRG.LST` and `IONAME.DAT` read-only; `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
