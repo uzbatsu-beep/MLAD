@@ -1,173 +1,53 @@
 <!-- Generated en companion; machine-generated draft; editorial review required. -->
 > **English** · [Русский](implementation_plan.ru.md) · [English](implementation_plan.en.md) · [Original / Оригинал](implementation_plan.md)
-> **Translation review:** AI-assisted translation; check engineering claims against the Russian original and OEM evidence. `CIOPRG.LST` and `IONAME.DAT` are read-only. `HSES`/`FTP`, native writer and robot deployment remain **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
+> **Translation review:** AI-assisted; compare with Russian source and OEM evidence.
 
-> **Current audit (21 November 2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`; latest published Windows pre-release `v0.5.0-rc.10-unified-offline`. Merged PR #40–#48 implemented the parser UX, sidecar, extended typed grammar, source-linked access roles, portable project and preview; older proposed PR numbers below are **historical**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; native writer and `HSES`/`FTP` remain `BLOCKED`. [Current audit](repository_audit_2026-11-21.en.md).
+# MLAD — implementation plan v5
 
-# MLAD — implementation plan v4 after PR #39
+Strategy C approved 26 November 2026. Stable IDs V5-01…15; indicative PR numbers, not reserved. Historical v4: [baseline](https://github.com/uzbatsu-beep/MLAD/blob/e291d414f2440e2e407c1e0fdadc248de3d9dc80/docs/implementation_plan.md).
 
-**Baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, PR #1–#39 merged. Numbers #40–#47 are planning identifiers, not automatically created or completed PRs. Markdown updates alone do not establish functional completion of PR #40. [Roadmap v4](roadmap.en.md) · [Project status](project_status.en.md).
+`CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
 
-## 1. Priorities and scope boundaries
+## 1. Backlog
 
-- **P0:** verified parser corpus, immutable native snapshot, honest diagnostics; then reliable navigation.
-- **P0:** independent security/Windows tests before adding any user writer.
-- **P1:** portable sidecar and Unified Offline IDE; expand OEM-evidenced syntax incrementally.
-- `CIOPRG.LST`/`IONAME.DAT` **read-only**; `HSES`/`FTP`/native writer/deployment **BLOCKED**; `PART`/`END` do not establish System/User permissions.
-- `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; public GitHub must use synthetic fixtures only.
+| ID | PR | Task | Deliverable |
+| --- | --- | --- | --- |
+| V5-01 | #50 | Roadmap v5 & Architecture Decisions | Approved plan, ADRs, docs; no runtime. |
+| V5-02 | #51 | Semantic Core v2 | Inventory, AST/IR, source spans, contracts, no duplicate parser. |
+| V5-03 | #52 | Controller Profiles v2 | Dialects, firmware, address spaces, evidence. |
+| V5-04 | #53 | Signal Index | Address keys, READ/WRITE/UNKNOWN, source references, snapshot identity. |
+| V5-05 | #54 | UI Foundation | Design tokens, themes, palettes and persisted settings. |
+| V5-06 | #55 | Engineering Workspace | IDE shell, layout registry, panels, tabs, layout switching and persistence. |
+| V5-07 | #56 | Ladder Viewer v3 | Virtualized multi-rung canvas, zoom, blocks, UNKNOWN, navigation. |
+| V5-08 | #57 | Signal Inspector | Shared-index inspector, G2 Windows preview subject to separate approval. |
+| V5-09 | #58 | Cross Reference v2 | Role filters and bidirectional navigation. |
+| V5-10 | #59 | Dependency Graph | Potential dependencies with provenance and unknown barriers. |
+| V5-11 | #60 | Diagnostics Engine | Extensible rules, severity, explainable results. |
+| V5-12 | #61 | Logic Tracing | Forward/backward, cycles, unknowns, explanations, G3. |
+| V5-13 | #62 | Project Compare v1 | Byte/text and structural diff, ambiguous matches. |
+| V5-14 | #63 | Project Snapshots | History, baselines, integrity, portability. |
+| V5-15 | #64 | Engineering Preview | Integration tests, G4, conditional Windows preview and UserSmoke. |
 
-## 2. PR #40 — Native Parser Fidelity & Coverage (draft scope)
+## 2. Acceptance gates
 
-**Goal:** do not simulate complete OEM grammar; instead account for recognized, partial and unsupported source data reproducibly without losing bytes.
-
-**Deliverables:**
-1. `SYNTHETIC` fixture corpus v1 with at least 12 independent scenarios and a machine-readable manifest: provenance, profile, encoding/EOL, source hash, expected line spans and diagnostics.
-2. Classification: `recognized`, `typed candidate`, `unsupported`, `malformed`, `opaque`, `post-END data` — syntax coverage only, not execution verification.
-3. Coverage summary for the entire source; separate parser/semantic diagnostics and explicit truncation state.
-4. `NativeWorkspace.tsx`: correct the incorrect tooltip `Byte offset`, which currently shows the line number rather than `body_span.start`; display the actual byte range.
-5. Synchronize `docs/roadmap.md`, `docs/implementation_plan.md`, `docs/project_status.md` and their RU/EN companions; validate docs/i18n.
-
-## 3. Synthetic fixture matrix v1
-
-| ID | Test case |
+| Gate | Acceptance |
 | --- | --- |
-| F01 | Minimal boolean rung, exact spans |
-| F02 | BOM/UTF-8 and non-UTF8 variant |
-| F03 | LF/CRLF/CR and absent final EOL |
-| F04 | Empty and EOL-only file |
-| F05 | Valid `//$M`, eight rows with ten cells |
-| F06 | Truncated and malformed `//$M` |
-| F07 | `PART` markers and a valid `END` |
-| F08 | Malformed `END`: later lines stay visible |
-| F09 | `//ALARM`/`//MESSAGE` after `END` |
-| F10 | Unsupported opcode between boolean instructions |
-| F11 | Invalid operands and typed candidates |
-| F12 | MOV/ADD/SUB/SHL/SHR and coverage accounting |
-| F13 | Generate oversized/boundary inputs in tests, never commit giant fixture data |
+| G1 | Existing functions retained; shared source-linked core/profile/index, no second parser. |
+| G2 | Working Windows UI, restored themes/layouts, multi-rung navigation, inspector and unknown; independent smoke. |
+| G3 | Cross-reference and trace show source links, potential dependencies, unknown barriers, tests for cycles and multiple writers. |
+| G4 | Compare/snapshots do not mutate sources; integration tests and manual acceptance of separately approved preview. |
 
-## 4. Classification and preservation requirements
 
-- One primary class per physical line, with independent diagnostic flags; total coverage cannot exceed physical line count.
-- `recognized` ≠ `OEMBenchVerified`; `TypedCandidate` ≠ `semantics_verified`.
-- `opaque`/`unsupported`/`malformed` remain accessible in raw source and must not produce an invented diagram.
-- `full_span`, `body_span`, `SHA-256`, `BOM`, `CRLF` are tested against original bytes, not normalized display text.
-- Data after valid `END` remain data; invalid END must not hide following lines.
-- Retain limits: `16 MiB`, `200000` lines, bounded pages and `SHA-256`-pinned reopen.
+## 3. Workspace contract
 
-## 5. Explicit exclusions from PR #40
+V5-05 introduces design system, V5-06 typed layout registry and shared project session. UI preferences separate from project data. V5-07/08 provide working Ladder/Inspector. Other layouts appear with real modules. Test switching/restart/reset, unsaved draft, focus, absent module, stale snapshot, invalid settings. UI does not change permissions.
 
-No controller-native writer, deployment, network runtime, automatic IONAME→relay mapping, new sidecar writer, full scan/EN/timing emulator, unsupported OEM verification claims, or private customer programs in CI.
+## 4. Later phases
 
-## 6. PR #40 exact-head gates and evidence
+After G4 refine PRs using feedback: M17 tri-state → memory/step → time/TMR/CNT → registers → scenarios; M18 watch/trace/events/test with INCONCLUSIVE; M19 reports; M20 local fleet; M21 optional AI. Research and parser work in parallel. This does not authorize online features.
 
-- [ ] `cargo test --manifest-path src-tauri/Cargo.toml --locked`, `npm ci --no-audit --no-fund`, `npm run test:native`, `npm run test:security`, `npm run docs:check`, `npm run build`.
-- [ ] `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` **SUCCESS** at the exact HEAD after implementation (where applicable).
-- [ ] Positive/negative fixtures verify raw byte equality and absence of fabricated rungs.
-- [ ] `cmd_deploy_to_robot` always rejects; native/IONAME never written, HSES/FTP not reintroduced.
-- [ ] No secrets or real OEM exports in diff; all fixtures carry provenance `SYNTHETIC`.
-- [ ] `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independently documented.
-- [ ] **Merge requires separate explicit owner approval**.
+## 5. Definition of Done
 
-## 7. Planned work after PR #40
+Every PR: scope, positive/negative tests, regression, source preservation, explicit unknown, applicable CI on final SHA, RU/EN docs, limitations, separate merge consent. Existing docs-only CI; skipped runtime is not PASS. GUI smoke and OEM bench independent. Release, Ruleset and controller access require separate decisions.
 
-| PR | Area | Acceptance gate |
-| --- | --- | --- |
-| #41 | Native UX v2 | source↔rung↔block↔diagnostic, verified jumps and large-file UX |
-| #42 | Filesystem/supply chain | Review ACL/TOCTOU, crash/backup and unnecessary FTP dependency; no network functionality |
-| #43 | Portable sidecar | Versioned `*.mlad.json`, source SHA, stale/conflict/backup, no native overwrite |
-| #44 | Typed grammar | Only OEM-evidenced grammar, no implicit scan semantics |
-| #45 | Static analysis | source-linked READ/WRITE/UNKNOWN, provenance and conservative barriers |
-| #46 | Unified Offline Project | Native snapshot + sidecar + JSON drafts, no native export |
-| #47 | 0.6.x Windows preview | Exact SHA/tag, manual UserSmoke, licenses, checksum, separate release decision |
-
-## 8. Evidence levels and references
-
-`Documented` ≠ `SyntheticTested` ≠ `WindowsCI` ≠ `UserSmoke` ≠ `OEMBenchVerified` ≠ `Authorized`. Each step records SHA, positive/negative tests, failure boundaries, and lawful OEM material use independently.
-
-[Roadmap v4](roadmap.en.md) · [Verification gates](verification_gates.en.md) · [Controller fixture intake](controller_fixture_intake.en.md) · [Filesystem review](filesystem_security_pr29.en.md) · [Engineering decisions](engineering_decisions.en.md).
-
-## Implementation update after PR #40 (20 November 2026)
-
-Documentation PR #40 is already merged; parser fidelity and corpus implementation are now in PR #41. Deliverables include fully synthetic bytes, SHA-256, expected physical-line classes, complete non-lossy classification, unknown/opaque retention, malformed diagnostics and original byte spans in Native Workspace. Successful CI does not replace UserSmoke or OEMBench and cannot authorize HSES/FTP, native writer or deployment. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`, controller actions **BLOCKED**.
-
-The former PR #41 UX task moves to PR #42 or later; further numbers are tentative. The current PR remains Draft until explicit owner approval.
-
-## PR #42 — Native CIOPRG Offline Workspace UX v2: acceptance criteria
-
-Baseline is merged PR #41, `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. PR #42 is a separate Draft; the earlier proposed PR #42 security task moves to PR #43 or later.
-
-Contract: render no more than one selected Ladder rung and one selected functional block; list other preview items in the navigation tree with explicit truncation notices. Go from physical source line to recognized rung/block, back to source, and from diagnostics to physical line. ArrowUp/ArrowDown, PageUp/PageDown, Home/End keys, source pages of 250 lines. Full-source filter by `SyntaxClass`, exact ASCII opcode, textual address token `#XXXXX` or `Mxxx`; 100 results per page with a complete match count within bounded input.
-
-Acceptance: preserve raw bytes, SHA-256 and selected controller family; reject changed source; test at least 1400 lines and pagination beyond the first 100 matches; negative cases for malformed opcode/address, opaque/malformed and post-END. Unknown text is retained; no execution simulation. Linux frontend/Rust/Windows CI evidence remains separate from UserSmoke/OEMBench.
-
-CIOPRG.LST and IONAME.DAT are read-only; HSES/FTP, native writer, live I/O and deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independently tested; separate owner approval required before merge.
-
-## PR #43 — practical security gates and evidence boundaries
-
-Baseline: merged PR #42, `main` `73e675f7df33c5751a35e29752736c3470b11b31`. PR #43 is limited to independent JSON draft hardening, Rust dependency review, tests and documented failure modes. No controller writer.
-
-**Implementation in PR #43:**
-1. Remove `suppaftp` from `Cargo.toml` and `Cargo.lock`, pruning only unreachable transitive crates. Do not alter `package-lock.json`; keep `npm ci` and immutable dependency locks. Also remove the unused direct `anyhow` and `futures-util` requirements from the manifest/root lockfile; retain `nom`, which is referenced by `compiler/parser.rs`.
-2. On Unix, create staged JSON and `*.bak` with owner-only `0600` regardless of umask; test privacy after repeated saves.
-3. Call `verify_single_link` before staged rename and reject replacement/additional hardlinks. During `Drop`, unlink the temporary pathname only if File ID still matches the identity captured at creation.
-4. Test positive and negative cases: first save, backup, staged hardlink, temporary pathname substitution, `CIOPRG.LST`/`IONAME.DAT` protection, Windows NTFS/local permissions, and existing conflict guards.
-5. CI: `cargo test --locked` on Linux/Windows, `npm run test:security`, applicable final-HEAD `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`.
-
-**Not implemented:** OS-relative directory-handle traversal, Windows DACL/owner preservation, full multiprocess CAS, crash-safe journal for target+`*.bak`. These remain OPEN, not remediated. `HSES/FTP`, native writer and deployment **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Merge requires separate owner approval.
-
-## PR #44 — portable sidecar v1 contract and acceptance criteria
-
-**Baseline:** merged PR #43, `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. Draft PR #44 is not part of `main`. Earlier v4 proposed PR numbers are historical.
-
-**`*.mlad.json` schema:** `format=MLAD_OFFLINE_SIDECAR` and `schema_version=1` required. `source.kind=CIOPRG.LST` provides `source.controller`, `source.sha256`, `source.byte_length`, `source.line_count`; `annotations.rungs`, `annotations.addresses`, `annotations.ioname`, and `bookmarks` are allowed. No native bytes, original path, executable script, robot IP, FTP/HSES or OEM source overwrite. Unknown fields, unsupported versions, bad keys and size limits are rejected.
-
-**I/O contract:** `cmd_load_offline_sidecar` and `cmd_save_offline_sidecar` accept only `*.mlad.json` paths. Every operation read-only revalidates `CIOPRG.LST` and checks `SHA-256`, controller family, bytes and physical lines. First save requires a missing target. Existing files require a `revision` derived from actual bytes and file identity. Stale/missing revisions and external modifications fail closed before replacement. `*.bak` uses existing staged JSON guarantees but is not atomically committed together with the target.
-
-**Acceptance:** Rust round-trip/conflict tests, invalid version/metadata, empty/invalid bookmarks, size limits, unknown fields, native file protection, hardlink/symlink and backup preservation; frontend tests for explicit import/export and offline-only operation. Exact-HEAD CI includes `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` remain separate; FTP/HSES, native writer and deployment **BLOCKED**.
-
-**Risks:** `revision` is not an atomic filesystem CAS. TOCTOU in `check→rename`, Windows ACL, concurrent writers, crash recovery and backup+target remain OPEN. Owner approval is required before merging.
-
-## PR #45 — OEM-evidenced typed grammar implementation plan
-
-**Base:** merged PR #44, `main` `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 is a separate Draft. Source: YRC1000 Concurrent I/O R12 178648-1CD (RE-CKI-A467) §§12.2.15–16/19–23/25–28/31–34, [official OEM index](https://knowledge.motoman.com/hc/en-us/articles/40670912825362-YRC1000-OPTIONS-INSTRUCTIONS-FOR-CONCURRENT-I-O-R12), accessible [manualzz §12.2 transcription](https://www.manualzz.com/doc/84663174/yaskawa-motoman-yrc1000-owner-s-manual).
-
-**Scope:** syntactic `TypedCandidate` forms for `MUL/DIV/MOD`, `BIN/BCD`, `WAND/WOR/WXOR/WNOT`, `ROL/ROR`, `BMOV`, `CMP`, `PLS/PLF`. Distinct S/D/n roles: no immediate BIN/BCD source; BMOV byte count, not words; MUL Dn+1 register pair; PLS/PLF one bit relay; CMP two sources without D. None may become an executable AST `Instruction` or authorize native source generation.
-
-**Evidence / negative tests:** 15 valid and 17 invalid synthetic examples, DX100/DX200 `controller_form_verified=false` for expanded forms, byte-exact BOM/EOL/spans, opaque and post-END preservation. Update prior fixture classifications ONLY when supported by evidence: BMOV is no longer unsupported; the synthetic unknown becomes `BMOX` with recomputed SHA-256. `MOVJ/MOVL` are distinct JOB instructions, never MOV/BMOV variants.
-
-**UI:** each new opcode links to its manual section; no computed Carry/Zero/Error, EN, actual read/write or live scan result. New DX100/DX200 forms have no family manual evidence; do not show a DX100-only disclaimer.
-
-**CI gate:** exact-final-HEAD `scope`, `frontend-build`, `rust-tests` (`cargo test --locked`), actual Windows NTFS/Tauri `windows-security`, and `ci-gate` SUCCESS before review. Owner approval required before merging. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` separately. Native `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/live I/O/native writer/deployment **BLOCKED**.
-The pre-existing typed candidate `MOV` remains distinct from `MOVJ` and `MOVL`; adding `BMOV` does not change that boundary.
-
-## PR #46 — source-linked READ / WRITE / UNKNOWN contract
-
-**Baseline:** PR #45 merged, `main` `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`; PR #46 is an independent Draft. `compiler/static_access.rs`, `inspect` and read-only Tauri `cmd_query_static_access` process only the immutable `CIOPRG.LST` source snapshot.
-
-**Model:** `Read`/`Write` are potential address operand roles, not observed scan events. Contacts, GSTR and documented arithmetic/bitwise S operands indicate candidate reads; OUT, GOUT, D indicate candidate writes. `CMP` has no D; `PLS`/`PLF` indicate pulse output roles, not ordinary register writes. `MUL` creates no fabricated Dn+1 write, `BMOV` expands no block ranges. Immediate constants and shift counts do not read memory; TMR/CNT remain `Unknown` (internal memory semantics unresolved). Invalid, family-unverified and opaque forms also remain `Unknown`. Post-END is not executable source.
-
-**Evidence:** `source_sha256`, one-based `line`, original absolute `ByteSpan`; 160-site `inspect` preview with full-file counts; `query` by kind/exact text token, 100-site offset pages and fresh SHA verification on each request. Rust/IPC/UI tests cover bounds, Unknown, post-END, invalid tokens, 352-site pagination, changed source, byte-exact preservation. No byte/word aliasing, EN/flags, actual hardware memory READ/WRITE or System/User editing permission is inferred.
-
-**Acceptance:** exact final HEAD `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`; separately `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. No merge before owner approval.
-
-## PR #47 — unified offline project file format, operations and how-to
-
-**Baseline:** merged PR #46, `main` `39197458dac01045b30f9ac5a810720c729e2a65`. PR #47 is a separate Draft. `MLAD_OFFLINE_PROJECT` with `schema_version=1` in `*.mladproj.json`: `source` (relative path, `sha256`, `byte_length`, `line_count`, `controller`), optional `ioname` / `sidecar` attachments (relative path, SHA-256, size), `analysis` (`SOURCE_ROLE_PREVIEW_V1`, source SHA, bounded inventory counters and `execution_verified=false`). The manifest stores no native text, absolute paths or network configuration. Existing sidecar v1 and native input formats stay unchanged.
-
-**Create:** arrange a read-only copy of `CIOPRG.LST`, optional `IONAME.DAT` and `*.mlad.json` under one project root/subfolders. Manifest references cannot escape that root: `../`, absolute paths, Windows ADS and symlink/reparse components are forbidden by guards. In Native Workspace open `CIOPRG.LST` and optionally `IONAME.DAT`; persist annotations using Save sidecar; enter the absolute new root `*.mladproj.json` path and press Save project. The application does not copy OEM source files. Transfer the complete directory tree byte-for-byte to move the project.
-
-**Open:** select the `*.mladproj.json` manifest path and press Open project. `cmd_open_offline_project` guarded-reads the manifest, rejects unknown schema fields/versions, validates relative paths, exact source/attachment hashes and sizes, sidecar source binding, and recomputes parser/semantic/READ-WRITE-UNKNOWN analyses before delivering a coherent session. Missing/changed components reject the entire operation without replacing the previous UI session. `analysis_changed` signals drift between saved inventory and current parser; stale saved counters never override live recomputation.
-
-**Conflicts:** Save project edits only `*.mladproj.json`; overwriting requires an exact `revision` and existing staged JSON `*.bak` backup. The linked `*.mlad.json` is saved through its own independent command/revision before writing the manifest. After changing IONAME/sidecar, update the manifest; reopening otherwise fails closed by SHA. There is no atomic transaction across files, in-app source copy/move or inferred IONAME address mapping.
-
-**Acceptance:** Rust schema/relative-path/security tests, source+IONAME+sidecar+analysis round-trip IPC, wrong SHA/family, unknown fields, stale manifest revision, source immutability, Windows NTFS; frontend dirty-state/atomic open and SHA/epoch controls. Exact HEAD `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `CIOPRG.LST`/`IONAME.DAT` read-only, native writer, FTP/HSES, deployment **BLOCKED**. Windows DACL and parent-path TOCTOU remain OPEN.
-
-## PR #48 — Windows Offline Preview build, evidence and manual acceptance
-
-**Base:** PR #47 merged, `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 is an independent Draft. `.github/workflows/windows-offline-preview.yml` checks out exactly `github.event.pull_request.head.sha` rather than GitHub's PR merge ref, uses locked `npm ci`, runs Node offline/Native/preview contracts, `cargo test --locked` on Windows NTFS and `npm run tauri -- build --no-bundle`. There is no GitHub Release/tag publication, robot access, or EXE signing.
-
-**SYNTHETIC fixture:** `scripts/offline-preview-fixture.py` creates only a synthetic version-1 `MLAD_OFFLINE_PROJECT`: `CIOPRG.LST`, `IONAME.DAT`, `cell.mlad.json`, `cell.mladproj.json`, `SYNTHETIC-SHA256.json`. Byte immutability and four independent file tamper failures are tested. `scripts/windows-offline-preview.ps1` verifies the PE MZ header, per-file SHA256 and source/IONAME/sidecar bindings, records `build-evidence.json`, and includes GPL-3.0-only `LICENSE` plus `corresponding-source.zip`. CI then creates a SHA256-pinned ZIP published **only as a 21-day GitHub Actions artifact**. Real robot exports are never committed.
-
-**Human UserSmoke:** on Windows 10/11 x64 with local WebView2, tester extracts the archive, checks SHA, launches EXE and opens the sample `*.mladproj.json`; then executes `P48-01`…`P48-17` from `docs/windows_offline_preview_pr48.md`. Source/IONAME/sidecar tamper and directory relocation must be tried only in independent copies. Tester records Windows build, WebView2 version, exact source SHA/Actions URL, `PASS`/`FAIL`/`BLOCKED`/`NOT RUN` results and redacted defects. Automated CI cannot mark `UserSmoke=PASS`.
-
-**Acceptance Gate:** both CI workflows SUCCESS on exact final SHA; pending observed human evidence `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Merge and public Release require separate owner approval. Native `CIOPRG.LST`/`IONAME.DAT` read-only; `FTP`/`HSES`, native writer, deployment `BLOCKED`. TOCTOU, Windows ACL and multi-file transaction remain OPEN.
+[Roadmap](roadmap.en.md) · [Architecture](architecture.en.md) · [Verification gates](verification_gates.en.md).

@@ -52,3 +52,20 @@
 Every modification to D1–D9 must be documented in a separate ADR/PR with rationale, risks and tests. A new decision does not take effect until the owner explicitly approves it.
 
 [Verification matrix](verification_gates.en.md) · [PR process](development_workflow.en.md) · [Current filesystem threat model](filesystem_security_pr29.en.md)
+
+## Approved Roadmap v5 direction (26 November 2026)
+
+D10–D15 supersede only conflicting portions of historical D1/D3/D8/D9. Other D1–D9 boundaries remain. Direction approval is not merge consent.
+
+| ID | Decision | Consequence |
+| --- | --- | --- |
+| D10 | Strategy C | Core → UI → diagnostics iteratively; OEM/reliability in parallel. |
+| D11 | Shared Semantic Core / Signal Index | One model, profile/snapshot identity, evidence. |
+| D12 | Functional Preview | Separate preview consent, independent UserSmoke. |
+| D13 | Specialized Workspace | Named persistent layouts, shared session, multi-rung virtualization supersedes D3 single-rung restriction. |
+| D14 | Independent offline 1.0 | No dependency on HSES/native writer/deployment. |
+| D15 | Evidence separation | Syntax, observation, modeling and OEM evidence separate. |
+
+`CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
+
+[Roadmap v5](roadmap.en.md).

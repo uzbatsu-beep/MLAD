@@ -104,3 +104,21 @@ Backend не предоставляет рабочей команды сохра
 ## 10. Архитектурный маршрут после PR #29
 
 **Следующие отдельные изменения:** synthetic native parser corpus → source↔rung navigation → versioned sidecar `*.mlad.json` → evidence-based typed syntax → source-linked static analysis → unified Offline Engineering IDE → условный Windows 0.6.x preview. [Implementation plan](implementation_plan.md) · [Verification gates](verification_gates.md) · [Decisions D1–D9](engineering_decisions.md). Ни один документ не санкционирует запись native или подключение контроллера.
+
+## Утверждённое направление Roadmap v5 (26.11.2026)
+
+Целевая архитектура, не реализация этого PR. SourceSnapshot → ControllerProfile/Dialect → существующий lossless parser → AST/IR → общий Signal Index → analysis/compare/simulation/test/documentation. Rust backend отвечает за канонический source-linked анализ; TypeScript использует версионированные IPC DTO, не независимый парсер. Точные контракты проектируются V5-02…04.
+
+| Entity | Ответственность |
+| --- | --- |
+| ControllerProfile / MemoryArea / AddressKey | Профиль, firmware, адресная идентичность; алиасы только с evidence. |
+| SourceSnapshot / SourceSpan | Неизменные байты, SHA, физические позиции. |
+| Instruction / Rung / ProgramSection | Типы, unknown-барьеры, provenance. |
+| Signal / SignalReference / Dependency | Общий индекс, READ/WRITE/UNKNOWN, квалифицированные связи. |
+| Diagnostic / Evidence / TestScenario | Правила, доказательства утверждений, детерминированные входы. |
+
+Layout registry и общая сессия сохраняют выбор и несохранённые черновики; UI-настройки отдельно от проекта. Robot Fleet и AI — потребители ядра; AI не заменяет parser/validator.
+
+`CIOPRG.LST` и `IONAME.DAT` остаются read-only. `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` до независимых доказательств. JSON-черновики не программы контроллера. Публичные fixtures синтетические или явно разрешённые; без закрытых производственных файлов и хешей.
+
+[Roadmap v5](roadmap.md).

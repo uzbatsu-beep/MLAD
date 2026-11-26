@@ -111,3 +111,11 @@ Tests and CI must be verified only against PR final HEAD. `UserSmoke=NOT RUN`, `
 PR #47 merged into `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 is an **unmerged Draft**. A separate Windows x64 workflow packages unsigned EXE, synthetic portable `MLAD_OFFLINE_PROJECT`, per-member and ZIP SHA-256, GPL-3.0-only license and exact-commit source archive. GitHub Actions uploads only a short-lived artifact **NOT a Release**. `SYNTHETIC-SHA256.json` is not OEM evidence; `build-evidence.json` explicitly preserves unperformed acceptance statuses.
 
 Report final HEAD and CI run only after all `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` and separate Preview job confirm SUCCESS on the same commit. Manual `P48-01`…`P48-17` lives in `docs/windows_offline_preview_pr48.md`. Without a separate Windows/WebView2 desktop session, `UserSmoke=NOT RUN`, and with no real controller `OEMBench=NOT RUN`. Native `CIOPRG.LST`/`IONAME.DAT` remain read-only; `FTP`/`HSES`, native writer and deployment `BLOCKED`. No merge or public Windows Release was performed.
+
+## Approved Roadmap v5 direction (26 November 2026)
+
+PR #49 merged at `e291d414f2440e2e407c1e0fdadc248de3d9dc80`. Roadmap v5 (strategy C) approved by owner; M0–M21 and V5-01…15 are the current plan. Historical records above are not the active queue. This docs PR does not implement new core, UI, diagnostics or publish a release.
+
+`CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
+
+[Roadmap v5](roadmap.en.md) · [Implementation plan](implementation_plan.en.md).
