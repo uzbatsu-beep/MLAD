@@ -131,6 +131,8 @@ jobs:
         run: npm run test:visual
       - name: Inline operand validation tests
         run: npm run test:inline
+      - name: Semantic Core versioned IPC contract tests
+        run: node --experimental-strip-types --test src/engineering/contracts.test.ts
       - name: Typecheck and build
         if: needs.scope.outputs.runtime_required == 'true'
         run: npm run build
