@@ -69,3 +69,17 @@ D10–D15 supersede only conflicting portions of historical D1/D3/D8/D9. Other D
 `CIOPRG.LST` and `IONAME.DAT` remain read-only. `HSES`/`FTP`, native writer and deployment remain `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` until independent evidence. JSON drafts are not controller programs. Public fixtures are synthetic or explicitly authorized; no private production files or hashes.
 
 [Roadmap v5](roadmap.en.md).
+
+## Approved UI concept (26 November 2026)
+
+D16–D20 supplement D10–D15 without changing robot-access boundaries. The owner approved the Workbench concept, eight specialized layouts, proposed themes/palettes and listed additional capabilities. Separate merge consent remains mandatory.
+
+| ID | Decision | Consequence |
+| --- | --- | --- |
+| D16 | UI Strategy B | Parallel UI design; keep V5-03 → V5-04 → V5-05 → V5-06 order. Distinct from overall product strategy C. |
+| D17 | Hybrid Engineering Workbench | IDE shell and industrial engineering views; Activity Bar, tree, tabs, inspector, bottom panel, status; resize/hide panels. |
+| D18 | Design System | Dark/Light, six approved accents, functional colors independent of accent, Compact/Standard/Comfortable, local persistence. |
+| D19 | Workspace & Navigation | Eight D13 layouts; Custom Workspace, Command Palette, Navigation History, Zen Mode, Minimap, Pin Inspector, UI Density. Retain session and drafts. |
+| D20 | UI Acceptance | Every functional PR addresses a user workflow; UI checks, accessibility, measured performance, separate Windows UserSmoke. |
+
+Task allocation, timing and exact technical parameters are refined during implementation. See Roadmap section 7 and implementation plan supplement.
