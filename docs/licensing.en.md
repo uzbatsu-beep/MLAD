@@ -71,3 +71,13 @@ Previous `authors = ["Antigravity Developer"]` в `Cargo.toml` It was a technica
 ## 6. The current release gate after PR #29
 
 Readiness `main` (PR #1-#29 merged, CI SUCCESS) **not* equals the complete distribution license. Last published Windows rc.9 collected before PR #2429; the new temporary unsigned CI artifacts are not releases. The upcoming version of 0.6.x separately requires a GPL source archive of exact tag, third-party notices/license/SBOM review, Windows code-signing status, source asset/hash integrity and the owner's decision to publish. There are no contractual rights to Yaskawa/client materials under the MLAD license. [Current status](project_status.en.md) · [Release gates](verification_gates.en.md).
+
+## 7. ENG-03 — dependency inventory (27 November 2026)
+
+Snapshot `39137a60f68041ed1b4e65d2c3fcdf3518dff3d8`: npm lock — 182 dependency records (150 MIT, 13 Apache-2.0 OR MIT, 2 Apache-2.0, 1 CC-BY-4.0, 14 ISC, 2 BSD-3-Clause); all have integrity and resolved points to npm registry. Cargo lock — 445 package records, 444 registry with checksum, 1 local package; 41 names occur in multiple versions. Lockfile records are not counts of distributed libraries. CC-BY-4.0: node_modules/caniuse-lite 1.0.30001826; check applicable attribution and notices. SPDX metadata does not establish legal compatibility or provenance.
+
+`scripts/dependency-inventory.py` collects identifiers, lockfile SHA-256, npm licenses and Rust metadata, unknown fields; tests absence of false PASS. Separate dependency evidence workflow: npm audit, RustSec cargo-audit 0.22.2, cargo metadata with --locked, JSON evidence and exit codes. No automatic dependency fixes; advisories, tool errors and license review handled separately. First run and legal review not complete. Rust license review, third-party notices, SBOM and asset provenance remain open. HSES/FTP, native writer and deployment BLOCKED; UserSmoke=NOT RUN, OEMBench=NOT RUN.
+
+## 8. ENG-03.A — targeted Rust remediation
+
+Candidate resolved by Cargo on GitHub Actions run 45988423758, job 140469820729. SHA-256: a2b4c719fdfd76666a8621a866f7b9f5464d66ae6bd905a9bdd7a3c129bace30. Updated cookie 0.18.2 → 0.18.3 (RUSTSEC-2026-0594), url 2.5.8 → 2.5.9 (RUSTSEC-2026-0592), form_urlencoded 1.2.2 → 1.2.3; Cargo also changed the cssparser-macros reference from syn 3.0.10 to syn 2.0.119. Cargo.toml and Tauri version unchanged; 445 package records retained. Artifact and diff checked, not a claim of successful post-update RustSec. Repeat CI and RustSec on new HEAD. npm advisories, Rust informational warnings and legal review remain open. No automatic overrides or audit ignore; PR #56 not merged.
