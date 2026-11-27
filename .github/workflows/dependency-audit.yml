@@ -92,3 +92,33 @@ jobs:
           name: rust-advisory-and-license-evidence
           path: evidence/
           if-no-files-found: error
+
+  rust-remediation-candidate:
+    # ENG-03.A temporary evidence job; no push and no changes to committed locks.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve exact patched versions using Cargo
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          cargo update --manifest-path src-tauri/Cargo.toml -p cookie --precise 0.18.3
+          cargo update --manifest-path src-tauri/Cargo.toml -p url --precise 2.5.9
+          cargo metadata --locked --manifest-path src-tauri/Cargo.toml --format-version 1 --no-deps > /dev/null
+          git diff --exit-code -- src-tauri/Cargo.toml
+          cp src-tauri/Cargo.lock evidence/Cargo.lock
+          git diff --no-ext-diff -- src-tauri/Cargo.lock > evidence/Cargo.lock.patch
+          sha256sum evidence/Cargo.lock
+          echo 'ENG03A_DIFF_BEGIN'
+          cat evidence/Cargo.lock.patch
+          echo 'ENG03A_DIFF_END'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eng03a-cargo-candidate
+          path: evidence/
+          if-no-files-found: error
