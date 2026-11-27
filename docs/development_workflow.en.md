@@ -117,3 +117,17 @@ Rust JSON reader/writer uses the ** and ** identity of the open descriptor when 
 6. `main` At the time of the last check, GitHub was returned. `protected=false`A separate inclusion of Ruleset/Branch Protection is recommended. Prior to its implementation, adhere to mandatory manual review and prohibition of merge without consent.
 
 **Reconciliation on 19 November 2026, after merged PR #37 (earlier sections retain their historical dates):** the `main` branch is protected by an active GitHub Ruleset `MLAD — main branch protection`, and automatic deletion of merged head branches is enabled. PR #37 introduced an always-present `ci-gate`: documentation-only changes must pass Markdown, security and model tests while heavy Rust/Windows jobs are expected to be skipped; application changes require successful `frontend-build`, `rust-tests` and Windows NTFS/Tauri checks via `workflow_call`. Failures, cancellations and unexpected skips must make `ci-gate` fail closed. At this reconciliation the Ruleset **still requires `frontend-build`, not `ci-gate`**; the owner must switch the required context separately after both scenarios are verified. GitHub Actions is **not** independent manual `UserSmoke=NOT RUN` or `OEMBench=NOT RUN` evidence. Both historical branch-pruning dispatches used `dry-run`; actual deletion requires a separate explicitly confirmed `delete` run. Historical Windows release and translation workflows should be archived only after checking release reproducibility and documentation links.
+
+## 14. Developer Preflight — ENG-03
+
+Unified commands from repository root (Node.js 22, Python 3, Rust/Tauri prerequisites):
+
+```bash
+npm run check:docs
+npm test
+npm run check
+npm run check:ci
+npm run check:quality
+```
+
+Docs; model and contract tests; frontend check; full local sequence with npm ci and Rust; separate fmt/clippy baseline respectively. Run sequentially, first error stops execution. Windows UserSmoke, NTFS acceptance and OEMBench remain independent. Formatting/lint are not mandatory gates until existing baseline issues are resolved. MLAD_PYTHON may specify Python path. Plan without execution: `node scripts/developer-preflight.mjs ci --plan`. CI tests the contract through test:community. Do not run concurrently against a changing worktree.
