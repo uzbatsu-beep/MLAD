@@ -1,13 +1,13 @@
 # MLAD — translation coverage / Покрытие переводом
 
-> **Status:** all 55 original Markdown documents have RU/EN companions (110 localized files). PR #32–#34 brought **55** companions to source-aligned/editorial status. This PR #35 batch reviews **three RU/EN interface pairs** (Graph Editor, multi-rung display, inline address editing) and the **English JSON persistence safety** document. Total **63 source-aligned or editorially reviewed**; **47 machine drafts** still require substantive editing. A translation review **is not** proof of OEM instruction behavior, actual Windows UserSmoke, transaction atomicity or controller write authorization. The original source remains authoritative.
+> **Current / Актуально:** 57 originals, 114 companions; 65 source-aligned/editorially classified, 49 MachineDraft. The two new documents are RU SourceAligned and EN MachineDraft; rewritten README/catalog are source-compared, not independently human-reviewed. / Два новых документа сверены по русскому оригиналу; английский требует редакторской проверки. Редакционный статус не доказывает OEM semantics, UserSmoke или право записи.
 
-> **Статус:** для всех 55 исходных Markdown-документов есть RU/EN-версии (110 языковых файлов). PR #32–#34 обеспечили **55** сверенных версий. В PR #35 проверены **три пары интерфейсных документов RU/EN** (Graph Editor, многоцепное отображение, inline-адреса) и **английская версия JSON persistence safety**. Итого **63 сверенных перевода** и **47 машинных черновиков**. Смысловая редактура **не** подтверждает реальное поведение OEM-инструкций, Windows UserSmoke, атомарность backup+target или право записи в робот. Исходный файл имеет приоритет.
-
-**Markdown sources:** 55. **RU/EN companions:** 110. **Total Markdown including this register:** 166. **Plus workflow-archive README:** 1 (167 Markdown total).
+**Markdown sources:** 57. **RU/EN companions:** 114. **Total Markdown including this register:** 172. **Plus workflow-archive README:** 1 (173 Markdown total).
 
 | Original / Оригинал | Русский | English | RU quality | EN quality |
 | --- | --- | --- | --- | --- |
+| [CHANGELOG.md](../CHANGELOG.md) | [Русский](../CHANGELOG.ru.md) | [English](../CHANGELOG.en.md) | SourceAligned | MachineDraft |
+| [docs/development/documentation-standard.md](development/documentation-standard.md) | [Русский](development/documentation-standard.ru.md) | [English](development/documentation-standard.en.md) | SourceAligned | MachineDraft |
 | [.github/PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md) | [Русский](../.github/PULL_REQUEST_TEMPLATE.ru.md) | [English](../.github/PULL_REQUEST_TEMPLATE.en.md) | MachineDraft | MachineDraft |
 | [ACCESSIBILITY.md](../ACCESSIBILITY.md) | [Русский](../ACCESSIBILITY.ru.md) | [English](../ACCESSIBILITY.en.md) | SourceAligned | MachineDraft |
 | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | [Русский](../CODE_OF_CONDUCT.ru.md) | [English](../CODE_OF_CONDUCT.en.md) | SourceAligned | MachineDraft |
@@ -73,9 +73,9 @@
 | PR #33 — CIOPRG, memory, TMR/CNT/GSTR/GOUT, native parsing, opcode syntax | **EditorialPass (6)** | **EditorialPass (8)** | Byte fidelity, numeric ranges, source examples, test/evidence states |
 | PR #34 — source registry, post-END, semantic AST, IONAME | **EditorialPass (4)** | **EditorialPass (4)** | Manufacturer evidence, source spans, no fabricated rung, no automatic IONAME mapping |
 | PR #35 — [Graph Editor](graph_editor.md), [Multi-rung UI](ui_multi_rung_state.md), [Inline editing](inline_address_editing.md), [JSON safety](json_persistence_safety.md) | **EditorialPass (3)**; JSON safety already SourceAligned | **EditorialPass (4)** | Only JSON is editable; tri-state is OFFLINE; WebView2 UserSmoke separate; staged JSON is not a backup+target atomic transaction |
-| Remaining / Остальные | **MachineDraft (14)** | **MachineDraft (32)** | Full bilingual semantic editing still required |
+| Remaining / Остальные | **MachineDraft (14)** | **MachineDraft (35)** | Full bilingual semantic editing still required |
 
-**Totals / Итого:** **55 originals / 110 companions**; **28 RU SourceAligned + 13 RU EditorialPass + 22 EN EditorialPass = 63 reviewed**, **47 MachineDraft** (14 RU + 33 EN). Table groups overlap on the **same source documents**, but **each localized language file is counted only once**.
+**Totals / Итого:** **57 originals / 114 companions**; **30 RU SourceAligned + 13 RU EditorialPass + 22 EN EditorialPass = 65 reviewed**, **49 MachineDraft** (14 RU + 35 EN). Table groups overlap on the **same source documents**, but **each localized language file is counted only once**.
 
 **Review levels / Уровни проверки:** `MachineDraft` → `SourceAligned` → `EditorialPass` → `EngineeringVerified` → `OEMBenchVerified`. An `EditorialPass` checks translation/source fidelity; **it does not certify a controller, confirm WebView2 execution, eliminate TOCTOU or authorize a native writer**. / Смысловая сверка перевода **не** является аппаратным допуском.
 

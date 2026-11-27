@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-ROOT_DOCS=("README.md","ACCESSIBILITY.md","CONTRIBUTING.md","SECURITY.md","CODE_OF_CONDUCT.md",".github/PULL_REQUEST_TEMPLATE.md")
+ROOT_DOCS=("README.md","CHANGELOG.md","ACCESSIBILITY.md","CONTRIBUTING.md","SECURITY.md","CODE_OF_CONDUCT.md",".github/PULL_REQUEST_TEMPLATE.md")
 NAV_START="<!-- MLAD-I18N:NAV:START -->"
 NAV_END="<!-- MLAD-I18N:NAV:END -->"
 NAV_RE=re.compile(re.escape(NAV_START)+r"[\s\S]*?"+re.escape(NAV_END)+r"\n*",re.M)

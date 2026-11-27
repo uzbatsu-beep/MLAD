@@ -2,136 +2,31 @@
 > 🌐 **Язык / Language:** [Русский](project_status.ru.md) · [English](project_status.en.md) · [Original / Исходный текст](project_status.md). **Machine translation / Машинный перевод: editorial review required / необходима редакторская проверка.**
 <!-- MLAD-I18N:NAV:END -->
 
-> **Подтверждённое состояние (21.11.2026):** `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe` (CI SUCCESS), опубликован `v0.5.0-rc.10-unified-offline` из отдельного проверенного коммита. PR #40–#48 слиты, не являются ожидающими Draft. Sidecar v1, единый `*.mladproj.json`, ограниченный READ/WRITE/UNKNOWN и Windows Preview реализованы; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Native writer, `HSES`/`FTP` — `BLOCKED`. [Аудит Git](repository_audit_2026-11-21.md).
+# MLAD — фактическое состояние
 
-# MLAD — фактическое состояние после PR #39
+Сверено 27.11.2026 по main `39137a60f68041ed1b4e65d2c3fcdf3518dff3d8`, PR #52 merged. Runtime базис: PR #51, [CI merge commit](https://github.com/uzbatsu-beep/MLAD/actions/runs/45813397360) SUCCESS. Последняя опубликованная сборка: [rc.10](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.10-unified-offline) — отдельный release, не содержит последующий Semantic Core v2. Не путать main, CI artifact и release.
 
-**GitHub baseline:** `main` @ `066db5f8c01a9da8f5f0218f12539b305ab021e4`, состояние после слияния [PR #39](https://github.com/uzbatsu-beep/MLAD/pull/39) (19.11.2026); PR #1–#39 слиты. [CI PR #39](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321): `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` = **SUCCESS** на HEAD PR, не отдельная аттестация merge commit.
+## Реализовано
 
-**Последний опубликованный Windows release:** [`v0.5.0-rc.9-oem-reference`](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (17.11.2026); не содержит PR #24–#39. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
-
-## 1. Продукт и безопасность
-
-MLAD — локальная OFFLINE/BENCH среда `DX100`/`DX200`/`YRC1000` для анализа `CIOPRG.LST` и `IONAME.DAT`. Оба исходных файла immutable read-only; JSON-черновики не являются контроллерными программами. `HSES`/`FTP`, native writer, live monitoring, robot deployment — **BLOCKED**. `PART 1/2` не устанавливает права System/User. `OEMBenchVerified` отсутствует.
-
-## 2. Функции, присутствующие в main
-
-| Компонент | Подтверждённый функционал | Ограничение |
-| --- | --- | --- |
-| Native source inspector | Работает: байты, SHA-256, постраничный просмотр и поиск | Не полная OEM grammar |
-| Native Workspace | Встроен в главное окно, раздельный source/diagrams/blocks/IONAME | Cross-navigation/large-file UX частично |
-| Boolean AST | Распознанные булевые цепи, diagnostics и локальная tri-state оценка | Не контроллерный scan |
-| Typed data candidates | MOV/ADD/SUB/SHL/SHR и source-order M links | EN/flags/dataflow не подтверждены |
-| JSON draft editor | Graph/Advanced/legacy JSON отдельно от native | Portable sidecar отсутствует |
-| Local annotations | localStorage, IONAME read-only с ручными associations | Не гарантирован перенос/backup |
-| Filesystem safety | Bounded reads, CSP, File ID/hardlinks, staged JSON+backup | ACL/TOCTOU/crash risks |
-| GitHub Actions | PR39: 5 заданий SUCCESS на его HEAD | Не UserSmoke/bench; Ruleset требует только frontend-build |
-
-## 3. Независимые статусы проверки
-
-| Gate | Статус | Основание |
-| --- | --- | --- |
-| `SyntheticTested` | **PASS (subset)** | Rust/TS/Node tests на PR #39 HEAD; не OEM fixtures |
-| `WindowsCI` | **PASS (PR #39 HEAD)** | [Actions run](https://github.com/uzbatsu-beep/MLAD/actions/runs/44571515321) |
-| `UserSmoke` | **NOT RUN** | Нет независимого WebView2 Windows 10/11 протокола |
-| `OEMBenchVerified` | **NOT RUN** | Нет протокола точной модели/firmware/результатов |
-| `Authorized native writer` | **BLOCKED** | Не подтверждены grammar/System/User/round-trip |
-| `Authorized HSES/FTP/deployment` | **BLOCKED** | Отдельного допуска нет |
-
-## 4. Открытые технические задачи
-
-1. **Parser fidelity:** `SYNTHETIC` корпус и coverage отсутствуют как самостоятельный проверяемый артефакт; `unknown`/`opaque` не считать распознанной логикой.
-2. **Native UX:** `source↔rung↔block↔diagnostic` переходы и удобство больших файлов частичны; подсказка `Byte offset` отображает номер строки вместо byte offset.
-3. **Data safety:** `check→rename` TOCTOU, Windows ACL, `*.bak` + target atomicity, concurrent writer/crash risks — **OPEN**.
-4. **Dependencies:** `suppaftp` остаётся в Cargo.toml без используемого runtime; нужна отдельная ревизия.
-5. **Workflow governance:** активный Ruleset `MLAD — main branch protection` требует `frontend-build`, но не `ci-gate`; изменение настройки требует явного решения владельца.
-6. **Product roadmap:** `*.mlad.json`, расширенная OEM grammar и единая IDE пока не реализованы.
-
-## 5. Следующая очередь
-
-**PR #40:** Native CIOPRG Parser Fidelity / Coverage, начало с документационного baseline в Draft PR. **PR #41–#47:** UX, security, portable sidecar, typed grammar, static analysis, Unified IDE и условный offline release. Готовность PR #40 не определяется одним изменением Markdown.
-
-[Roadmap v4](roadmap.md) · [План PR #40+](implementation_plan.md) · [Verification gates](verification_gates.md) · [Security risk review](filesystem_security_pr29.md) · [Протокол ручной приёмки](windows_acceptance_pr28.md).
-
-## Проверяемое изменение статуса — PR #41 (20.11.2026)
-
-PR #40 уже слит как документация, без внедрения парсера. В Draft PR #41 добавлены синтетический корпус CIOPRG, полная покомпонентная классификация физических строк и отображение исходных byte spans в Native Workspace. Это состояние ветки разработки, а не внедрение в main и не проверка реального контроллера. Фактическое принятие PR #41 требует завершения Linux/Windows CI и согласия владельца на merge.
-
-Отдельные статусы: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP/native writer/deployment **BLOCKED**. Старый опубликованный rc.9 не включает PR #40/#41. Настройки required checks Ruleset не менялись.
-
-## Текущая ветка разработки: PR #42 — Native Workspace UX v2
-
-PR #41 Parser Fidelity слит в `main` `0c1b233354564d9fd3c242675a78a45417feacc1`. Новый PR #42 создан как Draft и пока не входит в main. В ветке разработаны переходы source↔rung/block/diagnostic, выбор одной схемы, клавиатурная навигация, серверный постраничный фильтр по `SyntaxClass`, opcode и адресу с контролем SHA-256.
-
-Доказательство CI должно относиться к финальному HEAD PR #42. Любой успешный CI не равен ручной Windows проверке WebView2 и OEM bench. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; CIOPRG.LST/IONAME.DAT read-only; HSES/FTP, native writer и deployment **BLOCKED**. Публичный Windows Release для данного изменения не выпускался.
-
-## Текущая разработка: PR #43 (20.11.2026)
-
-PR #42 Native Workspace UX v2 слит в `main` SHA `73e675f7df33c5751a35e29752736c3470b11b31`; PR #43 — отдельный Draft, пока не находится в `main`. Реализованы owner-only `0600` для новых Unix staged JSON/backup, `verify_single_link` перед переименованием временного файла, проверка File ID при уборке staged-файла и удаление неиспользуемого `suppaftp` с пятью эксклюзивными транзитивными пакетами из `Cargo.lock`, а также исключение прямых неиспользуемых `anyhow` / `futures-util` из манифеста и root lock dependencies. Добавлены синтетические положительные/отрицательные тесты и offline-security проверки.
-
-**Критерии доказанности:** окончательные результаты Linux Rust/frontend, Windows NTFS/Tauri и `ci-gate` подтверждать строго по SHA финального HEAD; пока отчёт не принят, PR остаётся Draft. Отдельного аудита всех npm/Rust CVE и лицензий этот PR не заменяет. Риски родительского `check→rename` TOCTOU, Windows ACL/owner, согласованной записи `*.bak` и target, конкурентной записи и power-loss recovery — OPEN.
-
-`CIOPRG.LST`/`IONAME.DAT` строго read-only; `HSES/FTP`, native writer и deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; Windows Release не выпускался.
-
-## Фактическое состояние разработки — PR #44 (20.11.2026)
-
-PR #43 слит в `main` `c36dc4bc4f84b3dfdb2eac52625c3c0389226320`. PR #44 — новый Draft, **не слит**. Создан отдельный формат `*.mlad.json` / `MLAD_OFFLINE_SIDECAR` версии `schema_version=1`: привязка к SHA-256 и метаданным оригинала, комментарии по цепям/адресам/IONAME, закладки физических строк. Поддержаны load/save в Native Workspace и отдельные backend IPC `cmd_load_offline_sidecar` / `cmd_save_offline_sidecar`. Старый JSON editor запрещает запись `*.mlad.json`; нативные файлы не копируются и не изменяются.
-
-Сохранение использует `revision` и существующий staged JSON/`*.bak`; открытый источник перечитывается только для проверки SHA-256/профиля. Тесты фиксируют валидную схему, отказы при изменении исходника и sidecar, защиту источника и корректное сохранение комментариев/закладок. Результаты CI публиковать строго по окончательному HEAD; разработка в Draft сама по себе не означает release.
-
-Остаточные риски файловой системы из PR #43 остаются OPEN. `CIOPRG.LST`/`IONAME.DAT` read-only, native writer, FTP/HSES, live I/O, robot deployment **BLOCKED**. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; Windows-релиз для PR #44 не выпускался.
-
-## Разработка в PR #45 — расширенная грамматика YRC1000 R12 (20.11.2026)
-
-PR #44 portable sidecar слит в `main` SHA `48522c1e2d0ee41560ce61ba0d2aa8af14e1c6d8`. PR #45 открыт как **Draft и не слит**. Реализованы 15 новых синтаксических кандидатов `MUL/DIV/MOD/BIN/BCD/WAND/WOR/WXOR/WNOT/ROL/ROR/BMOV/CMP/PLS/PLF` на основании YRC1000 Concurrent I/O R12 §§12.2.15–34. Все они `TypedCandidate`, даже при `syntax_valid=true` выставляется `semantics_verified=false` и не создаётся исполняемый AST. Подробные границы — `docs/typed_opcode_grammar.md`, источники — `docs/source_registry.md`.
-
-В ветке — Rust positive/negative synthetic tests и исходные byte spans; изменение F10 `BMOV`→`BMOX` сделано с точным SHA-256, так как `BMOV` теперь документирован. В Native Workspace справка OEM для всех новых форм содержит разделы руководства и не показывает расчёт реальных флагов или живых значений. Расширенные формы в DX100/DX200 не объявлены доказанными; для YRC1000 речь только о документации, не об OEMBench.
-
-Результаты `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` должны относиться к окончательному SHA. CI не заменяет ручной Windows UserSmoke и OEM аппаратный тест: `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. `CIOPRG.LST`/`IONAME.DAT` read-only; HSES/FTP/native writer/deployment **BLOCKED**. Публичный Windows Release для PR #45 не выпускался.
-
-## PR #46 — source-linked static READ / WRITE / UNKNOWN (20.11.2026)
-
-PR #45 расширенной OEM-грамматики слит в `main` SHA `12f00f4b4fb6879dc0e3ae478aaf8b6d33553139`. PR #46 открыт как **Draft, не слит**. Новый `static_access` — самостоятельный синтаксический аудит ролей `READ`/`WRITE`/`UNKNOWN` с идентификатором снимка, физической строкой и абсолютным byte span. READ/WRITE не означают фактическую передачу данных или разрешение изменения выхода; в неопределённых случаях доступ `Unknown`.
-
-Выполнена интеграция Native Workspace: счётчики всего файла, ограниченный preview, фильтрация вида доступа и точного адреса, 100 результатов/страницу, переход к исходнику с проверкой SHA-256. Отдельные синтетические Rust/IPC/Node тесты проверяют неподтверждённые семейства, неизменность `CIOPRG.LST`, отказ при смене SHA, отсутствие пост-END-операций и отбрасывание числовых констант как memory events. Результаты CI отражать только по конечному SHA и не считать UserSmoke/OEMBench.
-
-В явном виде `execution_verified=false`, `scan_order_verified=false`, `address_aliases_verified=false`, `write_permission_verified=false`, `native_write_allowed=false`. `IONAME.DAT` остаётся read-only. HSES/FTP/live I/O/native writer/deployment **BLOCKED**; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`. Выпуска Windows Release или слияния PR #46 не производилось.
-
-## PR #47 — единый офлайн-проект и согласованное восстановление (20.11.2026)
-
-PR #46 принят и слит в `main` SHA `39197458dac01045b30f9ac5a810720c729e2a65`. PR #47 — самостоятельный **Draft, не слит**. Реализованы манифест `*.mladproj.json`, `MLAD_OFFLINE_PROJECT` версии 1, безопасное чтение/проверка SHA-256 исходного `CIOPRG.LST`, необязательного `IONAME.DAT` и отдельного `*.mlad.json` sidecar. Сводка анализа перегенерируется при открытии из проверенного исходника, прежняя сводка используется только для сигнала `analysis_changed`. Существующий формат sidecar v1 не изменялся.
-
-В Native Workspace открытие проекта формирует общий источник, IONAME, sidecar, комментарии, закладки и read-only отчёты одного снапшота; манифест сохраняется отдельной командой с `revision` и `*.bak`. Несохранённые заметки/закладки блокируют запись манифеста; несоответствия вложений блокируют открытие без частичной замены текущей сессии. Манифест не хранит OEM-байты, абсолютные пути, IP/секреты. Для переносимости все копии исходников нужно разместить внутри папки проекта — MLAD их не копирует и не меняет.
-
-Тесты и CI подтверждаются исключительно на окончательном SHA PR. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; реальная схема System/User, execution/scan и write permissions не верифицированы. Native `CIOPRG.LST`/`IONAME.DAT` read-only; FTP/HSES/live I/O/native writer/deployment **BLOCKED**. Windows release PR #47 не опубликован. Остаточные TOCTOU/Windows ACL и атомарность сохранения нескольких файлов остаются OPEN.
-
-## PR #48 — Windows Offline Preview и UserSmoke (20.11.2026)
-
-PR #47 слит в `main` SHA `e72a51f8ea69466e716fb268a62b1cf1bd38d6f2`. PR #48 открыт как **Draft, не слит**. Подготовлена отдельная Windows x64 сборка с неподписанным EXE, синтетическим переносимым `MLAD_OFFLINE_PROJECT`, SHA-256 как каждого вложения, так и ZIP, GPL-3.0-only лицензией и исходниками точного коммита. GitHub Actions публикует только ограниченный по сроку artifact **NOT a Release**. `SYNTHETIC-SHA256.json` не является OEM-подтверждением, `build-evidence.json` честно сообщает неиспытанные сценарии.
-
-Фактические CI run и конечный HEAD указывать только после повторной проверки `scope`, `frontend-build`, `rust-tests`, `windows-security`, `ci-gate` и отдельного Preview job на одном SHA. Ручная матрица `P48-01`…`P48-17` — `docs/windows_offline_preview_pr48.md`. GUI UserSmoke без запуска на отдельном Windows/WebView2 компьютере: `UserSmoke=NOT RUN`; аппаратные тесты `OEMBench=NOT RUN`. Нативные `CIOPRG.LST`/`IONAME.DAT` read-only; `FTP`/`HSES`, native writer и deployment `BLOCKED`. Merge/Windows Release не выполнялись.
-
-## Утверждённое направление Roadmap v5 (26.11.2026)
-
-PR #49 слит в `e291d414f2440e2e407c1e0fdadc248de3d9dc80`. Roadmap v5 (стратегия C) утверждена владельцем; M0–M21 и V5-01…15 — актуальный план. Исторические записи выше не являются очередью. Этот документационный PR не реализует новое ядро, интерфейс, диагностику и не публикует релиз.
-
-`CIOPRG.LST` и `IONAME.DAT` остаются read-only. `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN` до независимых доказательств. JSON-черновики не программы контроллера. Публичные fixtures синтетические или явно разрешённые; без закрытых производственных файлов и хешей.
-
-[Roadmap v5](roadmap.md) · [Implementation plan](implementation_plan.md).
-
-## Semantic Core v2 — V5-02 / PR #51
-
-Стратегия B: модульная эволюция без второго парсера. Модуль `src-tauri/src/engineering/mod.rs` объединяет существующие lossless, semantic, advanced_source, native_sections, typed_dataflow и static_access в одну read-only проекцию. Булевый DAG остаётся существующим IR; независимые доказательства ролей и гипотезы dataflow не смешиваются с исполнением. Старые поля отчёта сохраняются для поэтапного перехода потребителей; это не обещание долгосрочной совместимости.
-
-| Контракт | Назначение |
+| Компонент | Статус и пределы |
 | --- | --- |
-| SourceIdentity | SHA-256 исходных байтов, семейство контроллера, размер, число физических строк. Firmware/расширенные профили — V5-03. |
-| SourceSpan / RungReference | Физические строки с единицы, диапазон байтов [start, end), детерминированный ID в пределах снимка и семейства. ID не является ключом сравнения разных версий. |
-| EngineeringCore | schema_version=1, число цепей, ограниченные ссылки предпросмотра, явный признак truncation и Evidence. |
-| Evidence | Полнота только поддерживаемого булева подмножества, число неподдерживаемых сегментов; исполнение, порядок сканирования и запись не подтверждены. |
+| Lossless native parser | Неизменные байты, SHA-256, физические строки, unknown/post-END |
+| Controller memory | DX100/DX200/YRC1000; неполное OEM/firmware покрытие |
+| Semantic Core v2 | Единый фасад, версия IPC 1, SourceIdentity и spans; 200 rung refs preview |
+| Static analysis | READ/WRITE/UNKNOWN; гипотезы dataflow, не исполнение |
+| Native Workspace | Source, Ladder, blocks, IONAME, search и навигация |
+| JSON drafts | Graph/Advanced, tri-state и поддерживаемые формы |
+| Offline project | `*.mladproj.json`, `*.mlad.json` v1; SHA и относительные пути |
+| Filesystem | Staged write, backup, File ID, ограничения путей; остаточные ACL/TOCTOU/multifile recovery открыты |
 
-`src/engineering/types.ts` определяет общие DTO. `src/engineering/contracts.ts` проверяет соответствие версии, идентичности, диапазонов, ссылок и ограничений перед принятием отчёта и при открытии native-источника, и при открытии переносимого проекта. `src/components/EngineeringSummary.tsx` показывает снимок, контроллер, количество цепей и неизвестных сегментов, состояние анализа и переходы к исходнику/Ladder; технические показатели раскрываются отдельно. Это не новая оболочка IDE, не полноценный Signal Index и не live I/O.
+## Запланировано
 
-Тесты: повторяемость ID, смена семейства/байтов, точные mixed-EOL spans, unknown/post-END, пустой источник, ограничение 200 цепей, сериализация, несовместимая версия/снимок, некорректные ссылки и ложные утверждения о верификации. CI выполняет контрактные Node-тесты и существующие Rust/Windows/frontend проверки. До результатов CI и ручного протокола соответствующие статусы не считаются PASS. Полная виртуализация цепей, индексирование, кэширование, детальная модель firmware и компоновки — последующие этапы V5-03…07.
+PR #52 утвердил UI; реализация новых компоновок ещё не начата. Следующие стабильные задачи V5-03 Controller Profiles, V5-04 Signal Index, V5-05 UI Foundation, V5-06 Workspace, V5-07 Ladder Viewer, V5-08 Inspector. Номера PR ориентировочные. [Roadmap](roadmap.md), [план](implementation_plan.md).
 
-`CIOPRG.LST` и `IONAME.DAT` read-only; `HSES`/`FTP`, native writer и deployment остаются `BLOCKED`; `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`.
+## Верификация и ограничения
+
+`CIOPRG.LST` и `IONAME.DAT` read-only. HSES/FTP, native writer, live I/O и deployment BLOCKED. UserSmoke=NOT RUN; OEMBench=NOT RUN. OEM scan, права System/User и полная семантика не доказаны. Синтетические fixtures не загружать на робота.
+
+## История и источники
+
+[Архитектура](architecture.md) · [Критерии](verification_gates.md) · [Аудит 21.11](repository_audit_2026-11-21.md) · [CHANGELOG](../CHANGELOG.md). Все прежние детальные записи PR #1–#51 сохранены в [неизменяемом срезе](https://github.com/uzbatsu-beep/MLAD/blob/0754dea0d37f5fbc45c795008b60fe69e6c8b08f/docs/project_status.md). Не дублировать их здесь; обновлять только актуальное состояние.
