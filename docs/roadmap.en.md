@@ -98,3 +98,43 @@ R-01…R-11: real CIOPRG, IONAME, memory/firmware, OEM semantics, engineering ID
 Tentative versions: 0.5.x foundation; 0.6.x core/workspace; 0.7.x intelligence; 0.8.x compare/history; 0.9.x lab/test; 0.10.x documentation/fleet; 0.11.x AI; 1.0.0 stable offline. Separate consent for each release and merge.
 
 [Implementation plan](implementation_plan.en.md) · [Architecture](architecture.en.md) · [Decisions](engineering_decisions.en.md) · [Verification gates](verification_gates.en.md).
+
+## 7. Approved UI concept — 26 November 2026
+
+The owner approved UI-stream strategy B (parallel design), a hybrid of modern IDE and industrial engineering interface, configurable density, all eight layouts in section 4, color themes and accent palettes. Overall product strategy C (D10) is unchanged. See D16–D20 in the decision register.
+
+### 7.1. Shell and workspace layouts
+
+Menu Bar: File, Edit, View, Analyze, Tools, Help. A narrow vertical Activity Bar switches specialized layouts. Project Explorer on the left, central Editor Area with Editor Tabs, Inspector on the right, Bottom Panel for diagnostics, Cross Reference, Watch Table and log, Status Bar below. Panels resize, hide and restore; maximize the work area. Switching layouts retains the open project, snapshot, selection and unsaved drafts. All eight layouts in section 4 are required as their modules become available; a ninth capability, Custom Workspace, saves a named user preset. Unimplemented functions are explicitly unavailable, with no fabricated results.
+
+### 7.2. Design system
+
+| Token / preference | Approved direction |
+| --- | --- |
+| Theme | Dark / Light; shared semantic tokens for background, surface, borders, text, selection and focus. |
+| Dark reference | #151e28, #1c2632, #263341, #3b4959, #e3eaf2 |
+| Light reference | #ffffff, #eef2f6, #e1e7ee, #c1cbd7, #253344 |
+| Engineering Blue | #5794dc |
+| Industrial Teal | #27a99a |
+| Nordic Slate | #738ca5 |
+| Graphite Purple | #8d80ce |
+| Industrial Amber | #c48a4c |
+| Muted Rose | #b16e93 |
+| Density | Compact / Standard / Comfortable; user selection and persistence. |
+| TRUE / FALSE / UNKNOWN / UNSUPPORTED | #27965e / #d35454 / #87929e / #d8a247 — meaning independent of accent; text and shape reinforce color. |
+
+Color values are approved visual references, not proof of contrast for every pairing; shades may be adjusted for legibility while preserving meaning. SELECTED is a separate outline/accent, not a signal state. Theme, accent, density, language and layout preferences persist locally apart from project data; restoring defaults does not modify source or drafts.
+
+### 7.3. Additional UI capabilities
+
+| ID | Capability | Plan |
+| --- | --- | --- |
+| UI-21 | Custom Workspace | Named user presets building on UI-13; V5-06. |
+| UI-22 | Navigation History | Back/forward through snapshot context; V5-06, expansion V5-07/08/09. |
+| UI-23 | Zen Mode | Focus on work area, restore prior layout; V5-06 (extends UI-18). |
+| UI-24 | Minimap | Navigation in large programs, not a second full render; after V5-07, P1. |
+| UI-25 | Pin Inspector | Pin a signal card with explicit snapshot identity; V5-08. |
+| UI-26 | UI Density | Compact / Standard / Comfortable; V5-05. |
+| UI-16 | Command Palette | Available-command registry and contextual search; foundation V5-06, expand with modules, P1. |
+
+All other UI-01–20 and M0–M21 requirements are retained. Keyboard bindings, exact sizes, font and specific components are implementation decisions to validate on Windows. UI development does not enable online features.
