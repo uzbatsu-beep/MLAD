@@ -17,7 +17,14 @@
     "test:native": "node --test scripts/native-workspace.test.mjs",
     "test:diagnostics": "node --experimental-strip-types --test src/ladder/diagnosticsModel.test.ts",
     "test:oem-reference": "node --experimental-strip-types --test src/ladder/oemReference.test.ts",
-    "test:community": "node --test scripts/community-standards.test.mjs"
+    "test:community": "node --test scripts/community-standards.test.mjs scripts/developer-preflight.test.mjs",
+    "test:engineering": "node --experimental-strip-types --test src/engineering/contracts.test.ts",
+    "test:preflight": "node --test scripts/developer-preflight.test.mjs",
+    "test": "node scripts/developer-preflight.mjs test",
+    "check:docs": "node scripts/developer-preflight.mjs docs",
+    "check": "node scripts/developer-preflight.mjs check",
+    "check:ci": "node scripts/developer-preflight.mjs ci",
+    "check:quality": "node scripts/developer-preflight.mjs quality"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
