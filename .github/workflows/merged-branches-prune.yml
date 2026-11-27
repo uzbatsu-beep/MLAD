@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Preview or explicitly delete merged PR head branches"
+        description: "Preview or explicitly delete merged PR head branches (release branches excluded)"
         required: true
         type: choice
         options:
@@ -68,6 +68,7 @@ jobs:
             const activeBases = new Set(open.map(p => p.base.ref));
             const safe = branches.filter(b =>
               b.name !== "main" &&
+              !b.name.startsWith("release/") &&
               !b.protected &&
               !activeHeads.has(b.name) &&
               !activeBases.has(b.name) &&
@@ -96,7 +97,7 @@ jobs:
                 const latest = await github.rest.repos.getBranch({
                   owner, repo, branch: b.name,
                 });
-                if (latest.data.commit.sha !== b.commit.sha || latest.data.protected) {
+                if (latest.data.commit.sha !== b.commit.sha || latest.data.protected || b.name.startsWith("release/")) {
                   throw new Error("Changed branch; refusing deletion: " + b.name);
                 }
                 await github.rest.git.deleteRef({
