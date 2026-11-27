@@ -71,3 +71,9 @@
 ## 6. Актуальный релизный gate после PR #29
 
 Готовность `main` (PR #1–#29 merged, CI SUCCESS) **не** равна завершённому лицензированию дистрибутива. Последний опубликованный Windows rc.9 собран до PR #24–#29; новые temporary unsigned CI artifacts не являются релизами. Для будущей версии 0.6.x отдельно требуются GPL source archive точного tag, third-party notices/license/SBOM review, Windows code-signing status, source asset/hash integrity и решение владельца о публикации. Договорные права на материалы Yaskawa/клиентов из лицензии MLAD не следуют. [Current status](project_status.ru.md) · [Release gates](verification_gates.ru.md).
+
+## 7. ENG-03 — инвентарь зависимостей (27.11.2026)
+
+Срез `39137a60f68041ed1b4e65d2c3fcdf3518dff3d8`: npm lock — 182 записи зависимостей (150 MIT, 13 Apache-2.0 OR MIT, 2 Apache-2.0, 1 CC-BY-4.0, 14 ISC, 2 BSD-3-Clause); у всех заполнены integrity, resolved ведёт к npm registry. Cargo lock — 445 package records, 444 registry с checksum, 1 локальный пакет; 41 имя встречается в нескольких версиях. Это записи lockfile, не количество фактически распространяемых библиотек. CC-BY-4.0: node_modules/caniuse-lite 1.0.30001826; проверить применимость атрибуции и notices. SPDX-метаданные не доказывают лицензионную совместимость и происхождение.
+
+`scripts/dependency-inventory.py` собирает идентификаторы, SHA-256 lockfiles, лицензии npm и Rust metadata, неизвестные поля; тестирует отсутствие ложного PASS. Отдельный workflow dependency evidence: npm audit, RustSec cargo-audit 0.22.2, cargo metadata с --locked, JSON evidence и коды выхода. Не исправляет зависимости автоматически; advisories, ошибки инструмента и license review разбираются отдельно. Первый запуск и правовая сверка ещё не завершены. Проверка Rust лицензий, third-party notices, SBOM и происхождение ресурсов остаются открытыми. HSES/FTP, native writer и deployment BLOCKED; UserSmoke=NOT RUN, OEMBench=NOT RUN.

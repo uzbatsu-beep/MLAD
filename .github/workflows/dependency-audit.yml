@@ -1,0 +1,94 @@
+name: MLAD dependency evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '21 5 * * 1'
+  pull_request:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - src-tauri/Cargo.toml
+      - src-tauri/Cargo.lock
+      - scripts/dependency-inventory.py
+      - scripts/dependency_inventory_test.py
+      - .github/workflows/dependency-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test inventory and report committed locks
+        run: |
+          python3 scripts/dependency_inventory_test.py
+          mkdir -p evidence
+          python3 scripts/dependency-inventory.py > evidence/lock-inventory.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-lock-inventory
+          path: evidence/
+          if-no-files-found: error
+  npm-advisories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit exact npm lock, no install scripts or fixes
+        shell: bash
+        run: |
+          mkdir -p evidence
+          set +e
+          npm audit --package-lock-only --json > evidence/npm-audit.json 2> evidence/npm-audit.stderr
+          rc=$?
+          set -e
+          printf '%s\n' "$rc" > evidence/npm-audit.exit
+          node -e 'const r=require("./evidence/npm-audit.json"); if(r.error || !r.metadata || !r.metadata.vulnerabilities) process.exit(2); console.log(r.metadata.vulnerabilities)'
+          git diff --exit-code -- package.json package-lock.json
+          exit "$rc"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-advisory-evidence
+          path: evidence/
+          if-no-files-found: error
+  rust-advisories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Collect license metadata for committed Rust lock
+        run: |
+          mkdir -p evidence
+          cargo metadata --locked --manifest-path src-tauri/Cargo.toml --format-version 1 > "$RUNNER_TEMP/cargo-metadata.json"
+          python3 scripts/dependency-inventory.py --cargo-metadata "$RUNNER_TEMP/cargo-metadata.json" > evidence/dependency-licenses.json
+          git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock
+      - name: Install pinned RustSec audit CLI
+        run: cargo install cargo-audit --version 0.22.2 --locked
+      - name: Audit committed Cargo.lock
+        shell: bash
+        run: |
+          mkdir -p evidence
+          set +e
+          cargo audit --file src-tauri/Cargo.lock --json > evidence/rust-audit.json 2> evidence/rust-audit.stderr
+          rc=$?
+          set -e
+          printf '%s\n' "$rc" > evidence/rust-audit.exit
+          python3 -c 'import json; r=json.load(open("evidence/rust-audit.json")); assert "vulnerabilities" in r; print(r["vulnerabilities"].get("count"))'
+          exit "$rc"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rust-advisory-and-license-evidence
+          path: evidence/
+          if-no-files-found: error
