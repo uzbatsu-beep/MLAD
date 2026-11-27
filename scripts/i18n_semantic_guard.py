@@ -16,6 +16,8 @@ from i18n_translate import ROOT, localized, sources, strip_nav
 # Russian originals copied without machine paraphrase; only local .md links
 # were pointed at corresponding .ru.md variants.
 SOURCE_ALIGNED_RU = {
+    "CHANGELOG.md",
+    "docs/development/documentation-standard.md",
     "README.md",
     "docs/README.md",
     "SECURITY.md",
@@ -155,8 +157,8 @@ def main() -> None:
     drafts = 0
     found = sources()
 
-    if len(found) != 55:
-        failures.append(f"source inventory changed: expected 55, found {len(found)}; update review register")
+    if len(found) != 57:
+        failures.append(f"source inventory changed: expected 57, found {len(found)}; update review register")
 
     for src in found:
         original = strip_nav((ROOT / src).read_text(encoding="utf-8"))
@@ -224,7 +226,7 @@ def main() -> None:
 
     if SOURCE_ALIGNED_RU - {p.as_posix() for p in found}:
         failures.append("review register lists missing Russian sources")
-    if (count_ru, count_ru_editorial, count_en, drafts) != (28, 13, 22, 47):
+    if (count_ru, count_ru_editorial, count_en, drafts) != (30, 13, 22, 49):
         failures.append(f"incorrect review totals: ru_source={count_ru}, ru_editorial={count_ru_editorial}, en={count_en}, drafts={drafts}")
 
     if failures:

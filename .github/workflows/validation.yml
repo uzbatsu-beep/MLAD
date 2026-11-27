@@ -111,6 +111,8 @@ jobs:
         run: git diff --exit-code -- package.json package-lock.json
       # All Node model/safety/community tests are dependency-free and cheap:
       # run them even for docs-only PRs to preserve non-Rust safety coverage.
+      - name: Governance and branch cleanup contract
+        run: node --test scripts/maintenance-contract.test.mjs
       - name: GitHub Community Standards and Issue Form contract
         run: npm run test:community
       - name: Offline controller safety invariants

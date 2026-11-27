@@ -1,99 +1,62 @@
-<!-- MLAD-I18N:EDITORIAL:reviewed 2026-11-19 against README.md -->
+<!-- MLAD-I18N:EDITORIAL:source-aligned Russian; 2026-11-27 -->
 > **Язык / Language:** [Русский](README.ru.md) · [English](README.en.md) · [Исходный текст / Original](README.md)
->
-> **Область применения:** перевод сохраняет исходные технические обозначения и ограничения. При расхождении приоритет имеет исходная спецификация и официальная документация производителя. Наличие перевода не подтверждает OEM-совместимость или право записи в контроллер.
-
-> **Roadmap v5 (26.11.2026, утверждена владельцем):** стратегия C, M0–M21, Semantic Core v2, специализированные рабочие компоновки, Signal Intelligence, Compare, Virtual Lab, Trace & Test, Documentation, Fleet и AI. [Актуальная дорожная карта](docs/roadmap.ru.md) · [План V5-01…15](docs/implementation_plan.ru.md) · [Решения D10–D15](docs/engineering_decisions.ru.md). Это план, не заявление о реализации новых функций. Срезы v3/v4 ниже исторические.
-
-> **Актуальная сверка (21.11.2026):** подтверждён `main` `9fcd11d61856c8a559d9acf3c77bd662ad814dfe`, опубликован Windows pre-release `v0.5.0-rc.10-unified-offline`. `UserSmoke=NOT RUN`, `OEMBench=NOT RUN`; `HSES`/`FTP`, native writer и deployment — `BLOCKED`. [Актуальный аудит Git](docs/repository_audit_2026-11-21.ru.md).
-> **Хронология:** прежние ссылки на rc.9 и PR #29 ниже описывают старые срезы, а не сегодняшнее состояние.
 
 # MLAD — Motoman Ladder Analysis & Draft IDE
 
-**Исторический срез репозитория (18.11.2026):** [main](https://github.com/uzbatsu-beep/MLAD) @ `f85ddfcce3063dd087425be981a9d2b7a16d6309`; **PR #1–#29 merged**. [Linux CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759454), [Windows CI SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44373759621). Последний опубликованный Windows релиз — **rc.9**, он **не включает PR #24–#29**. Документационная актуализация — [roadmap v3](docs/roadmap.md), [полный статус](docs/project_status.md); ручной WebView2/OEM bench **NOT RUN**.
+**Офлайн-среда инженера для анализа Yaskawa Motoman Concurrent I/O.** Независимый проект, не официальный продукт Yaskawa.
 
-**Windows-релиз по состоянию на 18.11.2026 (историческое сообщение):** [v0.5.0-rc.9-oem-reference](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.9-oem-reference) (portable ZIP, NSIS setup, GPL source archive, SHA-256). [Основной CI — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44166354563), [Windows RC9 — SUCCESS](https://github.com/uzbatsu-beep/MLAD/actions/runs/44162078155).
+[Скачать Windows Preview](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.10-unified-offline) · [Документация](docs/README.ru.md) · [Roadmap v5](docs/roadmap.ru.md) · [CHANGELOG](CHANGELOG.ru.md)
 
-> **Безопасность:** MLAD не является сертифицированной средой Yaskawa или подтверждённым компилятором `CIOPRG.LST`. Оригинальные `CIOPRG.LST` и `IONAME.DAT` открываются **только для чтения**; native writer, FTP/HSES, загрузка в робот и реальная телеметрия выключены. Для работы с оборудованием применять официальные средства производителя и отдельную процедуру допуска.
-
-## Фактически доступно
-
-| Функция | Состояние |
+| Поставка | Состояние |
 | --- | --- |
-| Профили DX100/DX200/YRC1000 | Типизированные форматы адресов и проверка диапазонов; контроллерную карту/firmware ещё требуется подтвердить |
-| Native Workspace | Главная рабочая область: компактная шапка, системный диалог открытия, дерево, постраничный исходник, поиск и диагностика |
-| CIOPRG.LST | Побайтовая неизменность, SHA-256, разделы после `END` как данные, безопасная классификация поддерживаемого/неизвестного |
-| Ladder | **Все распознанные** цепи текущего SemanticPreview, масштаб, ссылки на исходный текст; неизвестные фрагменты не дорисовываются |
-| TMR/CNT/GSTR/GOUT | Просмотр native-паттернов и отдельные **офлайн-черновики** `*.advanced.json` |
-| IONAME.DAT / комментарии | Read-only preview, локальные комментарии цепей/адресов, ручные ассоциации; оригиналы не меняются |
-| `MOV`, `ADD`, `SUB`, `SHL`, `SHR` | Типизированные операнды и исходные spans, статические **предположительные** M-зависимости |
-| OEM-справка | Документальные формулы EN/16-bit/Carry/Zero/Error и автономные reference-тесты; **не** исполнение исходника на контроллере |
-| JSON Graph Draft | SVG, AND/OR/NO/NC/OUT, Undo/Redo, двойной щелчок/F2 по адресам и офлайн TRUE/FALSE/UNKNOWN |
-| Legacy JSON | Совместимость со старым `project.json` через отдельный пункт меню |
+| Windows x64 pre-release | v0.5.0-rc.10-unified-offline |
+| Разработка | Semantic Core v2, PR #51 merged; концепция UI, PR #52 merged |
+| Лицензия | GPL-3.0-only |
+| Ручная приёмка | UserSmoke=NOT RUN; OEMBench=NOT RUN |
 
-**Сохранение и защита JSON (PR #24–#29 merged):** staged write + `*.bak`, ограниченное чтение, конфликт по байтам **и** File ID, отказ для hardlinks, проверка временного файла по SHA-256, отказ Windows ADS/UNC/device, production CSP. Это **не** транзакция backup+target и **не** полное решение TOCTOU/ACL/crash recovery. [Security review](docs/filesystem_security_pr29.md), [verification gates](docs/verification_gates.md). Ручной Windows UserSmoke — **NOT RUN**.
+## Что уже работает
 
-**Границы форматов:** `CIOPRG.LST`/ `IONAME.DAT` — только источник; `*.graph.json` / `*.advanced.json` — отдельные изменяемые черновики. Нельзя сохранять JSON под видом native CIOPRG. Комментарии native Workspace сохраняются в localStorage и **не** равны OEM-комментариям файла робота.
+| Возможность | Граница |
+| --- | --- |
+| DX100 / DX200 / YRC1000 | Адресные модели; firmware и OEM-семантика не полностью подтверждены |
+| Native Workspace | Read-only `CIOPRG.LST`, SHA-256, исходный текст, поиск, диагностика |
+| Ladder | Распознанные цепи, ссылки на исходник; предпросмотр ограничен 200 цепями |
+| IONAME.DAT | Просмотр и ручные ассоциации; карта имён не подтверждена |
+| Static analysis | READ/WRITE/UNKNOWN с исходными ссылками; не scan model |
+| Offline project | `*.mladproj.json`, `*.mlad.json` v1; отдельные комментарии и закладки |
+| JSON drafts | Graph/Advanced; редактор, tri-state, ограниченные формы TMR/CNT/GSTR/GOUT |
 
-## Быстрый старт разработчика
+Состояние main и опубликованной сборки различается. [Матрица возможностей](docs/project_status.ru.md).
 
-Текущий стек: Rust + Tauri v2 + React 18 + TypeScript/Vite; Node.js 22 в CI, Windows MSVC + WebView2 для Windows сборки. `package-lock.json` и `src-tauri/Cargo.lock` отслеживаются в Git.
+## Быстрый старт пользователя
+
+1. Выберите portable ZIP или NSIS setup на [странице релиза](https://github.com/uzbatsu-beep/MLAD/releases/tag/v0.5.0-rc.10-unified-offline). Сверьте SHA-256 по приложенному SHA256SUMS.txt; сборка не подписана.
+2. Откройте копию исходного файла в Native Workspace, выберите семейство контроллера.
+3. Исследуйте текст, цепи, блоки и диагностику. При необходимости откройте `IONAME.DAT`.
+4. Сохраняйте аннотации/манифест отдельно. Редактирование только в JSON-черновиках, не в оригинальной программе.
+
+## Разработка
+
+Стек: Rust, Tauri 2, React, TypeScript, Vite; Node.js 22 в CI. Требуются Rust и системные зависимости Tauri (Windows MSVC/WebView2).
 
 ```bash
 npm ci --no-audit --no-fund
 npm run tauri dev
-```
-
-Полная локальная проверка (если установлены Rust/Tauri prerequisites):
-
-```bash
-npm run test:security
-npm run test:native
-npm run test:diagnostics
-npm run test:oem-reference
-npm run test:graph
-npm run test:advanced
-npm run test:visual
-npm run test:inline
 npm run docs:check
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml --locked
 ```
 
-GitHub Actions: [MLAD validation](.github/workflows/validation.yml) и постоянно действующий [Windows Acceptance & Security Regression](.github/workflows/windows-security-acceptance.yml). [Ручной протокол WIN-01…WIN-12](docs/windows_acceptance_pr28.md) ещё не закрыт. Windows rc.9 проверен [историческим release workflow](.github/workflow-archive/windows-oem-reference-rc9.yml); после PR #29 опубликован только временный unsigned non-release EXE. CI **не** означает прохождение пользовательского GUI/WebView2 smoke или OEM-эквивалентность.
+[Полный процесс разработки](docs/development_workflow.ru.md) · [Критерии приёмки](docs/verification_gates.ru.md) · [CI проверенного runtime main PR #51](https://github.com/uzbatsu-beep/MLAD/actions/runs/45813397360).
 
-## Начать работу
+## Дорожная карта
 
-1. В основной вкладке «Программа робота» выберите семейство DX100/DX200/YRC1000, откройте **копию** `CIOPRG.LST` через кнопку «Обзор…» и проверьте SHA-256.
-2. Просмотрите постраничный исходник, поддерживаемые цепи Ladder, блоки и диагностику. Для `MOV/ADD/SUB/SHL/SHR` доступна справка OEM — **без расчёта состояний реальных I/O**.
-3. При необходимости отдельно откройте `IONAME.DAT`. Корректность соответствия имён адресам не предполагается; используйте только ручные локальные привязки.
-4. Для редактируемой логики используйте **отдельный JSON-черновик** Graph/Advanced, а не оригинальную программу робота.
+Engineering Workbench: восемь специализированных компоновок, темы, Signal Intelligence, Compare, Virtual Laboratory, Trace & Test, Documentation, Robot Fleet и AI. Это **утверждённый план**, не описание выпущенного интерфейса. Реальные скриншоты публикуются после проверки соответствующей сборки.
 
-## Roadmap, доказательства и ограничения
+## Ограничения и обратная связь
 
-- [Текущий статус](docs/project_status.md), [дорожная карта](docs/roadmap.md), [план следующих PR](docs/implementation_plan.md), [архитектура](docs/architecture.md).
-- [Критерии проверок и выпуска](docs/verification_gates.md), [реестр решений D1–D9](docs/engineering_decisions.md).
-- [Синтаксис native](docs/cioprg_lst_spec.md), [типизированные команды](docs/typed_opcode_grammar.md), [пять OEM команд](docs/oem_5_opcode_analysis.md), [матрица семантической верификации](docs/semantic_verification_matrix.md).
-- [Корпус оригинальных файлов](docs/controller_fixture_intake.md), [программа стендовых испытаний](docs/advanced_hardware_test_matrix.md).
-- [Каталог всех Markdown](docs/README.md), [процесс PR и выпусков](docs/development_workflow.md).
+`CIOPRG.LST` и `IONAME.DAT` — read-only. HSES/FTP, native writer, live I/O и robot deployment — BLOCKED. Неизвестное не считается ложным или истинным; моделирование не является телеметрией. Не публикуйте производственные выгрузки, реальные хеши и IP.
 
-## Сообщество, сообщения об ошибках и безопасность
+[Issues](https://github.com/uzbatsu-beep/MLAD/issues) · [SECURITY](SECURITY.ru.md) · [CONTRIBUTING](CONTRIBUTING.ru.md) · [ACCESSIBILITY](ACCESSIBILITY.ru.md) · [LICENSE](LICENSE) · [Лицензирование](docs/licensing.ru.md).
 
-- [Открыть ошибку, предложение функции или проверку совместимости](https://github.com/uzbatsu-beep/MLAD/issues/new/choose) — через структурированные формы с **синтетическими** воспроизводимыми примерами.
-- [SECURITY.md](SECURITY.md) — порядок **непубличного** сообщения об уязвимостях; не публикуйте эксплойты/закрытые данные оборудования.
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — правила профессионального взаимодействия.
-- [CONTRIBUTING.md](CONTRIBUTING.md) и [шаблон PR](.github/PULL_REQUEST_TEMPLATE.md) — тесты, источники и ревью.
-- [ACCESSIBILITY.md](ACCESSIBILITY.md) — доступность интерфейса и известные ограничения, **без заявления соответствия WCAG**.
-
-**GitHub Community Standards — организационная документация, не сертификат безопасности.** Публичные Issues и PR не предназначены для оригинальных CIOPRG.LST, IONAME.DAT, сетевых параметров, закрытых журналов и программ роботов.
-
-## Лицензия
-
-**GNU GPL-3.0-only** — [LICENSE](LICENSE). Правообладатель собственных оригинальных материалов MLAD: **Фёдор Сергеевич Кочедыков** (физическое лицо), © 2026. Право собственности на чужие библиотеки, материалы Yaskawa и пользовательские данные не переходит к MLAD; third-party notices и chain-of-title ещё требуют отдельной проверки. Подробнее: [docs/licensing.md](docs/licensing.md).
-
-MLAD — независимый проект, **не разработан и не одобрен Yaskawa**.
-
-
-## Дальнейшая разработка
-
-**Историческая очередь на 18.11.2026 (указанные PR впоследствии реализованы):** [PR #30 — документация](docs/implementation_plan.md), далее предложены синтетические parser fixtures, улучшение Native Workspace, versioned sidecar `*.mlad.json`, typed syntax, source-linked static analysis, Unified Offline IDE и условный Windows 0.6.x preview. Отдельные PR с тестами и **без автоматического merge**. [Дорожная карта v3](docs/roadmap.md) · [подробный backlog](docs/implementation_plan.md) · [принятые инженерные решения](docs/engineering_decisions.md).
+История: rc.9 не содержит PR #24–#29; [предыдущий README](https://github.com/uzbatsu-beep/MLAD/blob/0754dea0d37f5fbc45c795008b60fe69e6c8b08f/README.md). Не использовать исторический срез как текущую инструкцию.

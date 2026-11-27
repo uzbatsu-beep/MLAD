@@ -1,0 +1,176 @@
+{
+  "baseline": "39137a60f68041ed1b4e65d2c3fcdf3518dff3d8",
+  "criteria": "exact same-repo merged PR head, no open PR, nonprotected, excluding main/release/**; verify again at execution",
+  "candidates": [
+    {
+      "branch": "chore/pr12-npm-ci-lockfile",
+      "sha": "179f310bdea6e660937815eb449c26123226c2c4",
+      "pr": 12
+    },
+    {
+      "branch": "chore/pr36-repository-ci-maintenance",
+      "sha": "d50fa1ab6ee733c58a733eeedf1be45992cbe48b",
+      "pr": 36
+    },
+    {
+      "branch": "docs/gpl-3.0-only-license",
+      "sha": "a71ceddd8470b47c760129018470a9c6fc314840",
+      "pr": 11
+    },
+    {
+      "branch": "docs/pr9-docs-audit-and-development-process",
+      "sha": "fa24f98447ae44be1fafad13b473cd6aff2846e4",
+      "pr": 9
+    },
+    {
+      "branch": "docs/pr22-sync-project-status-2026-11-18",
+      "sha": "6570d06eac41d69bb44ac15c7d8b94faa5f4f992",
+      "pr": 22
+    },
+    {
+      "branch": "docs/pr23-community-standards-security",
+      "sha": "c5f5c0bb003b9ff5656334eb60bdf08add5d8eab",
+      "pr": 23
+    },
+    {
+      "branch": "docs/pr27-roadmap-status-sync",
+      "sha": "526fe0911d5c108998bebf49efd10133d0017544",
+      "pr": 27
+    },
+    {
+      "branch": "docs/pr30-roadmap-v3-after-pr29",
+      "sha": "cb780fb2b6a648a21fcbc4f05c9177d3bbcc058c",
+      "pr": 30
+    },
+    {
+      "branch": "docs/pr31-bilingual-ru-en",
+      "sha": "361f78a986a5fdbf9f0cf0576e24009c83c6573b",
+      "pr": 31
+    },
+    {
+      "branch": "docs/pr32-bilingual-editorial-qa",
+      "sha": "971ad8d9c81ea2a657908b8a712890ea82885d1a",
+      "pr": 32
+    },
+    {
+      "branch": "docs/pr33-oem-grammar-memory-translation-qa",
+      "sha": "5557e01e7dc73ed3f5ca10b0c662c757b1e797e4",
+      "pr": 33
+    },
+    {
+      "branch": "docs/pr34-source-semantics-ioname-translation-qa",
+      "sha": "99134ada3aebca115a2a10d42c0fcd7985d38c1c",
+      "pr": 34
+    },
+    {
+      "branch": "docs/pr35-graph-editor-json-translation-qa",
+      "sha": "eadfb05eaaff406ccbcc0354c953399282195511",
+      "pr": 35
+    },
+    {
+      "branch": "docs/roadmap-v2-native-workspace",
+      "sha": "0953f5b51151f3cd531e1077bc786d0cc2b9ed17",
+      "pr": 10
+    },
+    {
+      "branch": "feat/cioprg-memory-spec-dx-yrc",
+      "sha": "59bcf03c5d8f548fd2e54f4eb4a9e62dc9bc2f87",
+      "pr": 1
+    },
+    {
+      "branch": "feat/pr2-cioprg-lossless-parser",
+      "sha": "36e93651093ce9d308c0531da09e75cb283fa0fb",
+      "pr": 2
+    },
+    {
+      "branch": "feat/pr3-semantic-ladder-ast",
+      "sha": "012c9fdd01c2b33cbcdcf74bbb79d73c957ee1cb",
+      "pr": 3
+    },
+    {
+      "branch": "feat/pr4-ladder-graph-editor",
+      "sha": "52bb90f37dbbab96515485169a1d91fdd95f1d2b",
+      "pr": 4
+    },
+    {
+      "branch": "feat/pr5-advanced-io-blocks",
+      "sha": "ec19271ef851196bd0da72fc0c015f556de5b320",
+      "pr": 5
+    },
+    {
+      "branch": "feat/pr6-multi-rung-state-visualization",
+      "sha": "3a7526dc11d92ba2fe93cff76b2b64dbe041bb75",
+      "pr": 7
+    },
+    {
+      "branch": "feat/pr8-inline-operand-editing",
+      "sha": "0d15d6532aec826d097db848d23411994cf45887",
+      "pr": 8
+    },
+    {
+      "branch": "feat/pr15-native-workspace",
+      "sha": "f4db17e8888db6941c7411812ace6a67100549d8",
+      "pr": 15
+    },
+    {
+      "branch": "feat/pr16-all-rungs-ioname-comments",
+      "sha": "8a99e0474c2af859b2bf1249862ab8acacfc2581",
+      "pr": 16
+    },
+    {
+      "branch": "feat/pr17-compact-header-native-file-pickers",
+      "sha": "fec539b89a6d8fef7721711f7594fa76af5a176c",
+      "pr": 17
+    },
+    {
+      "branch": "feat/pr18-postend-lossless-diagnostics",
+      "sha": "f98ed9cfcea526f681a950fd3e73d361e50896ca",
+      "pr": 18
+    },
+    {
+      "branch": "feat/pr19-typed-arithmetic-data-ops",
+      "sha": "ecd6dbfb60b501b26700b8cb065eea8c97dbfbc0",
+      "pr": 19
+    },
+    {
+      "branch": "feat/pr20-typed-static-dependency-audit",
+      "sha": "203de57fdfee813204e4a3e8f1d3dbdc2336c4a6",
+      "pr": 20
+    },
+    {
+      "branch": "feat/pr21-oem-five-opcode-reference-semantics",
+      "sha": "5ebe3999de06be0edf593c6ebde0d49615922c11",
+      "pr": 21
+    },
+    {
+      "branch": "feat/pr24-atomic-offline-json-drafts",
+      "sha": "c3678fa43592d9c11aad914e9248e2e880035fdc",
+      "pr": 24
+    },
+    {
+      "branch": "feat/pr25-tauri-csp-path-guards",
+      "sha": "1462a7a8ba75e8ebb8ac0855625613de10781fd6",
+      "pr": 25
+    },
+    {
+      "branch": "feat/pr26-guarded-file-snapshots",
+      "sha": "2a2842bd458f041715ea593f21b7835d3a99533d",
+      "pr": 26
+    },
+    {
+      "branch": "security/pr13-offline-network-boundary",
+      "sha": "aec86251b61b0d01ce23e50f9d630a18301b649c",
+      "pr": 13
+    },
+    {
+      "branch": "security/pr29-filesystem-hardening",
+      "sha": "0e1eae035309a1bc8a43594323b1197deb57a47f",
+      "pr": 29
+    },
+    {
+      "branch": "test/pr28-windows-acceptance-security",
+      "sha": "3302eb958f98a872959feb9439bd56af999ad60e",
+      "pr": 28
+    }
+  ]
+}
